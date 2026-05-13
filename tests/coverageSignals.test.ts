@@ -38,4 +38,15 @@ describe('coverage signal checks', () => {
       })
     ]);
   });
+
+  test('does not emit actionable warnings when no agent instructions exist', async () => {
+    const report = await runScan(join(fixturesRoot, 'no-agent-instructions-with-test-script'), {
+      strict: false,
+      include: [],
+      exclude: []
+    });
+
+    expect(report.findings.map((finding) => finding.id)).toEqual(['no-agent-instructions']);
+    expect(report.summary).toEqual({ errors: 0, warnings: 0, infos: 1 });
+  });
 });

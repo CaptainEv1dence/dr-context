@@ -16,5 +16,8 @@ export const checks: Check[] = [
 ];
 
 export function runChecks(context: CheckContext): Finding[] {
-  return checks.flatMap((check) => check.run(context));
+  const findings = checks.flatMap((check) => check.run(context));
+  return findings.some((finding) => finding.id === 'no-agent-instructions')
+    ? findings.filter((finding) => finding.id === 'no-agent-instructions')
+    : findings;
 }

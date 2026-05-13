@@ -5,6 +5,11 @@ const jsPackageManagers: PackageManagerName[] = ['npm', 'pnpm', 'yarn', 'bun'];
 export const packageManagerMismatchCheck: Check = {
   id: 'package-manager-mismatch',
   run(context: CheckContext): Finding[] {
+    const multipleLockfiles = multiplePackageLockfilesFinding(context.facts.packageManagers);
+    if (multipleLockfiles) {
+      return [multipleLockfiles];
+    }
+
     const canonical = findCanonicalPackageManager(context.facts.packageManagers);
     if (!canonical || canonical.name === 'unknown') {
       return [];
@@ -55,6 +60,32 @@ export const packageManagerMismatchCheck: Check = {
     });
   }
 };
+
+function multiplePackageLockfilesFinding(packageManagers: PackageManagerEvidence[]): Finding | undefined {
+  const lockfiles = packageManagers.filter(
+    (manager) => jsPackageManagers.includes(manager.name) && manager.source.file !== 'package.json'
+  );
+  const names = new Set(lockfiles.map((manager) => manager.name));
+
+  if (names.size < 2) {
+    return undefined;
+  }
+
+  return {
+    id: 'multiple-package-lockfiles',
+    title: 'Multiple JavaScript package manager lockfiles were found',
+    category: 'package-manager',
+    severity: 'warning',
+    confidence: 'high',
+    primarySource: lockfiles[0].source,
+    evidence: lockfiles.map((manager) => ({
+      kind: 'lockfile',
+      message: `${manager.source.file} indicates ${manager.name}.`,
+      source: manager.source
+    })),
+    suggestion: 'Keep one JavaScript package manager lockfile and remove stale lockfiles so agents use the intended package manager.'
+  };
+}
 
 function findCanonicalPackageManager(packageManagers: PackageManagerEvidence[]): PackageManagerEvidence | undefined {
   return (

@@ -91,6 +91,7 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Architecture docs discovery and visibility.
 - Coverage signals for repos with no supported context files or no agent-visible instructions.
 - Placeholder failing test script detection.
+- Multiple JavaScript lockfile detection.
 - Evidence-backed text and JSON reports.
 
 ## Useful findings
@@ -106,6 +107,8 @@ This usually means the command ran outside a repository root or the repository h
 Dr. Context found repo facts, such as `package.json`, lockfiles, CI workflows, or architecture docs, but did not find an agent-visible instruction file.
 
 Add `AGENTS.md`, `CLAUDE.md`, or another supported instruction file with exact first reads and verification commands.
+
+This finding suppresses other actionable warnings. Without an agent-visible instruction file, Dr. Context cannot tell whether missing commands are product problems or simply undocumented intent.
 
 ### `placeholder-test-script`
 
@@ -136,6 +139,12 @@ For example, this script:
 ```
 
 Produces a suggestion to document `forge test`.
+
+### `multiple-package-lockfiles`
+
+Multiple JavaScript package manager lockfiles were found, for example `package-lock.json` and `yarn.lock`.
+
+Keep one JavaScript package manager lockfile and remove stale lockfiles so agents use the intended package manager.
 
 ## Privacy and dogfood hygiene
 

@@ -57,4 +57,23 @@ describe('package manager mismatch scan', () => {
     expect(report.summary.errors).toBe(0);
     expect(report.findings).toHaveLength(0);
   });
+
+  test('reports multiple JavaScript lockfiles before choosing a canonical package manager', async () => {
+    const report = await runScan(join(fixturesRoot, 'multiple-js-lockfiles'), {
+      strict: false,
+      include: [],
+      exclude: []
+    });
+
+    expect(report.findings.filter((finding) => finding.id === 'package-manager-mismatch')).toHaveLength(0);
+    expect(report.findings.filter((finding) => finding.id === 'multiple-package-lockfiles')).toEqual([
+      expect.objectContaining({
+        category: 'package-manager',
+        severity: 'warning',
+        confidence: 'high',
+        title: 'Multiple JavaScript package manager lockfiles were found',
+        suggestion: 'Keep one JavaScript package manager lockfile and remove stale lockfiles so agents use the intended package manager.'
+      })
+    ]);
+  });
 });
