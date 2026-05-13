@@ -28,7 +28,7 @@ Before any publish attempt:
 - [ ] Confirm runtime report `toolVersion` matches `package.json`.
 - [ ] Confirm npm provenance is required for published artifacts.
 - [ ] Configure trusted publishing with GitHub OIDC before automation publishes.
-- [ ] Keep the release workflow disabled or absent until trusted publishing is configured.
+- [x] Add release workflow for tag/manual dispatch publishing after npm trusted publishing is configured.
 
 ## Local verification gate
 
@@ -92,16 +92,24 @@ Do not run a real `npm publish` from a local machine unless the release plan exp
 
 ## GitHub trusted publishing
 
-Before adding a release workflow:
+The repository contains `.github/workflows/release.yml`. It publishes only on `workflow_dispatch` or `v*` tags.
+
+Before running it:
 
 - [ ] Create or claim the npm package.
 - [ ] Configure npm trusted publishing for this GitHub repository.
-- [ ] Restrict publish automation to tags or release workflow dispatch.
-- [ ] Use OIDC provenance.
+- [x] Restrict publish automation to tags or release workflow dispatch.
+- [x] Use OIDC provenance.
 - [ ] Require CI to pass before publishing.
 - [ ] Keep npm token secrets out of the repository if trusted publishing is available.
 
-Release workflow automation is intentionally deferred until the package identity and npm trusted publishing setup are final.
+Trusted publishing settings should point to:
+
+- package: `dr-context`
+- owner/repo: `CaptainEv1dence/dr-context`
+- workflow: `release.yml`
+
+Do not push tag `v0.1.0` or run the release workflow manually until npm trusted publishing is configured.
 
 ## GitHub Actions Node 20 warning
 
