@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runScan } from '../core/runScan.js';
 import { renderJson } from '../reporting/jsonReporter.js';
 import { renderText } from '../reporting/textReporter.js';
 import { exitCodeForReport } from './exitCodes.js';
 
-type CliOptions = { json?: boolean; strict?: boolean; include: string[]; exclude: string[] };
+type CliOptions = { json?: boolean; strict?: boolean; include: string[]; exclude: string[]; root?: string };
 
 export type CliResult = {
   stdout: string;
@@ -21,7 +22,8 @@ export async function runCli(argv: string[]): Promise<CliResult> {
   const program = createProgram(async (options, parentOptions) => {
     try {
       const effectiveOptions = { ...parentOptions, ...options };
-      const report = await runScan(process.cwd(), {
+      const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+      const report = await runScan(root, {
         strict: Boolean(effectiveOptions.strict),
         include: effectiveOptions.include,
         exclude: effectiveOptions.exclude
@@ -50,6 +52,7 @@ function createProgram(action: (options: CliOptions, parentOptions: CliOptions) 
     .option('--strict', 'exit non-zero on warnings')
     .option('--include <glob...>', 'include globs', [])
     .option('--exclude <glob...>', 'exclude globs', [])
+    .option('--root <path>', 'repository root to scan')
     .action((options: CliOptions) => action(options, defaultOptions()));
 
   program
@@ -59,6 +62,7 @@ function createProgram(action: (options: CliOptions, parentOptions: CliOptions) 
     .option('--strict', 'exit non-zero on warnings')
     .option('--include <glob...>', 'include globs', [])
     .option('--exclude <glob...>', 'exclude globs', [])
+    .option('--root <path>', 'repository root to scan')
     .action((options: CliOptions) => action(options, program.opts<CliOptions>()));
 
   return program;

@@ -63,6 +63,23 @@ describe('drctx CLI', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('CI runs "lint" but agent instructions do not mention it');
   });
+
+  test('scans an explicit root path with check --root', async () => {
+    const result = await runCli([
+      'node',
+      'drctx',
+      'check',
+      '--json',
+      '--root',
+      join(fixturesRoot, 'npm-repo-missing-test-instructions')
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      root: join(fixturesRoot, 'npm-repo-missing-test-instructions'),
+      summary: { errors: 0, warnings: 1, infos: 0 }
+    });
+  });
 });
 
 async function runInFixture(args: string[], fixture: string): Promise<{ stdout: string; stderr: string; exitCode: number }> {

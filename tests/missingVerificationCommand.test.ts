@@ -38,4 +38,53 @@ describe('missing verification command scan', () => {
 
     expect(report.findings.filter((finding) => finding.id === 'missing-verification-command')).toHaveLength(0);
   });
+
+  test('uses lockfile package manager evidence for missing verification suggestions', async () => {
+    const report = await runScan(join(fixturesRoot, 'npm-repo-missing-test-instructions'), {
+      strict: false,
+      include: [],
+      exclude: []
+    });
+
+    const findings = report.findings.filter((finding) => finding.id === 'missing-verification-command');
+    expect(findings).toHaveLength(1);
+    expect(findings[0].evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'package-manager',
+          message: 'package-lock.json indicates npm.'
+        })
+      ])
+    );
+    expect(findings[0].suggestion).toBe('Add `npm test` to verification instructions.');
+  });
+
+  test('suggests direct tool commands for package scripts that wrap non-package-manager verification tools', async () => {
+    const report = await runScan(join(fixturesRoot, 'foundry-repo-missing-test-instructions'), {
+      strict: false,
+      include: [],
+      exclude: []
+    });
+
+    const findings = report.findings.filter((finding) => finding.id === 'missing-verification-command');
+    expect(findings).toHaveLength(1);
+    expect(findings[0].suggestion).toBe('Add `forge test` to verification instructions.');
+  });
+
+  test('reports placeholder failing test scripts instead of suggesting them as verification commands', async () => {
+    const report = await runScan(join(fixturesRoot, 'placeholder-test-script'), {
+      strict: false,
+      include: [],
+      exclude: []
+    });
+
+    expect(report.findings.filter((finding) => finding.id === 'missing-verification-command')).toHaveLength(0);
+    const findings = report.findings.filter((finding) => finding.id === 'placeholder-test-script');
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      severity: 'warning',
+      confidence: 'high',
+      suggestion: 'Replace the placeholder `test` script with a real verification command or remove it.'
+    });
+  });
 });

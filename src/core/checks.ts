@@ -1,4 +1,5 @@
 import { ciDocCommandMismatchCheck } from '../checks/ciDocCommandMismatch.js';
+import { coverageSignalsCheck } from '../checks/coverageSignals.js';
 import { hiddenArchitectureDocCheck } from '../checks/hiddenArchitectureDoc.js';
 import { missingVerificationCommandCheck } from '../checks/missingVerificationCommand.js';
 import { packageManagerMismatchCheck } from '../checks/packageManagerMismatch.js';
@@ -6,6 +7,7 @@ import { stalePackageScriptReferenceCheck } from '../checks/stalePackageScriptRe
 import type { Check, CheckContext, Finding } from './types.js';
 
 export const checks: Check[] = [
+  coverageSignalsCheck,
   packageManagerMismatchCheck,
   stalePackageScriptReferenceCheck,
   ciDocCommandMismatchCheck,
