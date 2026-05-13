@@ -4,6 +4,12 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.1 - 2026-05-13
+
+### Fixed
+
+- Add `dr-context` binary alias so `npx dr-context` works in addition to `drctx`.
+
 ## 0.1.0 - 2026-05-13
 
 ### Added
