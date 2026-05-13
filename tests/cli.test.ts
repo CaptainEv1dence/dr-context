@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { runCli } from '../src/cli/main.js';
 
@@ -82,6 +83,7 @@ describe('drctx CLI', () => {
   });
 
   test('discovers candidate repository roots as JSON', async () => {
+    await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
     const result = await runCli(['node', 'drctx', 'discover', '--json', '--root', join(fixturesRoot, 'discover-workspace')]);
 
     expect(result.exitCode).toBe(0);
@@ -99,6 +101,7 @@ describe('drctx CLI', () => {
   });
 
   test('discovers candidate repository roots as text', async () => {
+    await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
     const result = await runCli(['node', 'drctx', 'discover', '--root', join(fixturesRoot, 'discover-workspace')]);
 
     expect(result.exitCode).toBe(0);
