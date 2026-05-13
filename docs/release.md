@@ -13,9 +13,8 @@ Do not rename the package or remove `"private": true` until the final package na
 
 ## Version policy
 
-- Keep `version` at `0.0.0` during pre-release development.
-- First intended public npm release: `0.1.0`.
-- Update `CHANGELOG.md` from `Unreleased` to the release version during release prep.
+- Release prep branch sets `version` to `0.1.0`.
+- Update `CHANGELOG.md` to the release version during release prep.
 
 ## Publish readiness gate
 
@@ -23,9 +22,10 @@ Before any publish attempt:
 
 - [ ] Confirm npm account or organization owner.
 - [ ] Confirm package name: `dr-context` or fallback.
-- [ ] Remove `"private": true` only after package name approval.
-- [ ] Set version to `0.1.0` for the first public release.
+- [x] Remove `"private": true` only after package name approval.
+- [x] Set version to `0.1.0` for the first public release.
 - [ ] Confirm `publishConfig.access` is correct for the chosen package name.
+- [ ] Confirm runtime report `toolVersion` matches `package.json`.
 - [ ] Confirm npm provenance is required for published artifacts.
 - [ ] Configure trusted publishing with GitHub OIDC before automation publishes.
 - [ ] Keep the release workflow disabled or absent until trusted publishing is configured.
