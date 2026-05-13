@@ -94,14 +94,15 @@ Do not run a real `npm publish` from a local machine unless the release plan exp
 
 The repository contains `.github/workflows/release.yml`. It publishes only on `workflow_dispatch` or `v*` tags.
 
-Before running it:
+Trusted publishing is configured for future releases.
 
-- [ ] Create or claim the npm package.
-- [ ] Configure npm trusted publishing for this GitHub repository.
+- [x] Create or claim the npm package.
+- [x] Configure npm trusted publishing for this GitHub repository.
 - [x] Restrict publish automation to tags or release workflow dispatch.
 - [x] Use OIDC provenance.
-- [ ] Require CI to pass before publishing.
-- [ ] Keep npm token secrets out of the repository if trusted publishing is available.
+- [x] Run CI-equivalent checks in the release workflow before publishing.
+- [x] Keep npm token secrets out of the repository if trusted publishing is available.
+- [x] Skip publish when the package version already exists on npm.
 
 Trusted publishing settings should point to:
 
@@ -109,7 +110,7 @@ Trusted publishing settings should point to:
 - owner/repo: `CaptainEv1dence/dr-context`
 - workflow: `release.yml`
 
-Do not push tag `v0.1.0` or run the release workflow manually until npm trusted publishing is configured.
+For the already-published `0.1.1` version, pushing tag `v0.1.1` is safe: the workflow should run checks, detect that `dr-context@0.1.1` already exists, and skip `npm publish`.
 
 ## GitHub Actions Node 20 warning
 
