@@ -1,0 +1,8 @@
+{
+  "name": "missing-package-script",
+  "packageManager": "pnpm@11.1.1",
+  "scripts": {
+    "test": "vitest run",
+    "lint": "eslint ."
+  }
+}

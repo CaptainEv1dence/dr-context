@@ -1,0 +1,2 @@
+test:
+	pnpm test

@@ -1,0 +1,60 @@
+{
+  "name": "dr-context",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Diagnose context rot before your coding agent reads it.",
+  "type": "module",
+  "packageManager": "pnpm@11.1.1",
+  "main": "./dist/cli/main.js",
+  "types": "./dist/cli/main.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "drctx": "./dist/cli/main.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pack:dry-run": "corepack pnpm pack --dry-run",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CaptainEv1dence/dr-context.git"
+  },
+  "keywords": [
+    "ai-agents",
+    "cli",
+    "context",
+    "static-analysis",
+    "developer-tools"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CaptainEv1dence/dr-context/issues"
+  },
+  "homepage": "https://github.com/CaptainEv1dence/dr-context#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "latest",
+    "@types/node": "latest",
+    "typescript-eslint": "latest",
+    "eslint": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "dependencies": {
+    "commander": "latest",
+    "fast-glob": "latest",
+    "yaml": "latest"
+  }
+}

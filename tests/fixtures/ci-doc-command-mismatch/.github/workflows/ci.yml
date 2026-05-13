@@ -1,0 +1,9 @@
+name: CI
+jobs:
+  test:
+    steps:
+      - run: |
+          pnpm install --frozen-lockfile
+          pnpm test
+          pnpm run lint
+          corepack pnpm run typecheck
