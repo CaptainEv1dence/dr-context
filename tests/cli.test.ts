@@ -80,6 +80,43 @@ describe('drctx CLI', () => {
       summary: { errors: 0, warnings: 1, infos: 0 }
     });
   });
+
+  test('discovers candidate repository roots as JSON', async () => {
+    const result = await runCli(['node', 'drctx', 'discover', '--json', '--root', join(fixturesRoot, 'discover-workspace')]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      schemaVersion: 'drctx.discover.v1',
+      maxDepth: 3,
+      candidates: [
+        { path: '.', type: 'agent-context-root', signals: ['AGENTS.md'] },
+        { path: 'package-only', type: 'package-root', signals: ['package.json'] },
+        { path: 'repo-a', type: 'git-repository', signals: ['.git', 'AGENTS.md', 'package.json'] }
+      ],
+      summary: { candidates: 3 }
+    });
+  });
+
+  test('discovers candidate repository roots as text', async () => {
+    const result = await runCli(['node', 'drctx', 'discover', '--root', join(fixturesRoot, 'discover-workspace')]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Dr. Context Discover');
+    expect(result.stdout).toContain('Found 3 candidate root(s).');
+    expect(result.stdout).toContain('1. . (agent-context-root)');
+    expect(result.stdout).toContain('- AGENTS.md');
+    expect(result.stdout).toContain('3. repo-a (git-repository)');
+    expect(result.stdout).not.toContain(join(fixturesRoot, 'discover-workspace'));
+  });
+
+  test('returns exit code 2 for invalid discover max depth', async () => {
+    const result = await runCli(['node', 'drctx', 'discover', '--root', join(fixturesRoot, 'discover-workspace'), '--max-depth', 'nope']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('Dr. Context internal error: --max-depth must be a non-negative integer');
+  });
 });
 
 async function runInFixture(args: string[], fixture: string): Promise<{ stdout: string; stderr: string; exitCode: number }> {

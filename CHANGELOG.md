@@ -20,6 +20,7 @@ The format follows Keep a Changelog-style sections. The project has not publishe
 - `placeholder-test-script` warning for placeholder failing `npm init`-style test scripts.
 - `multiple-package-lockfiles` warning for conflicting JavaScript lockfile evidence.
 - Direct verification command suggestions for scripts that call tools such as `forge test`.
+- `drctx discover` for finding candidate roots in folders with multiple repos or shared agent instructions.
 - Text and JSON reporting with source-backed evidence.
 
 ### Changed

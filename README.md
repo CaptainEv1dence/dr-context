@@ -22,6 +22,12 @@ Scan another repository without changing directories:
 drctx check --root ../other-repo
 ```
 
+Find candidate repository roots under a folder without scanning them:
+
+```bash
+drctx discover --root ../workspace --max-depth 3
+```
+
 ## Quick start
 
 ```bash
@@ -92,7 +98,47 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Coverage signals for repos with no supported context files or no agent-visible instructions.
 - Placeholder failing test script detection.
 - Multiple JavaScript lockfile detection.
+- Candidate root discovery for folders that contain multiple repos or shared agent instructions.
 - Evidence-backed text and JSON reports.
+
+## Discover candidate roots
+
+Use `discover` when a folder contains multiple repos or shared agent instructions:
+
+```bash
+drctx discover --root ../workspace
+```
+
+It reports candidate roots and signal names only. It does not scan each child, merge parent and child instructions, or print file contents.
+
+JSON output uses `schemaVersion: "drctx.discover.v1"`:
+
+```json
+{
+  "schemaVersion": "drctx.discover.v1",
+  "candidates": [
+    {
+      "path": ".",
+      "type": "agent-context-root",
+      "signals": ["AGENTS.md"]
+    },
+    {
+      "path": "repo-a",
+      "type": "git-repository",
+      "signals": [".git", "AGENTS.md", "package.json"]
+    }
+  ],
+  "summary": {
+    "candidates": 2
+  }
+}
+```
+
+Candidate types:
+
+- `git-repository`: has `.git`.
+- `agent-context-root`: has agent instruction files but no `.git`.
+- `package-root`: has package or lockfile signals but no `.git` or agent instruction file.
 
 ## Useful findings
 
