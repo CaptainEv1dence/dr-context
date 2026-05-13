@@ -14,6 +14,7 @@ describe('repository candidate discovery', () => {
       schemaVersion: 'drctx.discover.v1',
       tool: 'drctx',
       toolVersion: '0.0.0',
+      root: '<requested-root>',
       maxDepth: 3,
       summary: { candidates: 3 }
     });

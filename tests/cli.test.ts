@@ -90,6 +90,7 @@ describe('drctx CLI', () => {
     expect(result.stderr).toBe('');
     expect(JSON.parse(result.stdout)).toMatchObject({
       schemaVersion: 'drctx.discover.v1',
+      root: '<requested-root>',
       maxDepth: 3,
       candidates: [
         { path: '.', type: 'agent-context-root', signals: ['AGENTS.md'] },

@@ -116,6 +116,7 @@ JSON output uses `schemaVersion: "drctx.discover.v1"`:
 ```json
 {
   "schemaVersion": "drctx.discover.v1",
+  "root": "<requested-root>",
   "candidates": [
     {
       "path": ".",
@@ -139,6 +140,8 @@ Candidate types:
 - `git-repository`: has `.git`.
 - `agent-context-root`: has agent instruction files but no `.git`.
 - `package-root`: has package or lockfile signals but no `.git` or agent instruction file.
+
+Unlike scan reports, discover JSON does not echo the absolute requested root. Candidate paths are relative to the requested root.
 
 ## Useful findings
 
@@ -219,6 +222,7 @@ Do not publish raw scans from private repositories. Public examples, tests, issu
 ## Project health
 
 - See `CONTRIBUTING.md` for local development and TDD rules.
+- See `docs/roadmap.md` for v0.1 blockers and deferred work.
 - See `docs/release.md` for the npm release checklist.
 - See `SECURITY.md` for vulnerability reporting.
 - See `CHANGELOG.md` for release notes once public releases begin.

@@ -18,7 +18,7 @@ export async function discoverCandidates(root: string, config: DiscoverConfig): 
     schemaVersion: 'drctx.discover.v1',
     tool: 'drctx',
     toolVersion: '0.0.0',
-    root,
+    root: '<requested-root>',
     maxDepth: config.maxDepth,
     candidates: candidates.sort((left, right) => comparePaths(left.path, right.path)),
     summary: {

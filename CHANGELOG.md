@@ -21,11 +21,13 @@ The format follows Keep a Changelog-style sections. The project has not publishe
 - `multiple-package-lockfiles` warning for conflicting JavaScript lockfile evidence.
 - Direct verification command suggestions for scripts that call tools such as `forge test`.
 - `drctx discover` for finding candidate roots in folders with multiple repos or shared agent instructions.
+- Roadmap documentation for v0.1 blockers and deferred workspace features.
 - Release checklist documentation for npm package identity, provenance, trusted publishing, dry runs, and privacy gates.
 - Text and JSON reporting with source-backed evidence.
 
 ### Changed
 
+- `drctx discover --json` now redacts the absolute requested root as `<requested-root>` and keeps candidate paths relative.
 - Verification command suggestions now prefer `packageManager` metadata or lockfile evidence instead of defaulting blindly to pnpm.
 - `no-agent-instructions` now suppresses actionable warnings because the repo has no supported agent-visible instruction surface to fix yet.
 
