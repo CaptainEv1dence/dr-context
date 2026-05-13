@@ -219,5 +219,6 @@ Do not publish raw scans from private repositories. Public examples, tests, issu
 ## Project health
 
 - See `CONTRIBUTING.md` for local development and TDD rules.
+- See `docs/release.md` for the npm release checklist.
 - See `SECURITY.md` for vulnerability reporting.
 - See `CHANGELOG.md` for release notes once public releases begin.
