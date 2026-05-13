@@ -16,6 +16,12 @@ Or after install:
 drctx check
 ```
 
+Scan another repository without changing directories:
+
+```bash
+drctx check --root ../other-repo
+```
+
 ## Quick start
 
 ```bash
@@ -83,7 +89,59 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Missing verification commands.
 - CI/doc command mismatch.
 - Architecture docs discovery and visibility.
+- Coverage signals for repos with no supported context files or no agent-visible instructions.
+- Placeholder failing test script detection.
 - Evidence-backed text and JSON reports.
+
+## Useful findings
+
+### `no-scannable-context`
+
+Dr. Context did not find supported agent instructions, package files, CI workflows, architecture docs, or command mentions.
+
+This usually means the command ran outside a repository root or the repository has no supported context files yet.
+
+### `no-agent-instructions`
+
+Dr. Context found repo facts, such as `package.json`, lockfiles, CI workflows, or architecture docs, but did not find an agent-visible instruction file.
+
+Add `AGENTS.md`, `CLAUDE.md`, or another supported instruction file with exact first reads and verification commands.
+
+### `placeholder-test-script`
+
+`package.json` contains a placeholder failing test script, for example:
+
+```json
+{
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
+```
+
+Replace it with a real verification command or remove it. Dr. Context does not recommend placeholder test scripts as agent instructions.
+
+### Direct verification commands
+
+When a package script delegates directly to a known verification tool, Dr. Context suggests that tool command instead of guessing a package-manager command.
+
+For example, this script:
+
+```json
+{
+  "scripts": {
+    "test": "forge test"
+  }
+}
+```
+
+Produces a suggestion to document `forge test`.
+
+## Privacy and dogfood hygiene
+
+Dr. Context is local and read-only by default. It does not call LLM or network APIs in v0.1.
+
+Do not publish raw scans from private repositories. Public examples, tests, issues, and release notes should use synthetic fixtures or sanitized aggregate findings only.
 
 ## Output contracts
 

@@ -52,4 +52,6 @@ pnpm exec vitest run tests/path/to/test.test.ts
 - v0.1 must not call network or LLM APIs.
 - v0.1 must not write files by default.
 - Never print secrets if fixture or user repos contain secret-like values.
+- Never commit or push raw dogfood logs, full local scan JSON, private repository paths, private repository names, or detailed findings from local/private repositories.
+- Public docs, tests, changelog entries, issues, and fixtures must use synthetic examples or sanitized aggregate product learnings only.
 - Before any public push, verify that no secrets, `.env` files, credentials, runtime databases, logs, caches, `node_modules`, `dist`, coverage output, or other local-only artifacts are staged.
