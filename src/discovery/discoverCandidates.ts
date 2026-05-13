@@ -1,5 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { toolVersion } from '../version.js';
 import type { CandidateType, DiscoverReport, DiscoveryCandidate } from './types.js';
 
 export type DiscoverConfig = {
@@ -17,7 +18,7 @@ export async function discoverCandidates(root: string, config: DiscoverConfig): 
   return {
     schemaVersion: 'drctx.discover.v1',
     tool: 'drctx',
-    toolVersion: '0.0.0',
+    toolVersion,
     root: '<requested-root>',
     maxDepth: config.maxDepth,
     candidates: candidates.sort((left, right) => comparePaths(left.path, right.path)),

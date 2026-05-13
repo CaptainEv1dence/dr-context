@@ -5,6 +5,7 @@ import { extractMarkdownCommands } from '../extractors/markdownCommands.js';
 import { extractPackageJsonScripts } from '../extractors/packageJsonScripts.js';
 import { extractPackageManagers } from '../extractors/packageManagers.js';
 import { readWorkspace } from '../io/readWorkspace.js';
+import { toolVersion } from '../version.js';
 import { runChecks } from './checks.js';
 import { summarizeFindings } from './summary.js';
 import type { EffectiveConfig, RepoFacts, Report } from './types.js';
@@ -26,7 +27,7 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
   return {
     schemaVersion: 'drctx.report.v1',
     tool: 'drctx',
-    toolVersion: '0.0.0',
+    toolVersion,
     root,
     findings,
     summary: summarizeFindings(findings)
