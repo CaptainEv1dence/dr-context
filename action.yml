@@ -28,12 +28,15 @@ runs:
       shell: bash
       run: |
         set +e
+        DR_CONTEXT_WORKDIR="$RUNNER_TEMP/dr-context-action"
+        mkdir -p "$DR_CONTEXT_WORKDIR"
+
         STRICT_FLAG=""
         if [ "${{ inputs.strict }}" = "true" ]; then
           STRICT_FLAG="--strict"
         fi
 
-        npm exec --yes --package "dr-context@${{ inputs.version }}" -- dr-context check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
+        npm exec --yes --prefix "$DR_CONTEXT_WORKDIR" --package "dr-context@${{ inputs.version }}" -- dr-context check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
         STATUS=$?
 
         cat dr-context.sarif
