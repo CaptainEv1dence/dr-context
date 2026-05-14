@@ -4,6 +4,20 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.1 - Unreleased
+
+### Added
+
+- Add a central instruction surface registry for agent context files.
+- Add support for Gemini, Copilot path instructions, Cursor MDC rules, AGENT_GUIDE-style files, and detection-only entries for additional agent tools.
+- Extract Makefile, justfile, Taskfile, README command, Node runtime, package engine, and setup-action facts.
+- Classify CI commands so manifests distinguish verification commands from shell plumbing.
+
+### Changed
+
+- Manifest instruction files now include tool and scope metadata.
+- Manifest verification command detection ignores shell control/output plumbing lines.
+
 ## 0.3.0 - 2026-05-14
 
 ### Added

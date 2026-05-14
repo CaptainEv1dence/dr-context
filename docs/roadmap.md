@@ -16,6 +16,7 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 ## Next
 
+- 0.3.1 implementation plan: `docs/superpowers/plans/2026-05-14-0.3.1-surface-coverage-manifest-cleanup.md`.
 - Support official agent instruction surfaces discovered in ecosystem research:
   - GitHub Copilot repository instructions: `.github/copilot-instructions.md`.
   - GitHub Copilot path-specific instructions: `.github/instructions/*.instructions.md`.

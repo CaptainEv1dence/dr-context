@@ -140,6 +140,22 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Evidence-backed text and JSON reports.
 - SARIF 2.1.0 reporting for code scanning integrations.
 
+## Supported context surfaces
+
+Dr. Context treats these files as local repo context. It does not call vendor APIs or infer live agent state.
+
+| Tool / convention | Surface | Status |
+| --- | --- | --- |
+| Generic coding agents | `AGENTS.md`, nested `AGENTS.md` | Supported |
+| Claude Code | `CLAUDE.md` | Supported |
+| GitHub Copilot | `.github/copilot-instructions.md` | Supported |
+| GitHub Copilot | `.github/instructions/*.instructions.md` | Supported |
+| Cursor | `.cursor/rules/**/*.mdc`, `.cursorrules` | Supported |
+| Gemini | `GEMINI.md` | Supported |
+| Explicit agent guide | `AGENT_GUIDE.md`, when present or referenced | Supported |
+| Windsurf / Continue / Aider / Cody | Known local rule/config files | Detection-only in 0.3.1 |
+| Claude Code Action | `custom_instructions`, `--append-system-prompt`, `prompt`, `direct_prompt` | Planned for 0.3.3 |
+
 ## Discover candidate roots
 
 Use `discover` when a folder contains multiple repos or shared agent instructions:
