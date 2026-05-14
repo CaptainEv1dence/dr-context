@@ -66,6 +66,23 @@ function redactWorkspaceReport(report: WorkspaceReport): WorkspaceReport {
 function redactScanReport(report: Report): Report {
   return {
     ...report,
-    root: '<candidate-root>'
+    root: '<candidate-root>',
+    inheritedInstructionFiles: report.inheritedInstructionFiles?.map((entry) => ({
+      ...entry,
+      source: redactSourceText(entry.source)
+    })),
+    findings: report.findings.map((finding) => ({
+      ...finding,
+      primarySource: finding.primarySource ? redactSourceText(finding.primarySource) : undefined,
+      evidence: finding.evidence.map((entry) => ({
+        ...entry,
+        source: entry.source ? redactSourceText(entry.source) : undefined
+      }))
+    }))
   };
+}
+
+function redactSourceText<T extends { text?: string }>(source: T): T {
+  const { text: _text, ...rest } = source;
+  return rest as T;
 }

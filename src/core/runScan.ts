@@ -7,6 +7,7 @@ import { extractMarkdownCommands } from '../extractors/markdownCommands.js';
 import { extractPackageJsonScripts } from '../extractors/packageJsonScripts.js';
 import { extractPackageManagers } from '../extractors/packageManagers.js';
 import { extractRuntimeVersions } from '../extractors/runtimeVersions.js';
+import { listWorkspaceFilePaths } from '../io/listWorkspaceFilePaths.js';
 import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
 import { runChecks } from './checks.js';
@@ -17,6 +18,7 @@ import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 export async function runScan(root: string, config: EffectiveConfig): Promise<Report> {
   const files = await readWorkspace(root, { include: config.include, exclude: config.exclude });
+  const filePaths = await listWorkspaceFilePaths(root);
   const localPathMentions = await markExistingLocalPaths(root, extractLocalPathMentions(files));
   const facts: RepoFacts = {
     root,
@@ -28,10 +30,10 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     ciCommands: extractCiCommands(files),
     architectureDocs: extractArchitectureDocs(files),
     agentInstructionDocs: extractAgentInstructionDocs(files),
-    inheritedAgentInstructionDocs: [],
+    inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],
     localPathMentions,
     files,
-    filePaths: files.map((file) => file.path),
+    filePaths,
     keyDirectories: []
   };
   const findings = runChecks({ facts, config });
@@ -41,9 +43,29 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     tool: 'drctx',
     toolVersion,
     root,
+    inheritedInstructionFiles: inheritedInstructionFiles(facts),
     findings,
     summary: summarizeFindings(findings)
   };
+}
+
+function inheritedInstructionFiles(facts: RepoFacts): Report['inheritedInstructionFiles'] {
+  if (facts.inheritedAgentInstructionDocs.length === 0) {
+    return undefined;
+  }
+
+  return facts.inheritedAgentInstructionDocs.map((doc) => ({
+    path: doc.path,
+    type: doc.tool,
+    scope: doc.scope,
+    appliesTo: doc.appliesTo,
+    metadata: doc.metadata,
+    source: doc.source,
+    inherited: true,
+    inheritedFrom: doc.inheritedFrom ?? 'workspace-parent',
+    displayPath: doc.displayPath ?? `<workspace-parent>/${doc.path}`,
+    appliesBecause: 'inherited from workspace parent because --inherit-parent-instructions is enabled'
+  }));
 }
 
 async function markExistingLocalPaths(root: string, mentions: RepoFacts['localPathMentions']): Promise<RepoFacts['localPathMentions']> {

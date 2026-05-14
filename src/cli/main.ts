@@ -29,6 +29,7 @@ type CliOptions = {
   maxFindings?: string;
   summaryOnly?: boolean;
   path?: string;
+  inheritParentInstructions?: boolean;
 };
 type DiscoverCliOptions = { json?: boolean; root?: string; maxDepth?: string };
 
@@ -48,13 +49,17 @@ export async function runCli(argv: string[]): Promise<CliResult> {
     try {
       const effectiveOptions = { ...parentOptions, ...options };
       const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+      if (effectiveOptions.inheritParentInstructions && !effectiveOptions.workspace) {
+        throw usageError('--inherit-parent-instructions requires --workspace');
+      }
       if (effectiveOptions.workspace) {
         const maxDepth = parseMaxDepth(effectiveOptions.maxDepth);
         const report = await runWorkspaceScan(root, {
           strict: Boolean(effectiveOptions.strict),
           include: effectiveOptions.include,
           exclude: effectiveOptions.exclude,
-          maxDepth
+          maxDepth,
+          inheritParentInstructions: Boolean(effectiveOptions.inheritParentInstructions)
         });
 
         stdout += effectiveOptions.json
@@ -166,6 +171,7 @@ function createProgram(
     .option('--strict', 'exit non-zero on warnings')
     .option('--workspace', 'discover and scan candidate roots under --root')
     .option('--max-depth <number>', 'maximum directory depth for workspace discovery', '3')
+    .option('--inherit-parent-instructions', 'inherit root agent instructions into workspace child scans')
     .option('--summary-only', 'print only workspace totals')
     .option('--max-findings <number>', 'maximum workspace findings to print')
     .option('--include <glob...>', 'include globs', [])

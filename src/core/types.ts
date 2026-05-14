@@ -36,6 +36,7 @@ export type Report = {
   tool: 'drctx';
   toolVersion: string;
   root: string;
+  inheritedInstructionFiles?: EffectiveInstructionFile[];
   findings: Finding[];
   summary: {
     errors: number;
@@ -229,6 +230,7 @@ export type EffectiveConfig = {
   include: string[];
   exclude: string[];
   targetPath?: string;
+  inheritParentInstructions?: boolean;
   inheritedAgentInstructionDocs?: AgentInstructionDocFact[];
 };
 

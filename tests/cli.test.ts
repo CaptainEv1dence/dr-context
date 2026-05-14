@@ -220,6 +220,23 @@ describe('drctx CLI', () => {
     expect(result.stdout).not.toContain(join(fixturesRoot, 'discover-workspace'));
   });
 
+  test('requires --workspace for --inherit-parent-instructions', async () => {
+    const result = await runCli([
+      'node',
+      'drctx',
+      'check',
+      '--root',
+      fixtureRoot('workspace-inheritance'),
+      '--inherit-parent-instructions'
+    ]);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('Dr. Context usage error');
+    expect(result.stderr).not.toContain('internal error');
+    expect(result.stderr).toContain('--inherit-parent-instructions requires --workspace');
+  });
+
   test('prints SARIF reports with --sarif', async () => {
     const result = await runInFixture(['check', '--sarif'], 'missing-package-script');
     const output = JSON.parse(result.stdout);
