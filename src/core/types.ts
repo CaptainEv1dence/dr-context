@@ -44,6 +44,25 @@ export type Report = {
   };
 };
 
+export type WorkspaceReportEntry = {
+  path: string;
+  report: Report;
+};
+
+export type WorkspaceReport = {
+  schemaVersion: 'drctx.workspace-report.v1';
+  tool: 'drctx';
+  toolVersion: string;
+  root: '<requested-root>';
+  reports: WorkspaceReportEntry[];
+  summary: {
+    roots: number;
+    errors: number;
+    warnings: number;
+    infos: number;
+  };
+};
+
 export type PackageManagerName =
   | 'npm'
   | 'pnpm'

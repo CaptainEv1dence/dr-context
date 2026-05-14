@@ -42,6 +42,6 @@ https://www.npmjs.com/settings/captainev1dence/tokens
 
 ## Scanner security model
 
-Dr. Context is local and read-only by default. Version 0.1 does not call LLM or network APIs during scanner behavior and does not write files by default.
+Dr. Context is local and read-only by default. Scanner behavior does not call LLM or network APIs and does not write files by default.
 
 Public examples, tests, issues, and release notes should use synthetic fixtures or sanitized aggregate findings only.

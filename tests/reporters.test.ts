@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { renderJson } from '../src/reporting/jsonReporter.js';
 import { renderSarif } from '../src/reporting/sarifReporter.js';
 import { renderText } from '../src/reporting/textReporter.js';
+import { renderWorkspaceJson, renderWorkspaceText } from '../src/reporting/workspaceReporter.js';
 import type { Report } from '../src/core/types.js';
 
 const emptyReport: Report = {
@@ -148,5 +149,40 @@ describe('renderText', () => {
 
     expect(output).not.toContain('Evidence:');
     expect(output).not.toContain('Suggested fix:');
+  });
+});
+
+describe('workspace reporters', () => {
+  test('renders redacted workspace JSON aggregates', () => {
+    const output = JSON.parse(
+      renderWorkspaceJson({
+        schemaVersion: 'drctx.workspace-report.v1',
+        tool: 'drctx',
+        toolVersion: '0.2.0',
+        root: '<requested-root>',
+        reports: [{ path: 'repo-a', report: emptyReport }],
+        summary: { roots: 1, errors: 0, warnings: 0, infos: 0 }
+      })
+    );
+
+    expect(output).toMatchObject({
+      schemaVersion: 'drctx.workspace-report.v1',
+      root: '<requested-root>',
+      reports: [{ path: 'repo-a', report: { root: '<candidate-root>' } }]
+    });
+  });
+
+  test('renders workspace text aggregates', () => {
+    const output = renderWorkspaceText({
+      schemaVersion: 'drctx.workspace-report.v1',
+      tool: 'drctx',
+      toolVersion: '0.2.0',
+      root: '<requested-root>',
+      reports: [{ path: 'repo-a', report: { ...emptyReport, summary: { errors: 0, warnings: 1, infos: 0 } } }],
+      summary: { roots: 1, errors: 0, warnings: 1, infos: 0 }
+    });
+
+    expect(output).toContain('Dr. Context Workspace');
+    expect(output).toContain('repo-a: 0 error(s), 1 warning(s), 0 info(s)');
   });
 });

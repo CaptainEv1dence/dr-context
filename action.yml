@@ -43,8 +43,22 @@ runs:
         echo "sarif_path=dr-context.sarif" >> "$GITHUB_OUTPUT"
         if [ -s dr-context.sarif ]; then
           echo "sarif_ready=true" >> "$GITHUB_OUTPUT"
+          SUMMARY=$(node -e "const fs=require('fs'); const sarif=JSON.parse(fs.readFileSync('dr-context.sarif','utf8')); const results=sarif.runs?.[0]?.results ?? []; const counts=results.reduce((acc,result)=>{ acc[result.level ?? 'warning']=(acc[result.level ?? 'warning'] ?? 0)+1; return acc; },{}); console.log('| Level | Count |'); console.log('| --- | ---: |'); for (const level of ['error','warning','note']) console.log('| '+level+' | '+(counts[level] ?? 0)+' |');")
+          {
+            echo "## Dr. Context"
+            echo ""
+            echo "$SUMMARY"
+            echo ""
+            echo "SARIF: dr-context.sarif"
+          } >> "$GITHUB_STEP_SUMMARY"
         else
           echo "sarif_ready=false" >> "$GITHUB_OUTPUT"
+          echo "Dr. Context did not produce SARIF. Check npm package install/execution above." >&2
+          {
+            echo "## Dr. Context"
+            echo ""
+            echo "Dr. Context did not produce SARIF. Check npm package install/execution above."
+          } >> "$GITHUB_STEP_SUMMARY"
         fi
         exit "$STATUS"
 

@@ -67,6 +67,34 @@ describe('drctx CLI', () => {
     });
   });
 
+  test('prints workspace JSON reports with --workspace and redacted root', async () => {
+    await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--json', '--root', join(fixturesRoot, 'discover-workspace')]);
+    const output = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(output).toMatchObject({
+      schemaVersion: 'drctx.workspace-report.v1',
+      root: '<requested-root>',
+      summary: { roots: 3, errors: 0, warnings: 1, infos: 1 }
+    });
+    expect(output.reports.map((entry: { path: string }) => entry.path)).toEqual(['.', 'package-only', 'repo-a']);
+    expect(JSON.stringify(output)).not.toContain(join(fixturesRoot, 'discover-workspace'));
+  });
+
+  test('prints workspace text reports with --workspace', async () => {
+    await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--root', join(fixturesRoot, 'discover-workspace')]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Dr. Context Workspace');
+    expect(result.stdout).toContain('Scanned 3 candidate root(s).');
+    expect(result.stdout).toContain('package-only: 0 error(s), 0 warning(s), 1 info(s)');
+    expect(result.stdout).not.toContain(join(fixturesRoot, 'discover-workspace'));
+  });
+
   test('prints SARIF reports with --sarif', async () => {
     const result = await runInFixture(['check', '--sarif'], 'missing-package-script');
     const output = JSON.parse(result.stdout);
@@ -108,6 +136,14 @@ describe('drctx CLI', () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('CI runs "lint" but agent instructions do not mention it');
+  });
+
+  test('returns exit code 1 for workspace warning findings in strict mode', async () => {
+    await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--strict', '--root', join(fixturesRoot, 'discover-workspace')]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain('repo-a: 0 error(s), 1 warning(s), 0 info(s)');
   });
 
   test('applies global strict option before check subcommand', async () => {

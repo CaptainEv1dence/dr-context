@@ -28,6 +28,12 @@ Find candidate repository roots under a folder without scanning them:
 drctx discover --root ../workspace --max-depth 3
 ```
 
+Scan candidate repository roots under a folder and print a privacy-preserving aggregate report:
+
+```bash
+drctx check --workspace --root ../workspace --max-depth 3
+```
+
 Emit SARIF for GitHub code scanning or other SARIF consumers:
 
 ```bash
@@ -37,7 +43,7 @@ drctx check --sarif --root . > dr-context.sarif
 Run in GitHub Actions:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.1.9
+- uses: CaptainEv1dence/dr-context@v0.2.0
   with:
     root: .
     upload-sarif: 'true'
@@ -108,7 +114,7 @@ Suggested fix:
 
 AI coding agents often fail because repo context rots. The agent is told old commands, misses architecture docs, or loads bloated rules. Dr. Context finds the concrete places where your repo is misleading the agent.
 
-## v0.1 scope
+## Current scope
 
 - Package manager mismatch.
 - Stale command references.
@@ -119,6 +125,7 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Placeholder failing test script detection.
 - Multiple JavaScript lockfile detection.
 - Candidate root discovery for folders that contain multiple repos or shared agent instructions.
+- Workspace scanning with privacy-preserving aggregate JSON and text output.
 - Evidence-backed text and JSON reports.
 - SARIF 2.1.0 reporting for code scanning integrations.
 
@@ -163,6 +170,16 @@ Candidate types:
 - `package-root`: has package or lockfile signals but no `.git` or agent instruction file.
 
 Unlike scan reports, discover JSON does not echo the absolute requested root. Candidate paths are relative to the requested root.
+
+## Workspace scan
+
+Use `check --workspace` when you want to scan every discovered candidate root under a folder:
+
+```bash
+drctx check --workspace --root ../workspace --json
+```
+
+Workspace JSON uses `schemaVersion: "drctx.workspace-report.v1"`, redacts the requested root as `<requested-root>`, and redacts each child scan root as `<candidate-root>`. Candidate paths remain relative to the requested root.
 
 ## Useful findings
 
@@ -218,7 +235,7 @@ Keep one JavaScript package manager lockfile and remove stale lockfiles so agent
 
 ## Privacy and dogfood hygiene
 
-Dr. Context is local and read-only by default. It does not call LLM or network APIs in v0.1.
+Dr. Context is local and read-only by default. It does not call LLM or network APIs during scanner behavior.
 
 Do not publish raw scans from private repositories. Public examples, tests, issues, and release notes should use synthetic fixtures or sanitized aggregate findings only.
 
@@ -239,13 +256,13 @@ See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and token hygiene g
 - Not a docs generator.
 - Not a repo packer.
 - Not a prompt optimizer.
-- No LLM calls in v0.1.
+- No LLM calls in scanner behavior.
 - No file writes by default.
 
 ## Project health
 
 - See `CONTRIBUTING.md` for local development and TDD rules.
-- See `docs/roadmap.md` for v0.1 blockers and deferred work.
+- See `docs/roadmap.md` for shipped and deferred work.
 - See `docs/release.md` for the npm release checklist.
 - See `SECURITY.md` for vulnerability reporting.
 - See `CHANGELOG.md` for release notes once public releases begin.

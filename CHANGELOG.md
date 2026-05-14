@@ -4,6 +4,23 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.2.0 - 2026-05-14
+
+### Added
+
+- Add `drctx check --workspace` to discover and scan candidate roots under one directory with privacy-preserving aggregate output.
+- Add `schemaVersion: "drctx.workspace-report.v1"` for workspace JSON reports.
+- Add GitHub Action job summaries with SARIF result counts.
+- Add OpenSSF Scorecard workflow with SARIF upload.
+
+### Changed
+
+- Generate `src/version.ts` from `package.json` before builds to avoid manual version drift.
+
+### Fixed
+
+- Print an explicit GitHub Action diagnostic when the CLI fails before producing SARIF.
+
 ## 0.1.9 - 2026-05-14
 
 ### Fixed

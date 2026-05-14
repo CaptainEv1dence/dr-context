@@ -13,9 +13,9 @@ Do not rename the package without an explicit migration plan.
 
 ## Version policy
 
-- Update `package.json` and `src/version.ts` to the new release version.
+- Update `package.json` to the new release version. `src/version.ts` is generated from `package.json` by `npm run prebuild`.
 - Update `CHANGELOG.md` to the release version during release prep.
-- `tests/packageMetadata.test.ts` guards that runtime `toolVersion` matches `package.json`.
+- `tests/packageMetadata.test.ts` guards that runtime `toolVersion` matches `package.json` and that version generation is wired into builds.
 
 ## Publish readiness gate
 
@@ -143,21 +143,22 @@ On Windows, run published-package smoke tests from an isolated prefix so the loc
 ```powershell
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
-npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- dr-context --help
-npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- drctx --help
-npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- dr-context check --root D:\random\dr-context
-npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- dr-context discover --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context --help
+npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- drctx --help
+npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context check --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context discover --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context check --workspace --root D:\random\dr-context
 Remove-Item -Recurse -Force $tmp
 ```
 
 ## GitHub Action smoke test
 
-The repository root `action.yml` runs the published npm package through `npx` and can optionally upload SARIF.
+The repository root `action.yml` runs the published npm package through `npm exec` in an isolated temporary prefix and can optionally upload SARIF.
 
 Minimal usage:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.1.9
+- uses: CaptainEv1dence/dr-context@v0.2.0
   with:
     root: .
 ```
@@ -171,7 +172,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@v6
-  - uses: CaptainEv1dence/dr-context@v0.1.9
+  - uses: CaptainEv1dence/dr-context@v0.2.0
     with:
       root: .
       upload-sarif: 'true'

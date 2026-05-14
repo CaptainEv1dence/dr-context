@@ -33,7 +33,7 @@ pnpm exec vitest run tests/path/to/test.test.ts
 - Add or update fixtures for every new check.
 - Keep checks pure. Checks must not read files directly.
 - Preserve evidence in findings.
-- Prefer false negatives over noisy false positives in v0.1.
+- Prefer false negatives over noisy false positives.
 
 ## Package checks
 

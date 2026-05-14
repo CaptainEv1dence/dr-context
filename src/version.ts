@@ -1,1 +1,1 @@
-export const toolVersion = '0.1.9';
+export const toolVersion = '0.2.0';

@@ -9,7 +9,7 @@ Before changing behavior, read:
 1. `ARCHITECTURE.md` for module boundaries and data flow.
 2. `docs/fixtures.md` before changing fixture behavior.
 3. `README.md` for the user-facing product promise.
-4. `docs/adr/0001-deterministic-first.md` for v0.1 determinism constraints.
+4. `docs/adr/0001-deterministic-first.md` for determinism constraints.
 5. `docs/adr/0002-checks-are-pure.md` for check purity boundaries.
 
 ## Build and test
@@ -54,8 +54,8 @@ pnpm exec vitest run tests/path/to/test.test.ts
 
 ## Safety and privacy
 
-- v0.1 must not call network or LLM APIs.
-- v0.1 must not write files by default.
+- Scanner behavior must not call network or LLM APIs.
+- Scanner behavior must not write files by default.
 - Never print secrets if fixture or user repos contain secret-like values.
 - Never commit or push raw dogfood logs, full local scan JSON, private repository paths, private repository names, or detailed findings from local/private repositories.
 - Public docs, tests, changelog entries, issues, and fixtures must use synthetic examples or sanitized aggregate product learnings only.

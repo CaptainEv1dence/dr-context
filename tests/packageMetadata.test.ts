@@ -14,4 +14,10 @@ describe('package metadata', () => {
   test('keeps runtime tool version in sync with package version', () => {
     expect(toolVersion).toBe(packageJson.version);
   });
+
+  test('generates runtime version from package metadata', () => {
+    expect(packageJson.scripts).toMatchObject({
+      prebuild: 'node scripts/generate-version.mjs'
+    });
+  });
 });
