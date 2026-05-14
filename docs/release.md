@@ -115,7 +115,8 @@ Trusted publishing settings should point to:
 The release workflow should use:
 
 - `permissions.id-token: write`;
-- `actions/setup-node@v4` with `node-version: 24`;
+- `actions/checkout@v6`, `pnpm/action-setup@v6`, and `actions/setup-node@v6`;
+- `actions/setup-node@v6` with `node-version: 24`;
 - `registry-url: https://registry.npmjs.org`;
 - `npm publish --access public` without an explicit `--provenance` flag.
 
@@ -146,18 +147,12 @@ npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- dr-context discover -
 Remove-Item -Recurse -Force $tmp
 ```
 
-## GitHub Actions Node 20 warning
+## GitHub Actions runtime
 
-GitHub Actions currently emits a non-failing Node 20 deprecation warning for:
+Workflows use Node 24-compatible action majors:
 
-- `actions/checkout@v4`
-- `actions/setup-node@v4`
-- `pnpm/action-setup@v4`
+- `actions/checkout@v6`
+- `actions/setup-node@v6`
+- `pnpm/action-setup@v6`
 
-CI is green, so do not churn the workflow only for this warning unless one of these is true:
-
-- an updated action version with Node 24 support is verified;
-- GitHub starts failing Node 20 actions;
-- the release workflow requires the update.
-
-Track this during release prep.
+If a future action major changes inputs or runner requirements, verify with a push before tagging a release.

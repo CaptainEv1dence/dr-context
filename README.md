@@ -201,6 +201,8 @@ Dr. Context is local and read-only by default. It does not call LLM or network A
 
 Do not publish raw scans from private repositories. Public examples, tests, issues, and release notes should use synthetic fixtures or sanitized aggregate findings only.
 
+See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and token hygiene guidance.
+
 ## Output contracts
 
 - Human-readable text is the default output.
