@@ -23,7 +23,7 @@ export function classifyCiCommand(command: string): CiCommandClassification {
     return 'setup';
   }
 
-  if (/\b(?:(?:corepack\s+)?(?:npm|pnpm|yarn|bun))\s+(?:test|run\s+(?:test|lint|typecheck|build|check|pack:dry-run))\b/.test(trimmed)) {
+  if (/\b(?:(?:corepack\s+)?(?:npm|pnpm|yarn|bun))\s+(?:test|run\s+(?:test|lint|typecheck|build|check|pack:dry-run))(?=\s|$)/.test(trimmed)) {
     return 'verification';
   }
 

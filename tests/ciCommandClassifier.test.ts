@@ -16,6 +16,13 @@ describe('CI command classification', () => {
     expect(classifyCiCommand('exit 1')).toBe('shell-control');
   });
 
+  test('does not classify prefixed package scripts as verification', () => {
+    expect(classifyCiCommand('pnpm run build:docs')).toBe('unknown');
+    expect(classifyCiCommand('pnpm run lint-staged')).toBe('unknown');
+    expect(classifyCiCommand('pnpm run check:types')).toBe('unknown');
+    expect(classifyCiCommand('pnpm run test:e2e')).toBe('unknown');
+  });
+
   test('adds classification to extracted workflow run commands', () => {
     const commands = extractCiCommands([
       {
