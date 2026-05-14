@@ -11,7 +11,7 @@ function extractCiCommandsFromWorkflow(file: RawFile): CommandMention[] {
   const commands: CommandMention[] = [];
 
   for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
+    const line = lines[index].replace(/\r$/, '');
     const match = line.match(runLinePattern);
     if (!match) {
       continue;
@@ -21,7 +21,7 @@ function extractCiCommandsFromWorkflow(file: RawFile): CommandMention[] {
     if (rawValue === '|' || rawValue === '>') {
       const blockIndent = indentation(line) + 2;
       for (let blockIndex = index + 1; blockIndex < lines.length; blockIndex += 1) {
-        const blockLine = lines[blockIndex];
+        const blockLine = lines[blockIndex].replace(/\r$/, '');
         if (blockLine.trim() === '') {
           continue;
         }
