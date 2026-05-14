@@ -20,7 +20,7 @@ export function extractBuildTargets(files: RawFile[]): BuildTargetFact[] {
 
 function extractColonTargets(file: RawFile, tool: 'make' | 'just'): BuildTargetFact[] {
   return lines(file.content).flatMap((line, index) => {
-    const match = line.match(/^([A-Za-z0-9_.-]+)\s*:/);
+    const match = line.match(/^([A-Za-z0-9_.-]+)\s*:(?![:?+!]?=)/);
     if (!match) {
       return [];
     }

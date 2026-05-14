@@ -10,11 +10,13 @@ type PackageJsonShape = {
 export function extractRuntimeVersions(files: RawFile[]): RuntimeVersionFact[] {
   return files.flatMap((file) => {
     if (file.path === '.nvmrc') {
-      return runtimeVersion(file, firstNonEmptyLine(file.content), 'nvmrc', 1);
+      const versionLine = firstNonEmptyLine(file.content);
+      return runtimeVersion(file, versionLine?.text, 'nvmrc', versionLine?.line);
     }
 
     if (file.path === '.node-version') {
-      return runtimeVersion(file, firstNonEmptyLine(file.content), 'node-version', 1);
+      const versionLine = firstNonEmptyLine(file.content);
+      return runtimeVersion(file, versionLine?.text, 'node-version', versionLine?.line);
     }
 
     if (file.path === 'package.json') {
@@ -63,8 +65,16 @@ function runtimeVersion(
   return [{ runtime: 'node', version, kind, source: { file: file.path, line } }];
 }
 
-function firstNonEmptyLine(content: string): string | undefined {
-  return lines(content).map((line) => line.trim()).find((line) => line !== '');
+function firstNonEmptyLine(content: string): { text: string; line: number } | undefined {
+  const fileLines = lines(content);
+  for (let index = 0; index < fileLines.length; index += 1) {
+    const text = fileLines[index].trim();
+    if (text !== '') {
+      return { text, line: index + 1 };
+    }
+  }
+
+  return undefined;
 }
 
 function parsePackageJson(content: string): PackageJsonShape {

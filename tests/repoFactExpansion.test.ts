@@ -29,6 +29,26 @@ describe('extractBuildTargets', () => {
       }
     ]);
   });
+
+  test('ignores Makefile and justfile assignment-like lines', () => {
+    const files: RawFile[] = [
+      { path: 'Makefile', content: 'VERSION := 1.2.3\nFOO ?= bar\nNAME ::= value\ntest:\n\tpnpm test' },
+      { path: 'justfile', content: 'version := "1.2.3"\nlint:\n\tpnpm lint' }
+    ];
+
+    expect(extractBuildTargets(files)).toEqual([
+      {
+        tool: 'make',
+        name: 'test',
+        source: { file: 'Makefile', line: 4 }
+      },
+      {
+        tool: 'just',
+        name: 'lint',
+        source: { file: 'justfile', line: 2 }
+      }
+    ]);
+  });
 });
 
 describe('extractRuntimeVersions', () => {
@@ -64,6 +84,28 @@ describe('extractRuntimeVersions', () => {
         version: '24',
         kind: 'github-actions',
         source: { file: '.github/workflows/ci.yml', line: 6 }
+      }
+    ]);
+  });
+
+  test('reports actual line for runtime dotfiles with leading blank lines', () => {
+    const files: RawFile[] = [
+      { path: '.nvmrc', content: '\n24\n' },
+      { path: '.node-version', content: '\n24.1.0\n' }
+    ];
+
+    expect(extractRuntimeVersions(files)).toEqual([
+      {
+        runtime: 'node',
+        version: '24',
+        kind: 'nvmrc',
+        source: { file: '.nvmrc', line: 2 }
+      },
+      {
+        runtime: 'node',
+        version: '24.1.0',
+        kind: 'node-version',
+        source: { file: '.node-version', line: 2 }
       }
     ]);
   });
