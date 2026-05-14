@@ -2,6 +2,7 @@ import fg from 'fast-glob';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { RawFile } from '../core/types.js';
+import { instructionSurfaceGlobs } from '../extractors/instructionSurfaces.js';
 
 export type WorkspaceDiscoveryConfig = {
   include: string[];
@@ -16,13 +17,9 @@ const defaultIncludeGlobs = [
   'yarn.lock',
   'bun.lock',
   'bun.lockb',
-  'AGENTS.md',
-  'CLAUDE.md',
-  '.cursorrules',
-  '.cursor/rules/**/*.{md,mdc}',
-  '.github/copilot-instructions.md',
-  '.github/instructions/**/*.{md,mdx}',
+  ...instructionSurfaceGlobs,
   '.github/workflows/*.{yml,yaml}',
+  'README.md',
   'ARCHITECTURE.md',
   'architecture.md',
   'docs/ARCHITECTURE.md',
@@ -33,7 +30,11 @@ const defaultIncludeGlobs = [
   'Makefile',
   'makefile',
   'justfile',
-  'Justfile'
+  'Justfile',
+  'Taskfile.yml',
+  'Taskfile.yaml',
+  '.nvmrc',
+  '.node-version'
 ];
 
 const defaultExcludeGlobs = ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**', '**/.next/**', '**/coverage/**'];

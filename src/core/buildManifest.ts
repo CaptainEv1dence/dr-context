@@ -42,7 +42,10 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     packageManager: packageManagerManifest(canonicalPackageManager(packageManagers), packageManagers),
     agentInstructionFiles: agentInstructionDocs.map((doc): ManifestInstructionFile => ({
       path: doc.path,
-      type: instructionType(doc.path),
+      type: doc.tool,
+      scope: doc.scope,
+      appliesTo: doc.appliesTo,
+      metadata: doc.metadata,
       source: doc.source
     })),
     verificationCommands: scriptCommands,
@@ -120,11 +123,3 @@ function isFirstReadReference(mention: LocalPathMention): boolean {
   return /\b(first read|read|start with|before (?:changing|coding|editing|implementation))\b/.test(text);
 }
 
-function instructionType(path: string): ManifestInstructionFile['type'] {
-  const normalized = path.toLowerCase();
-  if (normalized === 'agents.md') return 'agents';
-  if (normalized === 'claude.md') return 'claude';
-  if (normalized === '.cursorrules' || normalized.startsWith('.cursor/rules/')) return 'cursor';
-  if (normalized.startsWith('.github/')) return 'copilot';
-  return 'unknown';
-}

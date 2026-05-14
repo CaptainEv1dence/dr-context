@@ -69,9 +69,18 @@ export type ManifestPackageManager = {
   sources: SourceSpan[];
 };
 
+export type AgentInstructionTool = 'agents' | 'claude' | 'copilot' | 'cursor' | 'gemini' | 'workflow' | 'unknown';
+
+export type AgentInstructionScope = 'repo' | 'path' | 'nested' | 'workflow';
+
+export type AgentInstructionMetadata = Record<string, string | string[] | boolean>;
+
 export type ManifestInstructionFile = {
   path: string;
-  type: 'agents' | 'claude' | 'cursor' | 'copilot' | 'unknown';
+  type: AgentInstructionTool;
+  scope: AgentInstructionScope;
+  appliesTo?: string[];
+  metadata?: AgentInstructionMetadata;
   source: SourceSpan;
 };
 
@@ -148,6 +157,10 @@ export type ArchitectureDocFact = {
 export type AgentInstructionDocFact = {
   path: string;
   content: string;
+  tool: AgentInstructionTool;
+  scope: AgentInstructionScope;
+  appliesTo?: string[];
+  metadata?: AgentInstructionMetadata;
   source: SourceSpan;
 };
 
