@@ -83,6 +83,7 @@ function redactScanReport(report: Report): Report {
 }
 
 function redactSourceText<T extends { text?: string }>(source: T): T {
-  const { text: _text, ...rest } = source;
-  return rest as T;
+  const redacted = { ...source };
+  delete redacted.text;
+  return redacted;
 }
