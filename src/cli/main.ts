@@ -7,11 +7,12 @@ import { discoverCandidates } from '../discovery/discoverCandidates.js';
 import { renderDiscoverJson } from '../reporting/discoverJsonReporter.js';
 import { renderDiscoverText } from '../reporting/discoverTextReporter.js';
 import { renderJson } from '../reporting/jsonReporter.js';
+import { renderSarif } from '../reporting/sarifReporter.js';
 import { renderText } from '../reporting/textReporter.js';
 import { toolVersion } from '../version.js';
 import { exitCodeForReport } from './exitCodes.js';
 
-type CliOptions = { json?: boolean; strict?: boolean; include: string[]; exclude: string[]; root?: string };
+type CliOptions = { json?: boolean; sarif?: boolean; strict?: boolean; include: string[]; exclude: string[]; root?: string };
 type DiscoverCliOptions = { json?: boolean; root?: string; maxDepth?: string };
 
 export type CliResult = {
@@ -34,7 +35,7 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         exclude: effectiveOptions.exclude
       });
 
-      stdout += effectiveOptions.json ? renderJson(report) : renderText(report);
+      stdout += renderScanReport(report, effectiveOptions);
       exitCode = exitCodeForReport(report, Boolean(effectiveOptions.strict));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -92,6 +93,7 @@ function createProgram(
     .version(toolVersion)
     .description('Diagnose context rot before your coding agent reads it')
     .option('--json', 'print JSON report')
+    .option('--sarif', 'print SARIF 2.1.0 report')
     .option('--strict', 'exit non-zero on warnings')
     .option('--include <glob...>', 'include globs', [])
     .option('--exclude <glob...>', 'exclude globs', [])
@@ -102,6 +104,7 @@ function createProgram(
     .command('check')
     .description('scan the current repository')
     .option('--json', 'print JSON report')
+    .option('--sarif', 'print SARIF 2.1.0 report')
     .option('--strict', 'exit non-zero on warnings')
     .option('--include <glob...>', 'include globs', [])
     .option('--exclude <glob...>', 'exclude globs', [])
@@ -151,6 +154,14 @@ function parseMaxDepth(value = '3'): number {
 
 function defaultOptions(): CliOptions {
   return { include: [], exclude: [] };
+}
+
+function renderScanReport(report: Awaited<ReturnType<typeof runScan>>, options: CliOptions): string {
+  if (options.sarif) {
+    return renderSarif(report);
+  }
+
+  return options.json ? renderJson(report) : renderText(report);
 }
 
 function isEntrypoint(): boolean {

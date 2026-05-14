@@ -66,6 +66,25 @@ describe('drctx CLI', () => {
     });
   });
 
+  test('prints SARIF reports with --sarif', async () => {
+    const result = await runInFixture(['check', '--sarif'], 'missing-package-script');
+    const output = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe('');
+    expect(output).toMatchObject({
+      version: '2.1.0',
+      runs: [
+        {
+          tool: { driver: { name: 'Dr. Context' } }
+        }
+      ]
+    });
+    expect(output.runs[0].results).toEqual(
+      expect.arrayContaining([expect.objectContaining({ ruleId: 'stale-package-script-reference', level: 'error' })])
+    );
+  });
+
   test('applies global JSON option before check subcommand', async () => {
     const result = await runInFixture(['--json', 'check'], 'clean-repo');
 
