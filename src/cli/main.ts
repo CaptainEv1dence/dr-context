@@ -122,7 +122,11 @@ function commandNameFromArgv(argv: string[]): string {
   const extension = extname(executable);
   const commandName = extension ? executable.slice(0, -extension.length) : executable;
 
-  return commandName || 'drctx';
+  if (!commandName || commandName === 'main') {
+    return 'dr-context';
+  }
+
+  return commandName;
 }
 
 function isCommanderHelpExit(error: unknown): boolean {

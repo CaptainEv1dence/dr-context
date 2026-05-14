@@ -139,9 +139,10 @@ On Windows, run published-package smoke tests from an isolated prefix so the loc
 ```powershell
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
-npm exec --yes --prefix $tmp --package dr-context@0.1.6 -- dr-context --help
-npm exec --yes --prefix $tmp --package dr-context@0.1.6 -- dr-context check --root D:\random\dr-context
-npm exec --yes --prefix $tmp --package dr-context@0.1.6 -- dr-context discover --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- dr-context --help
+npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- drctx --help
+npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- dr-context check --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- dr-context discover --root D:\random\dr-context
 Remove-Item -Recurse -Force $tmp
 ```
 

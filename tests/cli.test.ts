@@ -24,6 +24,14 @@ describe('drctx CLI', () => {
     expect(result.stdout).toContain('Usage: dr-context');
   });
 
+  test('uses dr-context as the help command name when invoked through the package shim', async () => {
+    const result = await runCli(['node', 'dist/cli/main.js', '--help']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Usage: dr-context');
+  });
+
   test('root command scans the current directory', async () => {
     const result = await runInFixture([], 'clean-repo');
 

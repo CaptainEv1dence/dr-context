@@ -4,6 +4,12 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.7 - 2026-05-14
+
+### Fixed
+
+- Preserve `Usage: dr-context` in published package help when npm shims invoke `dist/cli/main.js`.
+
 ## 0.1.6 - 2026-05-14
 
 ### Fixed
