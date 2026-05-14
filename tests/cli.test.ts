@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { runCli } from '../src/cli/main.js';
 import { toolVersion } from '../src/version.js';
+import { fixtureRoot } from './helpers.js';
 
 const fixturesRoot = join(import.meta.dirname, 'fixtures');
 
@@ -89,6 +90,71 @@ describe('drctx CLI', () => {
         expect.objectContaining({ path: '.github/copilot-instructions.md', type: 'copilot', scope: 'repo' })
       ])
     );
+  });
+
+  test('manifest --path emits effective instruction files', async () => {
+    const result = await runCli(['node', 'dr-context', 'manifest', '--json', '--root', fixtureRoot('scoped-context'), '--path', 'backend/src/api.ts']);
+    const manifest = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(manifest.targetPath).toBe('backend/src/api.ts');
+    expect(manifest.effectiveInstructionFiles.map((entry: { path: string }) => entry.path)).toEqual([
+      'AGENTS.md',
+      'backend/AGENTS.md',
+      '.cursor/rules/backend.mdc'
+    ]);
+  });
+
+  test('manifest --path emits effective instruction files for directory targets', async () => {
+    const result = await runCli(['node', 'dr-context', 'manifest', '--json', '--root', fixtureRoot('scoped-context'), '--path', 'backend']);
+    const manifest = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(manifest.targetPath).toBe('backend');
+    expect(manifest.effectiveInstructionFiles.map((entry: { path: string }) => entry.path)).toEqual([
+      'AGENTS.md',
+      'backend/AGENTS.md'
+    ]);
+  });
+
+  test('manifest --path rejects paths outside root', async () => {
+    const result = await runCli(['node', 'dr-context', 'manifest', '--root', fixtureRoot('scoped-context'), '--path', '../outside.ts']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain('Dr. Context usage error');
+    expect(result.stderr).not.toContain('internal error');
+    expect(result.stderr).toContain('must stay inside --root');
+  });
+
+  test('manifest --path JSON redacts root and normalizes target path', async () => {
+    const root = fixtureRoot('scoped-context');
+    const result = await runCli(['node', 'dr-context', 'manifest', '--json', '--root', root, '--path', './backend\\src\\api.ts']);
+    const manifest = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(manifest.root).toBe('<requested-root>');
+    expect(JSON.stringify(manifest)).not.toContain(root);
+    expect(manifest.targetPath).toBe('backend/src/api.ts');
+  });
+
+  test('manifest --path accepts absolute paths inside root', async () => {
+    const root = fixtureRoot('scoped-context');
+    const absoluteTarget = resolve(root, 'backend/src/api.ts');
+    const result = await runCli(['node', 'dr-context', 'manifest', '--json', '--root', root, '--path', absoluteTarget]);
+    const manifest = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(manifest.targetPath).toBe('backend/src/api.ts');
+  });
+
+  test('plain manifest JSON keeps compatibility shape without path fields', async () => {
+    const result = await runCli(['node', 'dr-context', 'manifest', '--json', '--root', fixtureRoot('scoped-context')]);
+    const manifest = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(manifest).not.toHaveProperty('targetPath');
+    expect(manifest).not.toHaveProperty('effectiveInstructionFiles');
+    expect(manifest.summary).not.toHaveProperty('effectiveInstructionFiles');
   });
 
   test('limits workspace text findings with --max-findings', async () => {
@@ -266,7 +332,8 @@ describe('drctx CLI', () => {
 
     expect(result.exitCode).toBe(2);
     expect(result.stdout).toBe('');
-    expect(result.stderr).toContain('Dr. Context internal error: --max-depth must be a non-negative integer');
+    expect(result.stderr).toContain('Dr. Context usage error: --max-depth must be a non-negative integer');
+    expect(result.stderr).not.toContain('internal error');
   });
 });
 

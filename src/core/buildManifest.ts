@@ -8,10 +8,11 @@ import { extractPackageManagers } from '../extractors/packageManagers.js';
 import { parsePackageScriptInvocation } from '../checks/packageScriptCommands.js';
 import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
-import type { EffectiveConfig, LocalPathMention, Manifest, ManifestFirstRead, ManifestInstructionFile, PackageManagerEvidence, RawFile } from './types.js';
+import { resolveEffectiveContext } from './effectiveContext.js';
+import type { EffectiveConfig, LocalPathMention, Manifest, ManifestFirstRead, ManifestInstructionFile, PackageManagerEvidence, RawFile, RepoFacts } from './types.js';
 
 export async function buildManifest(root: string, config: EffectiveConfig): Promise<Manifest> {
-  const files = await readWorkspace(root, { include: config.include, exclude: config.exclude });
+  const files = await readWorkspace(root, { include: [...config.include, ...targetInstructionIncludes(config.targetPath)], exclude: config.exclude });
   const packageManagers = extractPackageManagers(files);
   const scripts = extractPackageJsonScripts(files);
   const commandMentions = extractMarkdownCommands(files);
@@ -20,6 +21,25 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
   const architectureDocs = extractArchitectureDocs(files);
   const agentInstructionDocs = extractAgentInstructionDocs(files);
   const localPathMentions = extractLocalPathMentions(files);
+  const facts: RepoFacts = {
+    root,
+    packageManagers,
+    scripts,
+    buildTargets: [],
+    runtimeVersions: [],
+    commandMentions,
+    ciCommands,
+    architectureDocs,
+    agentInstructionDocs,
+    inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],
+    localPathMentions,
+    files,
+    filePaths: files.map((file) => file.path),
+    keyDirectories: []
+  };
+  const effectiveContext = config.targetPath
+    ? resolveEffectiveContext(facts, { targetPath: config.targetPath })
+    : undefined;
   const scriptCommands = scripts.map((script) => ({
     command: commandForScript(canonicalPackageManager(packageManagers)?.name ?? 'npm', script.name),
     source: script.source,
@@ -40,6 +60,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     tool: 'drctx',
     toolVersion,
     root,
+    targetPath: effectiveContext?.targetPath,
     packageManager: packageManagerManifest(canonicalPackageManager(packageManagers), packageManagers),
     agentInstructionFiles: agentInstructionDocs.map((doc): ManifestInstructionFile => ({
       path: doc.path,
@@ -50,15 +71,33 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
       source: doc.source
     })),
     verificationCommands: scriptCommands,
+    effectiveInstructionFiles: effectiveContext?.instructionFiles,
     firstReads,
     ciCommands,
     summary: {
       agentInstructionFiles: agentInstructionDocs.length,
+      effectiveInstructionFiles: effectiveContext?.instructionFiles.length,
       verificationCommands: scriptCommands.length,
       firstReads: firstReads.length,
       ciCommands: ciCommands.length
     }
   };
+}
+
+function targetInstructionIncludes(targetPath: string | undefined): string[] {
+  if (!targetPath) {
+    return [];
+  }
+
+  const parts = targetPath.split('/').filter(Boolean);
+  const directories = parts.includes('.') ? parts.slice(0, -1) : parts;
+  const includes = ['AGENTS.md'];
+
+  for (let index = 0; index < directories.length; index += 1) {
+    includes.push(`${directories.slice(0, index + 1).join('/')}/AGENTS.md`);
+  }
+
+  return includes;
 }
 
 function canonicalPackageManager(packageManagers: PackageManagerEvidence[]): PackageManagerEvidence | undefined {

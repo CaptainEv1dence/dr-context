@@ -1,10 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import path, { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, test } from 'vitest';
 import { runCli } from '../src/cli/main.js';
 import { buildManifest } from '../src/core/buildManifest.js';
+import { normalizeRootContainedPath, normalizeRootContainedPathWith } from '../src/core/pathGuards.js';
 import { renderManifestJson } from '../src/reporting/manifestReporter.js';
+import { fixtureRoot } from './helpers.js';
 
 async function makeRepo(files: Record<string, string>): Promise<string> {
   const root = join(tmpdir(), `drctx-manifest-${crypto.randomUUID()}`);
@@ -107,6 +109,47 @@ describe('buildManifest', () => {
     );
   });
 
+  test('builds path-scoped effective instruction manifest', async () => {
+    const manifest = await buildManifest(fixtureRoot('scoped-context'), {
+      strict: false,
+      include: [],
+      exclude: [],
+      targetPath: 'backend/src/api.ts'
+    });
+
+    expect(manifest.targetPath).toBe('backend/src/api.ts');
+    expect(manifest.effectiveInstructionFiles?.map((entry) => entry.path)).toEqual([
+      'AGENTS.md',
+      'backend/AGENTS.md',
+      '.cursor/rules/backend.mdc'
+    ]);
+    expect(manifest.summary.effectiveInstructionFiles).toBe(3);
+  });
+
+  test('builds path-scoped manifest for directory targets', async () => {
+    const manifest = await buildManifest(fixtureRoot('scoped-context'), {
+      strict: false,
+      include: [],
+      exclude: [],
+      targetPath: 'backend'
+    });
+
+    expect(manifest.targetPath).toBe('backend');
+    expect(manifest.effectiveInstructionFiles?.map((entry) => entry.path)).toEqual([
+      'AGENTS.md',
+      'backend/AGENTS.md'
+    ]);
+  });
+
+  test('plain manifest JSON keeps compatibility shape without path fields', async () => {
+    const manifest = await buildManifest(fixtureRoot('scoped-context'), { include: [], exclude: [], strict: false });
+    const output = JSON.parse(renderManifestJson(manifest));
+
+    expect(output).not.toHaveProperty('targetPath');
+    expect(output).not.toHaveProperty('effectiveInstructionFiles');
+    expect(output.summary).not.toHaveProperty('effectiveInstructionFiles');
+  });
+
   test('does not treat CI shell plumbing as canonical verification context', async () => {
     const root = await makeRepo({
       'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
@@ -152,7 +195,44 @@ describe('buildManifest', () => {
     expect(result.stderr).toBe('');
     expect(result.stdout).toContain('Dr. Context Manifest');
     expect(result.stdout).toContain('Package manager: pnpm');
+    expect(result.stdout).toContain('All instruction inventory:');
     expect(result.stdout).toContain('- .github/copilot-instructions.md (copilot, repo)');
     expect(result.stdout).toContain('- pnpm test (ciBacked=');
+  });
+
+  test('prints separate effective instruction section in text manifest', async () => {
+    const result = await runCli(['node', 'drctx', 'manifest', '--root', fixtureRoot('scoped-context'), '--path', 'backend/src/api.ts']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('All instruction inventory:');
+    expect(result.stdout).toContain('Effective instruction files for backend/src/api.ts:');
+    expect(result.stdout).toContain('- backend/AGENTS.md (agents, nested) - target path is under backend/');
+    expect(result.stdout).toContain('Verification commands:');
+    expect(result.stdout).not.toContain('—');
+  });
+});
+
+describe('normalizeRootContainedPath', () => {
+  test('normalizes relative path syntax to root-relative slash path', () => {
+    expect(normalizeRootContainedPath('/repo', './backend\\src\\api.ts')).toBe('backend/src/api.ts');
+  });
+
+  test('accepts absolute paths inside root', () => {
+    const root = resolve('/repo');
+    const target = resolve(root, 'backend/src/api.ts');
+
+    expect(normalizeRootContainedPath(root, target)).toBe('backend/src/api.ts');
+  });
+
+  test('rejects relative escapes outside root', () => {
+    expect(() => normalizeRootContainedPath('/repo', '../outside.ts')).toThrow('--path must stay inside --root');
+  });
+
+  test('rejects absolute paths outside root', () => {
+    expect(() => normalizeRootContainedPath('/repo', '/outside.ts')).toThrow('--path must stay inside --root');
+  });
+
+  test('rejects Windows cross-drive absolute paths', () => {
+    expect(() => normalizeRootContainedPathWith(path.win32, 'C:\\repo', 'D:\\outside.ts')).toThrow('--path must stay inside --root');
   });
 });

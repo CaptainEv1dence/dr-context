@@ -19,8 +19,37 @@ export function resolveEffectiveContext(facts: RepoFacts, options: EffectiveCont
 
   return {
     targetPath: targetPath || undefined,
-    instructionFiles: dedupeEffectiveInstructions([...inheritedEntries, ...localEntries])
+    instructionFiles: dedupeEffectiveInstructions([...inheritedEntries, ...localEntries.sort(compareEffectiveInstructions)])
   };
+}
+
+function compareEffectiveInstructions(left: EffectiveInstructionFile, right: EffectiveInstructionFile): number {
+  const leftRank = instructionRank(left);
+  const rightRank = instructionRank(right);
+
+  if (leftRank !== rightRank) {
+    return leftRank - rightRank;
+  }
+
+  const leftDepth = left.path.split('/').length;
+  const rightDepth = right.path.split('/').length;
+  if (leftDepth !== rightDepth) {
+    return leftDepth - rightDepth;
+  }
+
+  return left.path.localeCompare(right.path);
+}
+
+function instructionRank(entry: EffectiveInstructionFile): number {
+  if (entry.scope === 'repo') {
+    return 0;
+  }
+
+  if (entry.path.endsWith('/AGENTS.md')) {
+    return 1;
+  }
+
+  return 2;
 }
 
 function appliesToTarget(doc: AgentInstructionDocFact, targetPath: string): boolean {
@@ -42,7 +71,8 @@ function appliesToTarget(doc: AgentInstructionDocFact, targetPath: string): bool
 
   if (doc.path.endsWith('/AGENTS.md')) {
     const directory = doc.path.slice(0, -'AGENTS.md'.length);
-    return targetPath.startsWith(directory);
+    const directoryTarget = directory.replace(/\/$/, '');
+    return targetPath === directoryTarget || targetPath.startsWith(directory);
   }
 
   return false;
@@ -64,7 +94,8 @@ function appliesBecause(doc: AgentInstructionDocFact, targetPath: string): strin
 
   if (doc.path.endsWith('/AGENTS.md')) {
     const directory = doc.path.slice(0, -'AGENTS.md'.length);
-    return `target path is under ${directory}`;
+    const directoryTarget = directory.replace(/\/$/, '');
+    return targetPath === directoryTarget ? `target path is ${directoryTarget}` : `target path is under ${directory}`;
   }
 
   return 'instruction surface applies to the requested target path';

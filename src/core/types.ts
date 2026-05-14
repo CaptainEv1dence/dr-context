@@ -228,6 +228,8 @@ export type EffectiveConfig = {
   strict: boolean;
   include: string[];
   exclude: string[];
+  targetPath?: string;
+  inheritedAgentInstructionDocs?: AgentInstructionDocFact[];
 };
 
 export type CheckContext = {

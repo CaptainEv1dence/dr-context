@@ -16,10 +16,18 @@ export function renderManifestText(manifest: Manifest): string {
     ''
   ];
 
+  lines.push('All instruction inventory:');
   for (const instructionFile of manifest.agentInstructionFiles) {
     lines.push(`- ${instructionFile.path} (${instructionFile.type}, ${instructionFile.scope})`);
   }
 
+  if (manifest.targetPath && manifest.effectiveInstructionFiles) {
+    lines.push('', `Effective instruction files for ${manifest.targetPath}:`);
+    for (const file of manifest.effectiveInstructionFiles) {
+      lines.push(`- ${file.path} (${file.type}, ${file.scope}) - ${file.appliesBecause}`);
+    }
+  }
+  lines.push('', 'Verification commands:');
   for (const command of manifest.verificationCommands) {
     lines.push(`- ${command.command} (ciBacked=${command.ciBacked}, agentVisible=${command.agentVisible})`);
   }

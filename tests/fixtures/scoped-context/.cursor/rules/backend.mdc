@@ -1,0 +1,6 @@
+---
+globs:
+  - backend/**
+alwaysApply: false
+---
+Use backend Cursor guidance.

@@ -46,6 +46,16 @@ describe('resolveEffectiveContext', () => {
     expect(context.instructionFiles[1]).toMatchObject({ inherited: false, appliesBecause: expect.stringContaining('backend/') });
   });
 
+  test('includes nested AGENTS.md for matching directory target', () => {
+    const context = resolveEffectiveContext(facts([
+      doc('AGENTS.md', 'repo'),
+      doc('backend/AGENTS.md', 'nested'),
+      doc('frontend/AGENTS.md', 'nested')
+    ], ['backend/src/api.ts']), { targetPath: 'backend' });
+
+    expect(context.instructionFiles.map((entry) => entry.path)).toEqual(['AGENTS.md', 'backend/AGENTS.md']);
+  });
+
   test('includes inherited parent instructions only when requested', () => {
     const parent = doc('AGENTS.md', 'repo', { inherited: true, inheritedFrom: 'workspace-parent', displayPath: '<workspace-parent>/AGENTS.md' });
     const childFacts = facts([doc('AGENTS.md', 'repo')], ['src/index.ts']);

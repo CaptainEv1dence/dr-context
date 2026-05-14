@@ -4,6 +4,7 @@ import { basename, extname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runScan } from '../core/runScan.js';
 import { buildManifest } from '../core/buildManifest.js';
+import { normalizeRootContainedPath, UsagePathError } from '../core/pathGuards.js';
 import { runWorkspaceScan } from '../core/workspaceScan.js';
 import { discoverCandidates } from '../discovery/discoverCandidates.js';
 import { renderDiscoverJson } from '../reporting/discoverJsonReporter.js';
@@ -27,6 +28,7 @@ type CliOptions = {
   maxDepth?: string;
   maxFindings?: string;
   summaryOnly?: boolean;
+  path?: string;
 };
 type DiscoverCliOptions = { json?: boolean; root?: string; maxDepth?: string };
 
@@ -35,6 +37,8 @@ export type CliResult = {
   stderr: string;
   exitCode: number;
 };
+
+class UsageError extends Error {}
 
 export async function runCli(argv: string[]): Promise<CliResult> {
   let stdout = '';
@@ -72,8 +76,7 @@ export async function runCli(argv: string[]): Promise<CliResult> {
       stdout += renderScanReport(report, effectiveOptions);
       exitCode = exitCodeForReport(report, Boolean(effectiveOptions.strict));
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      stderr += `Dr. Context internal error: ${message}\n`;
+      stderr += formatCliError(error);
       exitCode = 2;
     }
   }, async (options, parentOptions) => {
@@ -86,25 +89,25 @@ export async function runCli(argv: string[]): Promise<CliResult> {
       stdout += effectiveOptions.json ? renderDiscoverJson(report) : renderDiscoverText(report);
       exitCode = 0;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      stderr += `Dr. Context internal error: ${message}\n`;
+      stderr += formatCliError(error);
       exitCode = 2;
     }
   }, async (options, parentOptions) => {
     try {
       const effectiveOptions = { ...parentOptions, ...options };
       const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+      const targetPath = effectiveOptions.path ? normalizeRootContainedPath(root, effectiveOptions.path) : undefined;
       const manifest = await buildManifest(root, {
         strict: Boolean(effectiveOptions.strict),
         include: effectiveOptions.include,
-        exclude: effectiveOptions.exclude
+        exclude: effectiveOptions.exclude,
+        targetPath
       });
 
       stdout += effectiveOptions.json ? renderManifestJson(manifest) : renderManifestText(manifest);
       exitCode = 0;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      stderr += `Dr. Context internal error: ${message}\n`;
+      stderr += formatCliError(error);
       exitCode = 2;
     }
   });
@@ -178,6 +181,7 @@ function createProgram(
     .option('--include <glob...>', 'include globs', [])
     .option('--exclude <glob...>', 'exclude globs', [])
     .option('--root <path>', 'repository root to inspect')
+    .option('--path <path>', 'target path for effective instruction context')
     .action((options: CliOptions) => manifestAction(options, program.opts<CliOptions>()));
 
   program
@@ -189,6 +193,17 @@ function createProgram(
     .action((options: DiscoverCliOptions) => discoverAction(options, program.opts<DiscoverCliOptions>()));
 
   return program;
+}
+
+function usageError(message: string): UsageError {
+  return new UsageError(message);
+}
+
+function formatCliError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return error instanceof UsageError || error instanceof UsagePathError
+    ? `Dr. Context usage error: ${message}\n`
+    : `Dr. Context internal error: ${message}\n`;
 }
 
 function commandNameFromArgv(argv: string[]): string {
@@ -215,7 +230,7 @@ function isCommanderHelpOrVersionExit(error: unknown): boolean {
 
 function parseMaxDepth(value = '3'): number {
   if (!/^\d+$/.test(value)) {
-    throw new Error('--max-depth must be a non-negative integer');
+    throw usageError('--max-depth must be a non-negative integer');
   }
 
   return Number(value);
@@ -227,7 +242,7 @@ function parseOptionalNonNegativeInteger(value: string | undefined, optionName: 
   }
 
   if (!/^\d+$/.test(value)) {
-    throw new Error(`${optionName} must be a non-negative integer`);
+    throw usageError(`${optionName} must be a non-negative integer`);
   }
 
   return Number(value);
