@@ -24,6 +24,7 @@ runs:
   using: composite
   steps:
     - name: Run Dr. Context
+      id: scan
       shell: bash
       run: |
         set +e
@@ -32,15 +33,20 @@ runs:
           STRICT_FLAG="--strict"
         fi
 
-        npx --yes --package "dr-context@${{ inputs.version }}" -- dr-context check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
+        npm exec --yes --package "dr-context@${{ inputs.version }}" -- dr-context check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
         STATUS=$?
 
         cat dr-context.sarif
         echo "sarif_path=dr-context.sarif" >> "$GITHUB_OUTPUT"
+        if [ -s dr-context.sarif ]; then
+          echo "sarif_ready=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "sarif_ready=false" >> "$GITHUB_OUTPUT"
+        fi
         exit "$STATUS"
 
     - name: Upload Dr. Context SARIF
-      if: ${{ always() && inputs.upload-sarif == 'true' }}
+      if: ${{ always() && inputs.upload-sarif == 'true' && steps.scan.outputs.sarif_ready == 'true' }}
       uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: dr-context.sarif
