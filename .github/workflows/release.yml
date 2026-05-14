@@ -10,6 +10,9 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -22,6 +25,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: pnpm run typecheck
@@ -44,10 +48,6 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
       - if: steps.published.outputs.exists == 'false'
-        shell: bash
-        run: |
-          unset NODE_AUTH_TOKEN
-          unset NPM_TOKEN
-          npm publish --provenance --access public
+        run: npm publish --provenance --access public
       - if: steps.published.outputs.exists == 'true'
         run: echo "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }} is already published; skipping npm publish."

@@ -4,6 +4,12 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.4 - 2026-05-13
+
+### Fixed
+
+- Opt GitHub Actions JavaScript actions into Node 24 and restore npm registry setup for trusted publishing.
+
 ## 0.1.3 - 2026-05-13
 
 ### Fixed

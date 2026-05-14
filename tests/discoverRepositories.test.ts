@@ -13,7 +13,7 @@ describe('repository candidate discovery', () => {
     expect(report).toMatchObject({
       schemaVersion: 'drctx.discover.v1',
       tool: 'drctx',
-      toolVersion: '0.1.3',
+      toolVersion: '0.1.4',
       root: '<requested-root>',
       maxDepth: 3,
       summary: { candidates: 3 }
