@@ -32,6 +32,14 @@ describe('drctx CLI', () => {
     expect(result.stdout).toContain('Usage: dr-context');
   });
 
+  test('prints the tool version', async () => {
+    const result = await runCli(['node', 'dr-context', '--version']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout.trim()).toBe('0.1.7');
+  });
+
   test('root command scans the current directory', async () => {
     const result = await runInFixture([], 'clean-repo');
 

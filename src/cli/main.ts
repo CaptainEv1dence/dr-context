@@ -8,6 +8,7 @@ import { renderDiscoverJson } from '../reporting/discoverJsonReporter.js';
 import { renderDiscoverText } from '../reporting/discoverTextReporter.js';
 import { renderJson } from '../reporting/jsonReporter.js';
 import { renderText } from '../reporting/textReporter.js';
+import { toolVersion } from '../version.js';
 import { exitCodeForReport } from './exitCodes.js';
 
 type CliOptions = { json?: boolean; strict?: boolean; include: string[]; exclude: string[]; root?: string };
@@ -69,7 +70,7 @@ export async function runCli(argv: string[]): Promise<CliResult> {
   try {
     await program.parseAsync(argv);
   } catch (error) {
-    if (isCommanderHelpExit(error)) {
+    if (isCommanderHelpOrVersionExit(error)) {
       exitCode = 0;
     } else {
       throw error;
@@ -88,6 +89,7 @@ function createProgram(
 
   program
     .name(commandName)
+    .version(toolVersion)
     .description('Diagnose context rot before your coding agent reads it')
     .option('--json', 'print JSON report')
     .option('--strict', 'exit non-zero on warnings')
@@ -129,12 +131,13 @@ function commandNameFromArgv(argv: string[]): string {
   return commandName;
 }
 
-function isCommanderHelpExit(error: unknown): boolean {
+function isCommanderHelpOrVersionExit(error: unknown): boolean {
   return (
     typeof error === 'object' &&
     error !== null &&
     'code' in error &&
-    (error as { code?: unknown }).code === 'commander.helpDisplayed'
+    ((error as { code?: unknown }).code === 'commander.helpDisplayed' ||
+      (error as { code?: unknown }).code === 'commander.version')
   );
 }
 
