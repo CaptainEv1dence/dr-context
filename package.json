@@ -50,14 +50,15 @@
   "devDependencies": {
     "@eslint/js": "latest",
     "@types/node": "latest",
-    "typescript-eslint": "latest",
     "eslint": "latest",
     "typescript": "latest",
+    "typescript-eslint": "latest",
     "vitest": "latest"
   },
   "dependencies": {
     "commander": "^14.0.3",
     "fast-glob": "^3.3.3",
+    "minimatch": "^10.2.5",
     "yaml": "^2.9.0"
   }
 }

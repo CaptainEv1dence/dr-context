@@ -14,6 +14,9 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+      minimatch:
+        specifier: ^10.2.5
+        version: 10.2.5
       yaml:
         specifier: ^2.9.0
         version: 2.9.0

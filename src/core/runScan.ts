@@ -28,8 +28,10 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     ciCommands: extractCiCommands(files),
     architectureDocs: extractArchitectureDocs(files),
     agentInstructionDocs: extractAgentInstructionDocs(files),
+    inheritedAgentInstructionDocs: [],
     localPathMentions,
     files,
+    filePaths: files.map((file) => file.path),
     keyDirectories: []
   };
   const findings = runChecks({ facts, config });

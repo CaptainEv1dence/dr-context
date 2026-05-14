@@ -84,6 +84,18 @@ export type ManifestInstructionFile = {
   source: SourceSpan;
 };
 
+export type EffectiveInstructionFile = ManifestInstructionFile & {
+  inherited: boolean;
+  inheritedFrom?: 'workspace-parent';
+  displayPath?: string;
+  appliesBecause: string;
+};
+
+export type EffectiveContext = {
+  targetPath?: string;
+  instructionFiles: EffectiveInstructionFile[];
+};
+
 export type ManifestVerificationCommand = {
   command: string;
   source: SourceSpan;
@@ -103,13 +115,16 @@ export type Manifest = {
   tool: 'drctx';
   toolVersion: string;
   root: string;
+  targetPath?: string;
   packageManager?: ManifestPackageManager;
   agentInstructionFiles: ManifestInstructionFile[];
+  effectiveInstructionFiles?: EffectiveInstructionFile[];
   verificationCommands: ManifestVerificationCommand[];
   firstReads: ManifestFirstRead[];
   ciCommands: CiCommandMention[];
   summary: {
     agentInstructionFiles: number;
+    effectiveInstructionFiles?: number;
     verificationCommands: number;
     firstReads: number;
     ciCommands: number;
@@ -180,6 +195,9 @@ export type AgentInstructionDocFact = {
   scope: AgentInstructionScope;
   appliesTo?: string[];
   metadata?: AgentInstructionMetadata;
+  inherited?: boolean;
+  inheritedFrom?: 'workspace-parent';
+  displayPath?: string;
   source: SourceSpan;
 };
 
@@ -199,8 +217,10 @@ export type RepoFacts = {
   ciCommands: CiCommandMention[];
   architectureDocs: ArchitectureDocFact[];
   agentInstructionDocs: AgentInstructionDocFact[];
+  inheritedAgentInstructionDocs: AgentInstructionDocFact[];
   localPathMentions: LocalPathMention[];
   files: RawFile[];
+  filePaths: string[];
   keyDirectories: string[];
 };
 
