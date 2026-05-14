@@ -11,5 +11,7 @@ describe('GitHub workflows', () => {
     expect(workflow).toContain('ossf/scorecard-action');
     expect(workflow).toContain('security-events: write');
     expect(workflow).toContain('contents: read');
+    expect(workflow).toContain('publish_results: false');
+    expect(workflow).not.toContain('id-token: write');
   });
 });
