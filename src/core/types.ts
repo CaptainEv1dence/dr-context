@@ -148,6 +148,19 @@ export type CommandMention = {
   context: 'inline-code' | 'code-block' | 'plain-text';
 };
 
+export type BuildTargetFact = {
+  tool: 'make' | 'just' | 'taskfile';
+  name: string;
+  source: SourceSpan;
+};
+
+export type RuntimeVersionFact = {
+  runtime: 'node';
+  version: string;
+  kind: 'nvmrc' | 'node-version' | 'package-engines' | 'github-actions';
+  source: SourceSpan;
+};
+
 export type ArchitectureDocFact = {
   path: string;
   kind: 'architecture' | 'adr' | 'design' | 'service-readme' | 'unknown';
@@ -174,6 +187,8 @@ export type RepoFacts = {
   root: string;
   packageManagers: PackageManagerEvidence[];
   scripts: ScriptFact[];
+  buildTargets: BuildTargetFact[];
+  runtimeVersions: RuntimeVersionFact[];
   commandMentions: CommandMention[];
   ciCommands: CommandMention[];
   architectureDocs: ArchitectureDocFact[];

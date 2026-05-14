@@ -1,10 +1,12 @@
 import { extractAgentInstructionDocs } from '../extractors/agentInstructionDocs.js';
 import { extractArchitectureDocs } from '../extractors/architectureDocs.js';
+import { extractBuildTargets } from '../extractors/buildTargets.js';
 import { extractCiCommands } from '../extractors/ciCommands.js';
 import { extractLocalPathMentions } from '../extractors/localPathMentions.js';
 import { extractMarkdownCommands } from '../extractors/markdownCommands.js';
 import { extractPackageJsonScripts } from '../extractors/packageJsonScripts.js';
 import { extractPackageManagers } from '../extractors/packageManagers.js';
+import { extractRuntimeVersions } from '../extractors/runtimeVersions.js';
 import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
 import { runChecks } from './checks.js';
@@ -20,6 +22,8 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     root,
     packageManagers: extractPackageManagers(files),
     scripts: extractPackageJsonScripts(files),
+    buildTargets: extractBuildTargets(files),
+    runtimeVersions: extractRuntimeVersions(files),
     commandMentions: extractMarkdownCommands(files),
     ciCommands: extractCiCommands(files),
     architectureDocs: extractArchitectureDocs(files),
