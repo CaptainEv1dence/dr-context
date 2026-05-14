@@ -14,6 +14,7 @@ describe('extractCiCommands', () => {
     expect(extractCiCommands(files)).toEqual([
       {
         command: 'pnpm test',
+        classification: 'verification',
         context: 'plain-text',
         source: {
           file: '.github/workflows/ci.yml',
