@@ -1,0 +1,4 @@
+---
+globs: ["src/["]
+---
+Invalid scoped rule.

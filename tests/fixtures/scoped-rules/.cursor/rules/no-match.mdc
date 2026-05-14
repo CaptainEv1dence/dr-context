@@ -1,0 +1,4 @@
+---
+globs: [missing/**]
+---
+Stale scoped rule.

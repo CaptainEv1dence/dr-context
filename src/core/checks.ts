@@ -4,6 +4,7 @@ import { coverageSignalsCheck } from '../checks/coverageSignals.js';
 import { hiddenArchitectureDocCheck } from '../checks/hiddenArchitectureDoc.js';
 import { missingVerificationCommandCheck } from '../checks/missingVerificationCommand.js';
 import { packageManagerMismatchCheck } from '../checks/packageManagerMismatch.js';
+import { scopedRulesCheck } from '../checks/scopedRules.js';
 import { stalePackageScriptReferenceCheck } from '../checks/stalePackageScriptReference.js';
 import { staleFileReferenceCheck } from '../checks/staleFileReference.js';
 import { unsafeAgentInstructionsCheck } from '../checks/unsafeAgentInstructions.js';
@@ -15,6 +16,7 @@ export const checks: Check[] = [
   agentDocCommandDriftCheck,
   staleFileReferenceCheck,
   unsafeAgentInstructionsCheck,
+  scopedRulesCheck,
   stalePackageScriptReferenceCheck,
   ciDocCommandMismatchCheck,
   hiddenArchitectureDocCheck,

@@ -1,0 +1,4 @@
+---
+globs: ["**/*"]
+---
+Broad scoped rule in a small repo.

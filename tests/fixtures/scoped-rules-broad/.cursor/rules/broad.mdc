@@ -1,0 +1,4 @@
+---
+globs: ["**/*"]
+---
+Broad scoped rule.
