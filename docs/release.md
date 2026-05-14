@@ -65,6 +65,7 @@ The package should include:
 - `README.md`
 - `LICENSE`
 - `package.json`
+- `action.yml`
 
 The package must not include:
 
@@ -147,6 +148,33 @@ npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- drctx --help
 npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- dr-context check --root D:\random\dr-context
 npm exec --yes --prefix $tmp --package dr-context@0.1.7 -- dr-context discover --root D:\random\dr-context
 Remove-Item -Recurse -Force $tmp
+```
+
+## GitHub Action smoke test
+
+The repository root `action.yml` runs the published npm package through `npx` and can optionally upload SARIF.
+
+Minimal usage:
+
+```yaml
+- uses: CaptainEv1dence/dr-context@v0.1.7
+  with:
+    root: .
+```
+
+Code scanning usage:
+
+```yaml
+permissions:
+  contents: read
+  security-events: write
+
+steps:
+  - uses: actions/checkout@v6
+  - uses: CaptainEv1dence/dr-context@v0.1.7
+    with:
+      root: .
+      upload-sarif: 'true'
 ```
 
 ## GitHub Actions runtime

@@ -1,0 +1,46 @@
+name: Dr. Context
+description: Diagnose AI-agent context rot in GitHub Actions
+author: CaptainEv1dence
+
+inputs:
+  root:
+    description: Repository root to scan
+    required: false
+    default: .
+  strict:
+    description: Exit non-zero on warnings
+    required: false
+    default: 'false'
+  upload-sarif:
+    description: Upload SARIF results to GitHub code scanning
+    required: false
+    default: 'false'
+  version:
+    description: npm package version to execute
+    required: false
+    default: latest
+
+runs:
+  using: composite
+  steps:
+    - name: Run Dr. Context
+      shell: bash
+      run: |
+        set +e
+        STRICT_FLAG=""
+        if [ "${{ inputs.strict }}" = "true" ]; then
+          STRICT_FLAG="--strict"
+        fi
+
+        npx --yes "dr-context@${{ inputs.version }}" check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
+        STATUS=$?
+
+        cat dr-context.sarif
+        echo "sarif_path=dr-context.sarif" >> "$GITHUB_OUTPUT"
+        exit "$STATUS"
+
+    - name: Upload Dr. Context SARIF
+      if: ${{ always() && inputs.upload-sarif == 'true' }}
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: dr-context.sarif

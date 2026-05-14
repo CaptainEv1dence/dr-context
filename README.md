@@ -28,6 +28,21 @@ Find candidate repository roots under a folder without scanning them:
 drctx discover --root ../workspace --max-depth 3
 ```
 
+Emit SARIF for GitHub code scanning or other SARIF consumers:
+
+```bash
+drctx check --sarif --root . > dr-context.sarif
+```
+
+Run in GitHub Actions:
+
+```yaml
+- uses: CaptainEv1dence/dr-context@v0.1.7
+  with:
+    root: .
+    upload-sarif: 'true'
+```
+
 ## Quick start
 
 ```bash
@@ -105,6 +120,7 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Multiple JavaScript lockfile detection.
 - Candidate root discovery for folders that contain multiple repos or shared agent instructions.
 - Evidence-backed text and JSON reports.
+- SARIF 2.1.0 reporting for code scanning integrations.
 
 ## Discover candidate roots
 
