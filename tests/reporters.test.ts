@@ -6,7 +6,7 @@ import type { Report } from '../src/core/types.js';
 const emptyReport: Report = {
   schemaVersion: 'drctx.report.v1',
   tool: 'drctx',
-  toolVersion: '0.1.4',
+  toolVersion: '0.1.5',
   root: '/repo',
   findings: [],
   summary: { errors: 0, warnings: 0, infos: 0 }

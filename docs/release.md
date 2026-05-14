@@ -100,6 +100,7 @@ Trusted publishing is configured for future releases.
 - [x] Configure npm trusted publishing for this GitHub repository.
 - [x] Restrict publish automation to tags or release workflow dispatch.
 - [x] Use OIDC provenance.
+- [x] Use Node 24 and npm automatic provenance generation for trusted publishing.
 - [x] Run CI-equivalent checks in the release workflow before publishing.
 - [x] Keep npm token secrets out of the repository if trusted publishing is available.
 - [x] Skip publish when the package version already exists on npm.

@@ -4,6 +4,12 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.5 - 2026-05-13
+
+### Fixed
+
+- Match npm trusted publishing docs by using Node 24, disabling package-manager cache, and letting npm generate provenance automatically.
+
 ## 0.1.4 - 2026-05-13
 
 ### Fixed
