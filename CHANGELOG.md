@@ -10,6 +10,7 @@ The format follows Keep a Changelog-style sections. The project has not publishe
 
 - Run the GitHub Action's published CLI from an isolated npm prefix so local workspaces and GitHub runners resolve the `dr-context` binary reliably.
 - Skip SARIF upload when the Action fails before producing a non-empty SARIF file.
+- Keep self-dogfood pinned to the latest published package instead of a just-bumped release version, avoiding release-publish races on `main` pushes.
 
 ## 0.1.8 - 2026-05-14
 
