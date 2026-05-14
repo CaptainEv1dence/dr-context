@@ -32,7 +32,7 @@ runs:
           STRICT_FLAG="--strict"
         fi
 
-        npx --yes "dr-context@${{ inputs.version }}" check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
+        npx --yes --package "dr-context@${{ inputs.version }}" -- dr-context check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
         STATUS=$?
 
         cat dr-context.sarif

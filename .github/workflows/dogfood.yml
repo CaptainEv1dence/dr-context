@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: CaptainEv1dence/dr-context@v0.1.8
+      - uses: ./
         with:
           root: .
           upload-sarif: 'true'
+          version: 0.1.8
