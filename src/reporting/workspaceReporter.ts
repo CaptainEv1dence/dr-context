@@ -4,7 +4,12 @@ export function renderWorkspaceJson(report: WorkspaceReport): string {
   return `${JSON.stringify(redactWorkspaceReport(report), null, 2)}\n`;
 }
 
-export function renderWorkspaceText(report: WorkspaceReport): string {
+export type WorkspaceTextOptions = {
+  summaryOnly?: boolean;
+  maxFindings?: number;
+};
+
+export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceTextOptions = {}): string {
   const lines = [
     'Dr. Context Workspace',
     '',
@@ -13,12 +18,23 @@ export function renderWorkspaceText(report: WorkspaceReport): string {
     ''
   ];
 
+  if (options.summaryOnly) {
+    return `${lines.join('\n')}\n`;
+  }
+
+  let emittedFindings = 0;
+  let omittedFindings = 0;
   for (const entry of report.reports) {
     lines.push(
       `${entry.path}: ${entry.report.summary.errors} error(s), ${entry.report.summary.warnings} warning(s), ${entry.report.summary.infos} info(s)`
     );
 
     for (const finding of entry.report.findings) {
+      if (options.maxFindings !== undefined && emittedFindings >= options.maxFindings) {
+        omittedFindings += 1;
+        continue;
+      }
+      emittedFindings += 1;
       const location = finding.primarySource?.file
         ? `${entry.path}/${finding.primarySource.file}${finding.primarySource.line ? `:${finding.primarySource.line}` : ''}`
         : entry.path;
@@ -27,6 +43,10 @@ export function renderWorkspaceText(report: WorkspaceReport): string {
         lines.push(`  Suggested fix: ${finding.suggestion}`);
       }
     }
+  }
+
+  if (options.maxFindings !== undefined && omittedFindings > 0) {
+    lines.push(`... ${omittedFindings} finding(s) omitted by --max-findings=${options.maxFindings}.`);
   }
 
   return `${lines.join('\n')}\n`;

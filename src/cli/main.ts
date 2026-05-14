@@ -3,11 +3,13 @@ import { Command } from 'commander';
 import { basename, extname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runScan } from '../core/runScan.js';
+import { buildManifest } from '../core/buildManifest.js';
 import { runWorkspaceScan } from '../core/workspaceScan.js';
 import { discoverCandidates } from '../discovery/discoverCandidates.js';
 import { renderDiscoverJson } from '../reporting/discoverJsonReporter.js';
 import { renderDiscoverText } from '../reporting/discoverTextReporter.js';
 import { renderJson } from '../reporting/jsonReporter.js';
+import { renderManifestJson, renderManifestText } from '../reporting/manifestReporter.js';
 import { renderSarif } from '../reporting/sarifReporter.js';
 import { renderText } from '../reporting/textReporter.js';
 import { renderWorkspaceJson, renderWorkspaceText } from '../reporting/workspaceReporter.js';
@@ -23,6 +25,8 @@ type CliOptions = {
   exclude: string[];
   root?: string;
   maxDepth?: string;
+  maxFindings?: string;
+  summaryOnly?: boolean;
 };
 type DiscoverCliOptions = { json?: boolean; root?: string; maxDepth?: string };
 
@@ -49,7 +53,12 @@ export async function runCli(argv: string[]): Promise<CliResult> {
           maxDepth
         });
 
-        stdout += effectiveOptions.json ? renderWorkspaceJson(report) : renderWorkspaceText(report);
+        stdout += effectiveOptions.json
+          ? renderWorkspaceJson(report)
+          : renderWorkspaceText(report, {
+              summaryOnly: Boolean(effectiveOptions.summaryOnly),
+              maxFindings: parseOptionalNonNegativeInteger(effectiveOptions.maxFindings, '--max-findings')
+            });
         exitCode = exitCodeForWorkspaceReport(report, Boolean(effectiveOptions.strict));
         return;
       }
@@ -75,6 +84,23 @@ export async function runCli(argv: string[]): Promise<CliResult> {
       const report = await discoverCandidates(root, { maxDepth });
 
       stdout += effectiveOptions.json ? renderDiscoverJson(report) : renderDiscoverText(report);
+      exitCode = 0;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      stderr += `Dr. Context internal error: ${message}\n`;
+      exitCode = 2;
+    }
+  }, async (options, parentOptions) => {
+    try {
+      const effectiveOptions = { ...parentOptions, ...options };
+      const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+      const manifest = await buildManifest(root, {
+        strict: Boolean(effectiveOptions.strict),
+        include: effectiveOptions.include,
+        exclude: effectiveOptions.exclude
+      });
+
+      stdout += effectiveOptions.json ? renderManifestJson(manifest) : renderManifestText(manifest);
       exitCode = 0;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -109,7 +135,8 @@ export async function runCli(argv: string[]): Promise<CliResult> {
 function createProgram(
   commandName: string,
   action: (options: CliOptions, parentOptions: CliOptions) => Promise<void>,
-  discoverAction: (options: DiscoverCliOptions, parentOptions: DiscoverCliOptions) => Promise<void>
+  discoverAction: (options: DiscoverCliOptions, parentOptions: DiscoverCliOptions) => Promise<void>,
+  manifestAction: (options: CliOptions, parentOptions: CliOptions) => Promise<void>
 ): Command {
   const program = new Command();
 
@@ -121,6 +148,8 @@ function createProgram(
     .option('--sarif', 'print SARIF 2.1.0 report')
     .option('--strict', 'exit non-zero on warnings')
     .option('--workspace', 'discover and scan candidate roots under --root')
+    .option('--summary-only', 'print only workspace totals')
+    .option('--max-findings <number>', 'maximum workspace findings to print')
     .option('--include <glob...>', 'include globs', [])
     .option('--exclude <glob...>', 'exclude globs', [])
     .option('--root <path>', 'repository root to scan')
@@ -134,10 +163,22 @@ function createProgram(
     .option('--strict', 'exit non-zero on warnings')
     .option('--workspace', 'discover and scan candidate roots under --root')
     .option('--max-depth <number>', 'maximum directory depth for workspace discovery', '3')
+    .option('--summary-only', 'print only workspace totals')
+    .option('--max-findings <number>', 'maximum workspace findings to print')
     .option('--include <glob...>', 'include globs', [])
     .option('--exclude <glob...>', 'exclude globs', [])
     .option('--root <path>', 'repository root to scan')
     .action((options: CliOptions) => action(options, program.opts<CliOptions>()));
+
+  program
+    .command('manifest')
+    .description('print the canonical repository context contract')
+    .option('--json', 'print JSON manifest')
+    .option('--strict', 'reserved for consistency with check')
+    .option('--include <glob...>', 'include globs', [])
+    .option('--exclude <glob...>', 'exclude globs', [])
+    .option('--root <path>', 'repository root to inspect')
+    .action((options: CliOptions) => manifestAction(options, program.opts<CliOptions>()));
 
   program
     .command('discover')
@@ -175,6 +216,18 @@ function isCommanderHelpOrVersionExit(error: unknown): boolean {
 function parseMaxDepth(value = '3'): number {
   if (!/^\d+$/.test(value)) {
     throw new Error('--max-depth must be a non-negative integer');
+  }
+
+  return Number(value);
+}
+
+function parseOptionalNonNegativeInteger(value: string | undefined, optionName: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!/^\d+$/.test(value)) {
+    throw new Error(`${optionName} must be a non-negative integer`);
   }
 
   return Number(value);

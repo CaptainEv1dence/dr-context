@@ -4,6 +4,30 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.0 - 2026-05-14
+
+### Added
+
+- Add `drctx manifest` with `drctx.manifest.v1` JSON output for the repository context contract.
+- Add cross-agent command drift detection across agent instruction files.
+- Add stale local file reference detection for agent-visible instructions.
+- Add unsafe instruction detection for bypass guidance such as skipped tests or `--no-verify`.
+- Add GitHub workflow annotations for SARIF findings.
+- Add workspace text output controls: `--summary-only` and `--max-findings`.
+
+### Changed
+
+- Package manager extraction now supports compact `package.json` formatting and scoped package manager values more safely.
+- Harden GitHub Action input handling, SARIF annotation escaping, and invalid SARIF diagnostics.
+- Enforce Dr. Context self-dogfood in CI and release workflows.
+
+### Fixed
+
+- Keep stale local path checks inside the requested scan root.
+- Include missing first-read references in manifest output.
+- Limit cross-agent command drift evidence to agent instruction files.
+- Print a truncation notice when workspace text output omits findings via `--max-findings`.
+
 ## 0.2.0 - 2026-05-14
 
 ### Added

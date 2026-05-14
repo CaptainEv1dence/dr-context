@@ -9,13 +9,13 @@ importers:
   .:
     dependencies:
       commander:
-        specifier: latest
+        specifier: ^14.0.3
         version: 14.0.3
       fast-glob:
-        specifier: latest
+        specifier: ^3.3.3
         version: 3.3.3
       yaml:
-        specifier: latest
+        specifier: ^2.9.0
         version: 2.9.0
     devDependencies:
       '@eslint/js':

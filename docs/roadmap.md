@@ -10,11 +10,14 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 - Candidate discovery.
 - Workspace aggregate scan.
 - OpenSSF Scorecard workflow.
+- Context manifest command.
+- Cross-agent command drift, stale file reference, and unsafe instruction checks.
+- GitHub annotations and workspace output controls.
 
 ## Next
 
 - Parent/child agent-instruction inheritance.
-- Richer GitHub Action annotations.
+- Config file and baseline mode.
 - More context-file formats and stronger false-positive controls.
 
 ## Later

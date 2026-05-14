@@ -185,4 +185,65 @@ describe('workspace reporters', () => {
     expect(output).toContain('Dr. Context Workspace');
     expect(output).toContain('repo-a: 0 error(s), 1 warning(s), 0 info(s)');
   });
+
+  test('prints a truncation notice when workspace text findings are limited', () => {
+    const output = renderWorkspaceText(
+      {
+        schemaVersion: 'drctx.workspace-report.v1',
+        tool: 'drctx',
+        toolVersion: '0.3.0',
+        root: '<requested-root>',
+        reports: [
+          {
+            path: 'repo-a',
+            report: {
+              ...emptyReport,
+              findings: [
+                {
+                  id: 'first-finding',
+                  title: 'First finding',
+                  category: 'test',
+                  severity: 'warning',
+                  confidence: 'high',
+                  evidence: []
+                },
+                {
+                  id: 'second-finding',
+                  title: 'Second finding',
+                  category: 'test',
+                  severity: 'warning',
+                  confidence: 'high',
+                  evidence: []
+                }
+              ],
+              summary: { errors: 0, warnings: 2, infos: 0 }
+            }
+          }
+        ],
+        summary: { roots: 1, errors: 0, warnings: 2, infos: 0 }
+      },
+      { maxFindings: 1 }
+    );
+
+    expect(output).toContain('first-finding');
+    expect(output).not.toContain('second-finding');
+    expect(output).toContain('1 finding(s) omitted by --max-findings=1.');
+  });
+
+  test('workspace summary-only text omits per-root finding details', () => {
+    const output = renderWorkspaceText(
+      {
+        schemaVersion: 'drctx.workspace-report.v1',
+        tool: 'drctx',
+        toolVersion: '0.3.0',
+        root: '<requested-root>',
+        reports: [{ path: 'repo-a', report: { ...emptyReport, summary: { errors: 0, warnings: 1, infos: 0 } } }],
+        summary: { roots: 1, errors: 0, warnings: 1, infos: 0 }
+      },
+      { summaryOnly: true }
+    );
+
+    expect(output).toContain('Totals: 0 error(s), 1 warning(s), 0 info(s).');
+    expect(output).not.toContain('repo-a:');
+  });
 });

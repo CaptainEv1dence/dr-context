@@ -12,7 +12,7 @@ If GitHub private vulnerability reporting is available for this repository, use 
 
 Include:
 
-- Dr. Context version (`dr-context --version` once available, or `npm view dr-context version`).
+- Dr. Context version (`dr-context --version`).
 - Operating system and Node.js version.
 - The command that triggered the issue.
 - A sanitized minimal fixture that preserves the shape of the problem.

@@ -28,6 +28,17 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run build
       - run: corepack pnpm run pack:dry-run
+      - run: node dist/cli/main.js check --json --root .
+      - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "Package version $PKG_VERSION does not match tag $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
       - id: package
         shell: bash
         run: |

@@ -16,6 +16,13 @@ Or after install:
 drctx check
 ```
 
+Print the canonical context contract for a repository:
+
+```bash
+drctx manifest
+drctx manifest --json
+```
+
 Scan another repository without changing directories:
 
 ```bash
@@ -32,6 +39,8 @@ Scan candidate repository roots under a folder and print a privacy-preserving ag
 
 ```bash
 drctx check --workspace --root ../workspace --max-depth 3
+drctx check --workspace --root ../workspace --summary-only
+drctx check --workspace --root ../workspace --max-findings 20
 ```
 
 Emit SARIF for GitHub code scanning or other SARIF consumers:
@@ -43,7 +52,7 @@ drctx check --sarif --root . > dr-context.sarif
 Run in GitHub Actions:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.2.0
+- uses: CaptainEv1dence/dr-context@v0.3.0
   with:
     root: .
     upload-sarif: 'true'
@@ -126,6 +135,8 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Multiple JavaScript lockfile detection.
 - Candidate root discovery for folders that contain multiple repos or shared agent instructions.
 - Workspace scanning with privacy-preserving aggregate JSON and text output.
+- Context manifests with package manager, verification commands, first-read docs, CI commands, and agent instruction files.
+- Cross-agent command drift, stale file reference, and unsafe instruction detection.
 - Evidence-backed text and JSON reports.
 - SARIF 2.1.0 reporting for code scanning integrations.
 
@@ -180,6 +191,16 @@ drctx check --workspace --root ../workspace --json
 ```
 
 Workspace JSON uses `schemaVersion: "drctx.workspace-report.v1"`, redacts the requested root as `<requested-root>`, and redacts each child scan root as `<candidate-root>`. Candidate paths remain relative to the requested root.
+
+## Manifest
+
+Use `manifest` when an agent, CI job, or human needs the repository's context contract without findings:
+
+```bash
+drctx manifest --json --root .
+```
+
+Manifest JSON uses `schemaVersion: "drctx.manifest.v1"` and includes package manager evidence, agent instruction files, verification commands, first-read docs, and CI command sources.
 
 ## Useful findings
 

@@ -27,3 +27,4 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run build
       - run: corepack pnpm run pack:dry-run
+      - run: node dist/cli/main.js check --json --root .

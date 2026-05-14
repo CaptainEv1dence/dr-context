@@ -24,7 +24,7 @@ Before any publish attempt:
 - [ ] Confirm npm account or organization owner.
 - [x] Confirm package name: `dr-context`.
 - [x] Remove `"private": true` only after package name approval.
-- [x] Set version to `0.1.0` for the first public release.
+- [ ] Set `package.json` to the intended release version.
 - [x] Confirm `publishConfig.access` is correct for the chosen package name.
 - [x] Confirm runtime report `toolVersion` matches `package.json`.
 - [x] Confirm npm provenance is required for published artifacts.
@@ -98,10 +98,10 @@ Do not run a real `npm publish` from a local machine unless the release plan exp
 
 The repository contains `.github/workflows/release.yml`. It publishes only on `workflow_dispatch` or `v*` tags.
 
-Trusted publishing is configured for future releases.
+Trusted publishing is configured outside this repository. Verify npm-side settings before tagging each release.
 
 - [x] Create or claim the npm package.
-- [x] Configure npm trusted publishing for this GitHub repository.
+- [ ] Verify npm trusted publishing settings for this GitHub repository.
 - [x] Restrict publish automation to tags or release workflow dispatch.
 - [x] Use OIDC provenance.
 - [x] Use Node 24 and npm automatic provenance generation for trusted publishing.
@@ -143,11 +143,13 @@ On Windows, run published-package smoke tests from an isolated prefix so the loc
 ```powershell
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
-npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context --help
-npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- drctx --help
-npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context check --root D:\random\dr-context
-npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context discover --root D:\random\dr-context
-npm exec --yes --prefix $tmp --package dr-context@0.2.0 -- dr-context check --workspace --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context --help
+npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- drctx --help
+$repo = Resolve-Path .
+npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context check --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context manifest --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context discover --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context check --workspace --root $repo
 Remove-Item -Recurse -Force $tmp
 ```
 
@@ -158,7 +160,7 @@ The repository root `action.yml` runs the published npm package through `npm exe
 Minimal usage:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.2.0
+- uses: CaptainEv1dence/dr-context@v0.3.0
   with:
     root: .
 ```
@@ -172,7 +174,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@v6
-  - uses: CaptainEv1dence/dr-context@v0.2.0
+  - uses: CaptainEv1dence/dr-context@v0.3.0
     with:
       root: .
       upload-sarif: 'true'

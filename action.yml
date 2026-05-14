@@ -26,24 +26,35 @@ runs:
     - name: Run Dr. Context
       id: scan
       shell: bash
+      env:
+        DR_CONTEXT_ROOT: ${{ inputs.root }}
+        DR_CONTEXT_STRICT: ${{ inputs.strict }}
+        DR_CONTEXT_VERSION: ${{ inputs.version }}
       run: |
         set +e
         DR_CONTEXT_WORKDIR="$RUNNER_TEMP/dr-context-action"
         mkdir -p "$DR_CONTEXT_WORKDIR"
 
+        if ! [[ "$DR_CONTEXT_VERSION" =~ ^[A-Za-z0-9._*+~^-]+$ ]]; then
+          echo "Invalid Dr. Context version input: $DR_CONTEXT_VERSION" >&2
+          echo "sarif_ready=false" >> "$GITHUB_OUTPUT"
+          exit 2
+        fi
+
         STRICT_FLAG=""
-        if [ "${{ inputs.strict }}" = "true" ]; then
+        if [ "$DR_CONTEXT_STRICT" = "true" ]; then
           STRICT_FLAG="--strict"
         fi
 
-        npm exec --yes --prefix "$DR_CONTEXT_WORKDIR" --package "dr-context@${{ inputs.version }}" -- dr-context check --sarif --root "${{ inputs.root }}" $STRICT_FLAG > dr-context.sarif
+        npm exec --yes --prefix "$DR_CONTEXT_WORKDIR" --package "dr-context@$DR_CONTEXT_VERSION" -- dr-context check --sarif --root "$DR_CONTEXT_ROOT" $STRICT_FLAG > dr-context.sarif
         STATUS=$?
 
         cat dr-context.sarif
         echo "sarif_path=dr-context.sarif" >> "$GITHUB_OUTPUT"
-        if [ -s dr-context.sarif ]; then
+        if [ -s dr-context.sarif ] && node -e "const fs=require('fs'); const sarif=JSON.parse(fs.readFileSync('dr-context.sarif','utf8')); if (sarif.version !== '2.1.0' || !Array.isArray(sarif.runs)) process.exit(1);"; then
           echo "sarif_ready=true" >> "$GITHUB_OUTPUT"
           SUMMARY=$(node -e "const fs=require('fs'); const sarif=JSON.parse(fs.readFileSync('dr-context.sarif','utf8')); const results=sarif.runs?.[0]?.results ?? []; const counts=results.reduce((acc,result)=>{ acc[result.level ?? 'warning']=(acc[result.level ?? 'warning'] ?? 0)+1; return acc; },{}); console.log('| Level | Count |'); console.log('| --- | ---: |'); for (const level of ['error','warning','note']) console.log('| '+level+' | '+(counts[level] ?? 0)+' |');")
+          node -e "const fs=require('fs'); const escapeData=(value)=>String(value).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'); const escapeProperty=(value)=>escapeData(value).replace(/:/g,'%3A').replace(/,/g,'%2C'); const sarif=JSON.parse(fs.readFileSync('dr-context.sarif','utf8')); const results=sarif.runs?.[0]?.results ?? []; for (const result of results) { const level=result.level === 'error' ? 'error' : 'warning'; const location=result.locations?.[0]?.physicalLocation; const artifact=location?.artifactLocation?.uri ?? 'AGENTS.md'; const line=location?.region?.startLine ?? 1; const message=result.message?.text ?? result.ruleId ?? 'Dr. Context finding'; console.log('::'+level+' file='+escapeProperty(artifact)+',line='+escapeProperty(line)+'::'+escapeData(message)); }"
           {
             echo "## Dr. Context"
             echo ""
@@ -53,11 +64,11 @@ runs:
           } >> "$GITHUB_STEP_SUMMARY"
         else
           echo "sarif_ready=false" >> "$GITHUB_OUTPUT"
-          echo "Dr. Context did not produce SARIF. Check npm package install/execution above." >&2
+          echo "Dr. Context did not produce valid SARIF. Check npm package install/execution above." >&2
           {
             echo "## Dr. Context"
             echo ""
-            echo "Dr. Context did not produce SARIF. Check npm package install/execution above."
+            echo "Dr. Context did not produce valid SARIF. Check npm package install/execution above."
           } >> "$GITHUB_STEP_SUMMARY"
         fi
         exit "$STATUS"

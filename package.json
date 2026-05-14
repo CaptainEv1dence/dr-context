@@ -1,6 +1,6 @@
 {
   "name": "dr-context",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Diagnose context rot before your coding agent reads it.",
   "type": "module",
   "packageManager": "pnpm@11.1.1",
@@ -10,6 +10,7 @@
     "dist/**/*",
     "README.md",
     "action.yml",
+    "SECURITY.md",
     "LICENSE"
   ],
   "bin": {
@@ -55,8 +56,8 @@
     "vitest": "latest"
   },
   "dependencies": {
-    "commander": "latest",
-    "fast-glob": "latest",
-    "yaml": "latest"
+    "commander": "^14.0.3",
+    "fast-glob": "^3.3.3",
+    "yaml": "^2.9.0"
   }
 }

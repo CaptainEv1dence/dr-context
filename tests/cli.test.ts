@@ -67,6 +67,53 @@ describe('drctx CLI', () => {
     });
   });
 
+  test('prints manifest JSON reports', async () => {
+    const result = await runInFixture(['manifest', '--json'], 'clean-repo');
+    const output = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(output).toMatchObject({
+      schemaVersion: 'drctx.manifest.v1',
+      root: '<requested-root>',
+      packageManager: { name: 'pnpm' }
+    });
+  });
+
+  test('limits workspace text findings with --max-findings', async () => {
+    await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
+    const result = await runCli([
+      'node',
+      'drctx',
+      'check',
+      '--workspace',
+      '--max-findings',
+      '0',
+      '--root',
+      join(fixturesRoot, 'discover-workspace')
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Scanned 3 candidate root(s).');
+    expect(result.stdout).not.toContain('missing-verification-command');
+  });
+
+  test('prints workspace summary only', async () => {
+    await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
+    const result = await runCli([
+      'node',
+      'drctx',
+      'check',
+      '--workspace',
+      '--summary-only',
+      '--root',
+      join(fixturesRoot, 'discover-workspace')
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Totals:');
+    expect(result.stdout).not.toContain('package-only:');
+  });
+
   test('prints workspace JSON reports with --workspace and redacted root', async () => {
     await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
     const result = await runCli(['node', 'drctx', 'check', '--workspace', '--json', '--root', join(fixturesRoot, 'discover-workspace')]);

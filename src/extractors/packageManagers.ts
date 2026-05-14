@@ -22,13 +22,15 @@ function extractPackageJsonPackageManager(file: RawFile): PackageManagerEvidence
     return [];
   }
 
-  const match = file.content.match(/^\s*"packageManager"\s*:\s*"([^"]+)"/m);
+  const match = file.content.match(/"packageManager"\s*:\s*"([^"]+)"/);
   if (!match) {
     return [];
   }
 
   const raw = match[1];
-  const [name, version] = raw.split('@');
+  const atIndex = raw.lastIndexOf('@');
+  const name = atIndex === -1 ? raw : raw.slice(0, atIndex);
+  const version = atIndex === -1 ? undefined : raw.slice(atIndex + 1);
 
   return [
     {

@@ -63,6 +63,50 @@ export type WorkspaceReport = {
   };
 };
 
+export type ManifestPackageManager = {
+  name: PackageManagerName;
+  version?: string;
+  sources: SourceSpan[];
+};
+
+export type ManifestInstructionFile = {
+  path: string;
+  type: 'agents' | 'claude' | 'cursor' | 'copilot' | 'unknown';
+  source: SourceSpan;
+};
+
+export type ManifestVerificationCommand = {
+  command: string;
+  source: SourceSpan;
+  ciBacked: boolean;
+  agentVisible: boolean;
+};
+
+export type ManifestFirstRead = {
+  path: string;
+  exists: boolean;
+  agentVisible: boolean;
+  source: SourceSpan;
+};
+
+export type Manifest = {
+  schemaVersion: 'drctx.manifest.v1';
+  tool: 'drctx';
+  toolVersion: string;
+  root: string;
+  packageManager?: ManifestPackageManager;
+  agentInstructionFiles: ManifestInstructionFile[];
+  verificationCommands: ManifestVerificationCommand[];
+  firstReads: ManifestFirstRead[];
+  ciCommands: CommandMention[];
+  summary: {
+    agentInstructionFiles: number;
+    verificationCommands: number;
+    firstReads: number;
+    ciCommands: number;
+  };
+};
+
 export type PackageManagerName =
   | 'npm'
   | 'pnpm'
@@ -107,6 +151,12 @@ export type AgentInstructionDocFact = {
   source: SourceSpan;
 };
 
+export type LocalPathMention = {
+  path: string;
+  exists: boolean;
+  source: SourceSpan;
+};
+
 export type RepoFacts = {
   root: string;
   packageManagers: PackageManagerEvidence[];
@@ -115,6 +165,8 @@ export type RepoFacts = {
   ciCommands: CommandMention[];
   architectureDocs: ArchitectureDocFact[];
   agentInstructionDocs: AgentInstructionDocFact[];
+  localPathMentions: LocalPathMention[];
+  files: RawFile[];
   keyDirectories: string[];
 };
 
