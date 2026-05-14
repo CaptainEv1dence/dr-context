@@ -6,7 +6,7 @@ function report(summary: Report['summary']): Report {
   return {
     schemaVersion: 'drctx.report.v1',
     tool: 'drctx',
-    toolVersion: '0.1.2',
+    toolVersion: '0.1.3',
     root: '/repo',
     findings: [],
     summary

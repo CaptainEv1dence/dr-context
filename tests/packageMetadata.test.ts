@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import packageJson from '../package.json' with { type: 'json' };
+import { toolVersion } from '../src/version.js';
 
 describe('package metadata', () => {
   test('exposes both short and package-name CLI binaries', () => {
@@ -8,5 +9,9 @@ describe('package metadata', () => {
       'dr-context': 'dist/cli/main.js',
       drctx: 'dist/cli/main.js'
     });
+  });
+
+  test('keeps runtime tool version in sync with package version', () => {
+    expect(toolVersion).toBe(packageJson.version);
   });
 });

@@ -4,6 +4,13 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.3 - 2026-05-13
+
+### Fixed
+
+- Use npm trusted publishing without token-based setup-node registry configuration.
+- Add a test guard that keeps runtime `toolVersion` in sync with `package.json`.
+
 ## 0.1.2 - 2026-05-13
 
 ### Fixed
