@@ -123,4 +123,3 @@ function isFirstReadReference(mention: LocalPathMention): boolean {
   const text = mention.source.text?.toLowerCase() ?? '';
   return /\b(first read|read|start with|before (?:changing|coding|editing|implementation))\b/.test(text);
 }
-
