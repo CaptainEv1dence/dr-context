@@ -79,6 +79,18 @@ describe('drctx CLI', () => {
     });
   });
 
+  test('prints manifest JSON reports with instruction surface metadata', async () => {
+    const result = await runInFixture(['manifest', '--json'], 'copilot-instructions');
+    const output = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(output.agentInstructionFiles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: '.github/copilot-instructions.md', type: 'copilot', scope: 'repo' })
+      ])
+    );
+  });
+
   test('limits workspace text findings with --max-findings', async () => {
     await mkdir(join(fixturesRoot, 'discover-workspace', 'repo-a', '.git'), { recursive: true });
     const result = await runCli([

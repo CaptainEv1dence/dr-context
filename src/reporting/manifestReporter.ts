@@ -16,6 +16,10 @@ export function renderManifestText(manifest: Manifest): string {
     ''
   ];
 
+  for (const instructionFile of manifest.agentInstructionFiles) {
+    lines.push(`- ${instructionFile.path} (${instructionFile.type}, ${instructionFile.scope})`);
+  }
+
   for (const command of manifest.verificationCommands) {
     lines.push(`- ${command.command} (ciBacked=${command.ciBacked}, agentVisible=${command.agentVisible})`);
   }

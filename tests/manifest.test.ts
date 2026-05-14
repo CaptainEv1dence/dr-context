@@ -51,6 +51,26 @@ describe('buildManifest', () => {
     ]);
   });
 
+  test('includes instruction surface metadata in manifest entries', async () => {
+    const root = await makeRepo({
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      'pnpm-lock.yaml': 'lockfileVersion: 9.0',
+      '.github/copilot-instructions.md': 'Run `pnpm test`.',
+      '.cursor/rules/frontend.mdc': '---\ndescription: Frontend rule\n---\nUse React.',
+      'GEMINI.md': '# Gemini\nRun `pnpm test`.'
+    });
+
+    const manifest = await buildManifest(root, { include: [], exclude: [], strict: false });
+
+    expect(manifest.agentInstructionFiles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: '.github/copilot-instructions.md', type: 'copilot', scope: 'repo' }),
+        expect.objectContaining({ path: '.cursor/rules/frontend.mdc', type: 'cursor', scope: 'nested' }),
+        expect.objectContaining({ path: 'GEMINI.md', type: 'gemini', scope: 'repo' })
+      ])
+    );
+  });
+
   test('includes missing first-read references from agent docs', async () => {
     const root = await makeRepo({
       'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
@@ -124,7 +144,7 @@ describe('buildManifest', () => {
   test('prints manifest text reports by default', async () => {
     const root = await makeRepo({
       'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
-      'AGENTS.md': 'Run `pnpm test`.'
+      '.github/copilot-instructions.md': 'Run `pnpm test`.'
     });
     const result = await runCli(['node', 'drctx', 'manifest', '--root', root]);
 
@@ -132,6 +152,7 @@ describe('buildManifest', () => {
     expect(result.stderr).toBe('');
     expect(result.stdout).toContain('Dr. Context Manifest');
     expect(result.stdout).toContain('Package manager: pnpm');
+    expect(result.stdout).toContain('- .github/copilot-instructions.md (copilot, repo)');
     expect(result.stdout).toContain('- pnpm test (ciBacked=');
   });
 });
