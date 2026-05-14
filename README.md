@@ -13,8 +13,11 @@ npx dr-context
 Or after install:
 
 ```bash
+dr-context check
 drctx check
 ```
+
+The npm package exposes both binaries: `dr-context` and `drctx`.
 
 Print the canonical context contract for a repository:
 
@@ -42,6 +45,14 @@ drctx check --workspace --root ../workspace --max-depth 3
 drctx check --workspace --root ../workspace --summary-only
 drctx check --workspace --root ../workspace --max-findings 20
 ```
+
+Parent workspace instructions are never inherited by default. To opt in during workspace scans:
+
+```bash
+drctx check --workspace --inherit-parent-instructions --root .
+```
+
+Inherited instruction sources are explicitly marked in structured output.
 
 Emit SARIF for GitHub code scanning or other SARIF consumers:
 
@@ -208,6 +219,8 @@ drctx check --workspace --root ../workspace --json
 
 Workspace JSON uses `schemaVersion: "drctx.workspace-report.v1"`, redacts the requested root as `<requested-root>`, and redacts each child scan root as `<candidate-root>`. Candidate paths remain relative to the requested root.
 
+Parent workspace instructions are never inherited unless `--inherit-parent-instructions` is passed during a workspace scan. When enabled, inherited instruction sources are marked as inherited in structured output instead of being rendered as child-local files.
+
 ## Manifest
 
 Use `manifest` when an agent, CI job, or human needs the repository's context contract without findings:
@@ -217,6 +230,19 @@ drctx manifest --json --root .
 ```
 
 Manifest JSON uses `schemaVersion: "drctx.manifest.v1"` and includes package manager evidence, agent instruction files, verification commands, first-read docs, and CI command sources.
+
+Use `--path` to print the effective instruction files for a target file:
+
+```bash
+drctx manifest --path src/cli/main.ts
+drctx manifest --path src/cli/main.ts --json
+```
+
+With path-scoped output, manifest JSON includes `targetPath` and `effectiveInstructionFiles`.
+
+The `--path` value is resolved relative to `--root`, not the shell current working directory. Absolute paths are accepted only when they are inside `--root`. Output paths are normalized to root-relative paths.
+
+Cursor rule metadata contributes to effective context deterministically. `alwaysApply: true` rules contribute to `effectiveInstructionFiles` for every target path. `alwaysApply: false` rules contribute only when their `globs` or `paths` metadata matches the requested target path.
 
 ## Useful findings
 

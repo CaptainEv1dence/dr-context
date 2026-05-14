@@ -4,6 +4,19 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.2 - Unreleased
+
+### Added
+
+- Add `drctx manifest --path` effective instruction files.
+- Add opt-in workspace parent instruction inheritance with `--inherit-parent-instructions`.
+- Add deterministic Cursor scoped rule metadata support.
+- Add conservative scoped-rule findings for invalid, stale, or broad scoped patterns.
+
+### Changed
+
+- Manifest JSON can include `targetPath` and `effectiveInstructionFiles` when path-scoped output is requested.
+
 ## 0.3.1 - 2026-05-14
 
 ### Added

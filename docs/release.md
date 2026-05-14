@@ -138,18 +138,21 @@ Do not copy token values into issues, docs, logs, commits, or release notes.
 
 ## Published package smoke test
 
-On Windows, run published-package smoke tests from an isolated prefix so the local workspace does not shadow the temporary `npx` shims:
+After the target version has been published, run published-package smoke tests from an isolated prefix so the local workspace does not shadow the temporary `npx` shims:
 
 ```powershell
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
-npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context --help
-npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- drctx --help
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context --help
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- drctx --help
 $repo = Resolve-Path .
-npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context check --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context manifest --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context discover --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.0 -- dr-context check --workspace --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context check --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context manifest --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context manifest --path README.md --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context manifest --path README.md --json --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context discover --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context check --workspace --root $repo
+npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context check --workspace --inherit-parent-instructions --root tests/fixtures/workspace-inheritance
 Remove-Item -Recurse -Force $tmp
 ```
 

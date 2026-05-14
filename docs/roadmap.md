@@ -20,11 +20,12 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 ## Next
 
-- Model scoped effective context before MCP:
-  - Parent/child agent-instruction inheritance for workspaces and monorepos.
-  - Cursor nested rule inheritance.
+- 0.3.2 scoped effective context implementation in progress:
   - Path-scoped manifest output, for example `drctx manifest --path backend/src/api.ts`.
-  - Invalid glob/path-specific rule checks for tools that support scoped instructions.
+  - Effective instruction files for target paths.
+  - Opt-in parent/child agent-instruction inheritance for workspace scans.
+  - Deterministic Cursor scoped rule metadata support.
+  - Conservative invalid, stale, and broad scoped-rule findings.
 - Scan embedded workflow agent prompts:
   - Claude Code Action `custom_instructions`.
   - Claude Code Action `claude_args: --append-system-prompt`.
