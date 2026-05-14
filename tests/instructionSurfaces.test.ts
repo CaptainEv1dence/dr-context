@@ -46,4 +46,80 @@ describe('instruction surfaces', () => {
       expect.objectContaining({ path: 'GEMINI.md', tool: 'gemini', scope: 'repo' })
     ]);
   });
+
+  test('extracts Cursor frontmatter list syntax globs', () => {
+    const docs = extractAgentInstructionDocs([
+      { path: '.cursor/rules/backend.mdc', content: '---\nglobs:\n  - backend/**/*.ts\n  - shared/**/*.ts\n---\nUse backend patterns.' }
+    ]);
+
+    expect(docs[0]).toMatchObject({
+      appliesTo: ['backend/**/*.ts', 'shared/**/*.ts'],
+      metadata: { scopedRule: true }
+    });
+  });
+
+  test('extracts Cursor frontmatter inline array globs', () => {
+    const docs = extractAgentInstructionDocs([
+      { path: '.cursor/rules/frontend.md', content: '---\nglobs: [frontend/**/*.tsx, app/**/*.tsx]\n---\nUse frontend patterns.' }
+    ]);
+
+    expect(docs[0]).toMatchObject({
+      appliesTo: ['frontend/**/*.tsx', 'app/**/*.tsx'],
+      metadata: { scopedRule: true }
+    });
+  });
+
+  test('extracts Cursor frontmatter scalar string paths and globs', () => {
+    const docs = extractAgentInstructionDocs([
+      { path: '.cursor/rules/path.mdc', content: '---\npaths: backend/src/api.ts\n---\nUse API patterns.' },
+      { path: '.cursor/rules/glob.mdc', content: '---\nglobs: backend/**/*.ts\n---\nUse backend patterns.' }
+    ]);
+
+    expect(docs).toEqual([
+      expect.objectContaining({ appliesTo: ['backend/src/api.ts'], metadata: { scopedRule: true } }),
+      expect.objectContaining({ appliesTo: ['backend/**/*.ts'], metadata: { scopedRule: true } })
+    ]);
+  });
+
+  test('returns no Cursor metadata for malformed frontmatter', () => {
+    const docs = extractAgentInstructionDocs([
+      { path: '.cursor/rules/bad.mdc', content: '---\nglobs: [backend/**/*.ts\n---\nUse backend patterns.' }
+    ]);
+
+    expect(docs[0]).not.toHaveProperty('appliesTo');
+    expect(docs[0]).not.toHaveProperty('metadata');
+  });
+
+  test('ignores non-string Cursor frontmatter values', () => {
+    const docs = extractAgentInstructionDocs([
+      { path: '.cursor/rules/mixed.mdc', content: '---\nglobs:\n  - backend/**/*.ts\n  - 42\n  - false\npaths:\n  - frontend/src/App.tsx\n  - nested: value\n---\nUse scoped patterns.' }
+    ]);
+
+    expect(docs[0]).toMatchObject({
+      appliesTo: ['backend/**/*.ts', 'frontend/src/App.tsx'],
+      metadata: { scopedRule: true }
+    });
+  });
+
+  test('extracts Cursor frontmatter alwaysApply true and false', () => {
+    const docs = extractAgentInstructionDocs([
+      { path: '.cursor/rules/global.mdc', content: '---\nalwaysApply: true\n---\nUse global patterns.' },
+      { path: '.cursor/rules/manual.mdc', content: '---\nalwaysApply: false\n---\nUse manual patterns.' }
+    ]);
+
+    expect(docs).toEqual([
+      expect.objectContaining({ metadata: { scopedRule: true, alwaysApply: true } }),
+      expect.objectContaining({ metadata: { scopedRule: true, alwaysApply: false } })
+    ]);
+  });
+
+  test('keeps non-Cursor instruction docs unchanged when frontmatter is present', () => {
+    const docs = extractAgentInstructionDocs([
+      { path: '.github/copilot-instructions.md', content: '---\nglobs: [backend/**/*.ts]\nalwaysApply: true\n---\nUse Copilot patterns.' }
+    ]);
+
+    expect(docs[0]).toMatchObject({ path: '.github/copilot-instructions.md', tool: 'copilot', scope: 'repo' });
+    expect(docs[0]).not.toHaveProperty('appliesTo');
+    expect(docs[0]).not.toHaveProperty('metadata');
+  });
 });
