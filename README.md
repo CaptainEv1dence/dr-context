@@ -37,7 +37,7 @@ drctx check --sarif --root . > dr-context.sarif
 Run in GitHub Actions:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.1.7
+- uses: CaptainEv1dence/dr-context@v0.1.8
   with:
     root: .
     upload-sarif: 'true'

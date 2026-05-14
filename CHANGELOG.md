@@ -4,6 +4,18 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.8 - 2026-05-14
+
+### Added
+
+- Add `--version` CLI output.
+- Add `--sarif` reporting for SARIF 2.1.0 / GitHub code scanning integrations.
+- Add a composite GitHub Action wrapper that runs the published CLI and can upload SARIF.
+
+### Changed
+
+- Treat Dr. Context self-scan as a documented quality gate alongside tests, typecheck, lint, build, and package dry-run.
+
 ## 0.1.7 - 2026-05-14
 
 ### Fixed

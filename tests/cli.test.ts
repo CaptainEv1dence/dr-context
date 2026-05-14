@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { runCli } from '../src/cli/main.js';
+import { toolVersion } from '../src/version.js';
 
 const fixturesRoot = join(import.meta.dirname, 'fixtures');
 
@@ -37,7 +38,7 @@ describe('drctx CLI', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe('');
-    expect(result.stdout.trim()).toBe('0.1.7');
+    expect(result.stdout.trim()).toBe(toolVersion);
   });
 
   test('root command scans the current directory', async () => {
