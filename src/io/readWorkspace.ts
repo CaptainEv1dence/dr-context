@@ -17,7 +17,7 @@ const defaultIncludeGlobs = [
   'yarn.lock',
   'bun.lock',
   'bun.lockb',
-  ...instructionSurfaceGlobs,
+  ...instructionSurfaceGlobs.filter((glob) => glob !== '**/AGENTS.md'),
   '.github/workflows/*.{yml,yaml}',
   'README.md',
   'ARCHITECTURE.md',

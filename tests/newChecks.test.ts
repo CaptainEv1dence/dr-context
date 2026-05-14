@@ -56,6 +56,19 @@ describe('0.3 deterministic checks', () => {
     expect(report.findings.map((finding) => finding.id)).not.toContain('agent-doc-command-drift');
   });
 
+  test('ignores nested agent docs during root scans by default', async () => {
+    const root = await makeRepo({
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      'pnpm-lock.yaml': 'lockfileVersion: 9.0',
+      'AGENTS.md': 'Run `pnpm test`.',
+      'child/AGENTS.md': 'Run `npm test`.'
+    });
+
+    const report = await runScan(root, { include: [], exclude: [], strict: false });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('package-manager-mismatch');
+  });
+
   test('flags stale file references from agent docs', async () => {
     const root = await makeRepo({
       'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
