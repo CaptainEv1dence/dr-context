@@ -143,10 +143,10 @@ On Windows, run published-package smoke tests from an isolated prefix so the loc
 ```powershell
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
-npm exec --yes --prefix $tmp --package dr-context@0.1.8 -- dr-context --help
-npm exec --yes --prefix $tmp --package dr-context@0.1.8 -- drctx --help
-npm exec --yes --prefix $tmp --package dr-context@0.1.8 -- dr-context check --root D:\random\dr-context
-npm exec --yes --prefix $tmp --package dr-context@0.1.8 -- dr-context discover --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- dr-context --help
+npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- drctx --help
+npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- dr-context check --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.1.9 -- dr-context discover --root D:\random\dr-context
 Remove-Item -Recurse -Force $tmp
 ```
 
@@ -157,7 +157,7 @@ The repository root `action.yml` runs the published npm package through `npx` an
 Minimal usage:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.1.8
+- uses: CaptainEv1dence/dr-context@v0.1.9
   with:
     root: .
 ```
@@ -171,7 +171,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@v6
-  - uses: CaptainEv1dence/dr-context@v0.1.8
+  - uses: CaptainEv1dence/dr-context@v0.1.9
     with:
       root: .
       upload-sarif: 'true'

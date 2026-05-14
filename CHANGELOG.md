@@ -4,6 +4,13 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.9 - 2026-05-14
+
+### Fixed
+
+- Run the GitHub Action's published CLI from an isolated npm prefix so local workspaces and GitHub runners resolve the `dr-context` binary reliably.
+- Skip SARIF upload when the Action fails before producing a non-empty SARIF file.
+
 ## 0.1.8 - 2026-05-14
 
 ### Added
