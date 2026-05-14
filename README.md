@@ -152,7 +152,7 @@ Dr. Context treats these files as local repo context. It does not call vendor AP
 | GitHub Copilot | `.github/instructions/*.instructions.md` | Supported |
 | Cursor | `.cursor/rules/**/*.mdc`, `.cursorrules` | Supported |
 | Gemini | `GEMINI.md` | Supported |
-| Explicit agent guide | `AGENT_GUIDE.md`, when present or referenced | Supported |
+| Explicit agent guide | `AGENT_GUIDE.md` | Supported |
 | Windsurf / Continue / Aider / Cody | Known local rule/config files | Detection-only in 0.3.1 |
 | Claude Code Action | `custom_instructions`, `--append-system-prompt`, `prompt`, `direct_prompt` | Planned for 0.3.3 |
 

@@ -13,19 +13,13 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 - Context manifest command.
 - Cross-agent command drift, stale file reference, and unsafe instruction checks.
 - GitHub annotations and workspace output controls.
+- 0.3.1 implementation plan: `docs/superpowers/plans/2026-05-14-0.3.1-surface-coverage-manifest-cleanup.md`.
+- Supported context surface registry for Copilot, Cursor, Gemini, exact `AGENT_GUIDE.md`, and detection-only local agent rule files.
+- Repo fact extraction for Makefile, justfile, Taskfile, README commands, Node runtime, package engines, and setup actions.
+- CI command classification and README supported context surface matrix.
 
 ## Next
 
-- 0.3.1 implementation plan: `docs/superpowers/plans/2026-05-14-0.3.1-surface-coverage-manifest-cleanup.md`.
-- Support official agent instruction surfaces discovered in ecosystem research:
-  - GitHub Copilot repository instructions: `.github/copilot-instructions.md`.
-  - GitHub Copilot path-specific instructions: `.github/instructions/*.instructions.md`.
-  - Cursor project rules: `.cursor/rules/**/*.mdc`.
-  - Additional agent surfaces from local planning: Windsurf, Continue, Aider, Cody, `GEMINI.md`, and explicit `AGENT_GUIDE.md`-style files.
-  - Explicit agent-guide references such as README text that tells agents to read `AGENT_GUIDE.md`.
-- Expand repo fact extraction beyond package scripts and GitHub Actions:
-  - `Makefile`, `justfile`, `Taskfile.yml`, and README command blocks.
-  - `.nvmrc`, `.node-version`, package `engines`, and setup action versions.
 - Model scoped effective context before MCP:
   - Parent/child agent-instruction inheritance for workspaces and monorepos.
   - Cursor nested rule inheritance.
@@ -41,7 +35,6 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Low-specificity guidance such as generic “best practices” rules, with conservative severity.
   - Copied docs instead of references, repeated blocks, and context budget/noise estimates.
   - Missing canonical examples when instructions say to follow a style or pattern.
-- Clean up CI command classification in manifests so shell plumbing such as `if`, `else`, `fi`, `echo`, and `exit` does not pollute canonical verification context.
 - Add runtime and tool-version drift checks:
   - Node version drift between docs, `package.json` engines, `.nvmrc`, and GitHub Actions.
   - Package manager version drift between docs, `packageManager`, lockfiles, and setup actions.
@@ -54,7 +47,6 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Public/synthetic dogfood corpus and false-positive tracking.
   - Before/after examples for AGENTS.md, CI/doc mismatch, workspace scans, and GitHub Action SARIF setup.
   - Context health badge/score trend once findings are stable enough to summarize.
-- Document supported instruction surfaces in README with source-backed notes for Copilot, Cursor, Claude Code, AGENTS.md, and CLAUDE.md.
 - Config file and baseline mode.
 - More context-file formats and stronger false-positive controls.
 

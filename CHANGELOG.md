@@ -9,7 +9,7 @@ The format follows Keep a Changelog-style sections. The project has not publishe
 ### Added
 
 - Add a central instruction surface registry for agent context files.
-- Add support for Gemini, Copilot path instructions, Cursor MDC rules, AGENT_GUIDE-style files, and detection-only entries for additional agent tools.
+- Add support for Gemini, Copilot path instructions, Cursor MDC rules, exact `AGENT_GUIDE.md` files, and detection-only entries for additional agent tools.
 - Extract Makefile, justfile, Taskfile, README command, Node runtime, package engine, and setup-action facts.
 - Classify CI commands so manifests distinguish verification commands from shell plumbing.
 
