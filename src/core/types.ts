@@ -107,7 +107,7 @@ export type Manifest = {
   agentInstructionFiles: ManifestInstructionFile[];
   verificationCommands: ManifestVerificationCommand[];
   firstReads: ManifestFirstRead[];
-  ciCommands: CommandMention[];
+  ciCommands: CiCommandMention[];
   summary: {
     agentInstructionFiles: number;
     verificationCommands: number;
@@ -146,6 +146,12 @@ export type CommandMention = {
   command: string;
   source: SourceSpan;
   context: 'inline-code' | 'code-block' | 'plain-text';
+};
+
+export type CiCommandClassification = 'verification' | 'install' | 'setup' | 'publish' | 'shell-control' | 'output-plumbing' | 'unknown';
+
+export type CiCommandMention = CommandMention & {
+  classification: CiCommandClassification;
 };
 
 export type BuildTargetFact = {
@@ -190,7 +196,7 @@ export type RepoFacts = {
   buildTargets: BuildTargetFact[];
   runtimeVersions: RuntimeVersionFact[];
   commandMentions: CommandMention[];
-  ciCommands: CommandMention[];
+  ciCommands: CiCommandMention[];
   architectureDocs: ArchitectureDocFact[];
   agentInstructionDocs: AgentInstructionDocFact[];
   localPathMentions: LocalPathMention[];

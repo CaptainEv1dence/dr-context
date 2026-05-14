@@ -87,6 +87,28 @@ describe('buildManifest', () => {
     );
   });
 
+  test('does not treat CI shell plumbing as canonical verification context', async () => {
+    const root = await makeRepo({
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      'AGENTS.md': 'Run `pnpm test`.',
+      '.github/workflows/ci.yml': 'jobs:\n  test:\n    steps:\n      - run: |\n          pnpm test\n          if [ "$?" -ne 0 ]; then\n            echo "failed"\n            exit 1\n          fi\n'
+    });
+
+    const manifest = await buildManifest(root, { include: [], exclude: [], strict: false });
+
+    expect(manifest.verificationCommands).toEqual([
+      expect.objectContaining({ command: 'pnpm test', ciBacked: true, agentVisible: true })
+    ]);
+    expect(manifest.ciCommands).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ command: 'if [ "$?" -ne 0 ]; then', classification: 'shell-control' }),
+        expect.objectContaining({ command: 'echo "failed"', classification: 'output-plumbing' }),
+        expect.objectContaining({ command: 'exit 1', classification: 'shell-control' }),
+        expect.objectContaining({ command: 'fi', classification: 'shell-control' })
+      ])
+    );
+  });
+
   test('redacts roots in JSON output', async () => {
     const root = await makeRepo({
       'package.json': '{"packageManager":"npm@10.0.0","scripts":{"test":"vitest run"}}',

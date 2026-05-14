@@ -16,13 +16,14 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
   const scripts = extractPackageJsonScripts(files);
   const commandMentions = extractMarkdownCommands(files);
   const ciCommands = extractCiCommands(files);
+  const verificationCiCommands = ciCommands.filter((command) => command.classification === 'verification');
   const architectureDocs = extractArchitectureDocs(files);
   const agentInstructionDocs = extractAgentInstructionDocs(files);
   const localPathMentions = extractLocalPathMentions(files);
   const scriptCommands = scripts.map((script) => ({
     command: commandForScript(canonicalPackageManager(packageManagers)?.name ?? 'npm', script.name),
     source: script.source,
-    ciBacked: ciCommands.some((mention) => mentionsEquivalentScript(mention.command, script.name)),
+    ciBacked: verificationCiCommands.some((mention) => mentionsEquivalentScript(mention.command, script.name)),
     agentVisible: commandMentions.some((mention) => mentionsEquivalentScript(mention.command, script.name))
   }));
   const firstReads = buildFirstReads(files, localPathMentions, architectureDocs.map((doc) => ({

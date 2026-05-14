@@ -1,14 +1,15 @@
-import type { CommandMention, RawFile } from '../core/types.js';
+import type { CiCommandMention, RawFile } from '../core/types.js';
+import { classifyCiCommand } from './ciCommandClassifier.js';
 
 const runLinePattern = /^\s*-?\s*run:\s*(.*)$/;
 
-export function extractCiCommands(files: RawFile[]): CommandMention[] {
+export function extractCiCommands(files: RawFile[]): CiCommandMention[] {
   return files.filter((file) => isGitHubWorkflow(file.path)).flatMap((file) => extractCiCommandsFromWorkflow(file));
 }
 
-function extractCiCommandsFromWorkflow(file: RawFile): CommandMention[] {
+function extractCiCommandsFromWorkflow(file: RawFile): CiCommandMention[] {
   const lines = file.content.split('\n');
-  const commands: CommandMention[] = [];
+  const commands: CiCommandMention[] = [];
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].replace(/\r$/, '');
@@ -44,9 +45,10 @@ function extractCiCommandsFromWorkflow(file: RawFile): CommandMention[] {
   return commands;
 }
 
-function commandMention(file: string, command: string, line: number, text: string): CommandMention {
+function commandMention(file: string, command: string, line: number, text: string): CiCommandMention {
   return {
     command,
+    classification: classifyCiCommand(command),
     context: 'plain-text',
     source: {
       file,
