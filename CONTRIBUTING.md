@@ -15,7 +15,11 @@ pnpm test
 pnpm run typecheck
 pnpm run lint
 pnpm run build
+pnpm run pack:dry-run
+node dist/cli/main.js check --json --root .
 ```
+
+Dr. Context must dogfood itself. Treat the self-scan as a required quality gate on the same level as tests, typecheck, lint, build, and package dry-run. The expected self-scan result is zero findings unless a finding is explicitly reviewed and accepted.
 
 Targeted tests:
 
@@ -47,6 +51,7 @@ corepack pnpm run typecheck
 corepack pnpm run lint
 corepack pnpm run build
 corepack pnpm run pack:dry-run
+node dist/cli/main.js check --json --root .
 ```
 
 The package should include built `dist/**`, `README.md`, and `LICENSE`, and should not include fixtures, local logs, caches, or secrets.

@@ -45,6 +45,8 @@ node dist/cli/main.js check --json --root .
 node dist/cli/main.js discover --json --root .
 ```
 
+Dr. Context self-scan is a required release gate, not an optional smoke test. Treat it like CI, typecheck, lint, build, and package dry-run.
+
 Expected result:
 
 - tests pass;

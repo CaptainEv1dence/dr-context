@@ -24,7 +24,11 @@ pnpm test
 pnpm run typecheck
 pnpm run lint
 pnpm run build
+pnpm run pack:dry-run
+node dist/cli/main.js check --json --root .
 ```
+
+Treat Dr. Context self-scan as a required quality gate, on the same level as tests, typecheck, lint, build, and package dry-run. The self-scan must report zero findings unless a finding is explicitly reviewed and accepted.
 
 Targeted tests:
 
@@ -46,6 +50,7 @@ pnpm exec vitest run tests/path/to/test.test.ts
 - Every check needs positive and negative fixture coverage.
 - Every finding needs evidence assertions in tests.
 - The clean fixture must produce zero error findings.
+- Dogfood this repository with `node dist/cli/main.js check --json --root .` before claiming substantial changes are ready.
 
 ## Safety and privacy
 
