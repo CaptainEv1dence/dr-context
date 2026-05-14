@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { resolve } from 'node:path';
+import { basename, extname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runScan } from '../core/runScan.js';
 import { discoverCandidates } from '../discovery/discoverCandidates.js';
@@ -23,7 +23,7 @@ export async function runCli(argv: string[]): Promise<CliResult> {
   let stdout = '';
   let stderr = '';
   let exitCode = 0;
-  const program = createProgram(async (options, parentOptions) => {
+  const program = createProgram(commandNameFromArgv(argv), async (options, parentOptions) => {
     try {
       const effectiveOptions = { ...parentOptions, ...options };
       const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
@@ -56,18 +56,38 @@ export async function runCli(argv: string[]): Promise<CliResult> {
     }
   });
 
-  await program.parseAsync(argv);
+  program.configureOutput({
+    writeOut: (text) => {
+      stdout += text;
+    },
+    writeErr: (text) => {
+      stderr += text;
+    }
+  });
+  program.exitOverride();
+
+  try {
+    await program.parseAsync(argv);
+  } catch (error) {
+    if (isCommanderHelpExit(error)) {
+      exitCode = 0;
+    } else {
+      throw error;
+    }
+  }
+
   return { stdout, stderr, exitCode };
 }
 
 function createProgram(
+  commandName: string,
   action: (options: CliOptions, parentOptions: CliOptions) => Promise<void>,
   discoverAction: (options: DiscoverCliOptions, parentOptions: DiscoverCliOptions) => Promise<void>
 ): Command {
   const program = new Command();
 
   program
-    .name('drctx')
+    .name(commandName)
     .description('Diagnose context rot before your coding agent reads it')
     .option('--json', 'print JSON report')
     .option('--strict', 'exit non-zero on warnings')
@@ -95,6 +115,23 @@ function createProgram(
     .action((options: DiscoverCliOptions) => discoverAction(options, program.opts<DiscoverCliOptions>()));
 
   return program;
+}
+
+function commandNameFromArgv(argv: string[]): string {
+  const executable = argv[1] ? basename(argv[1]) : 'drctx';
+  const extension = extname(executable);
+  const commandName = extension ? executable.slice(0, -extension.length) : executable;
+
+  return commandName || 'drctx';
+}
+
+function isCommanderHelpExit(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'commander.helpDisplayed'
+  );
 }
 
 function parseMaxDepth(value = '3'): number {

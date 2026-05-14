@@ -1,33 +1,34 @@
 # Release Checklist
 
-Dr. Context is not published yet. This checklist defines the release gate for the first npm release.
+Dr. Context is published on npm as `dr-context`. This checklist defines the release gate for npm releases.
 
 ## Package identity
 
 - Preferred npm package name: `dr-context`.
-- Npm availability check on 2026-05-13 returned `404 Not Found` for `dr-context`, so the name appears available.
+- Npm availability check on 2026-05-13 returned `404 Not Found` for `dr-context`; the package has since been claimed and published.
 - Fallback package name: `@captainev1dence/dr-context`.
 - Avoid `@drcontext/cli` unless the project intentionally creates and maintains a dedicated npm organization.
 
-Do not rename the package or remove `"private": true` until the final package name is approved.
+Do not rename the package without an explicit migration plan.
 
 ## Version policy
 
-- Release prep branch sets `version` to `0.1.0`.
+- Update `package.json` and `src/version.ts` to the new release version.
 - Update `CHANGELOG.md` to the release version during release prep.
+- `tests/packageMetadata.test.ts` guards that runtime `toolVersion` matches `package.json`.
 
 ## Publish readiness gate
 
 Before any publish attempt:
 
 - [ ] Confirm npm account or organization owner.
-- [ ] Confirm package name: `dr-context` or fallback.
+- [x] Confirm package name: `dr-context`.
 - [x] Remove `"private": true` only after package name approval.
 - [x] Set version to `0.1.0` for the first public release.
-- [ ] Confirm `publishConfig.access` is correct for the chosen package name.
-- [ ] Confirm runtime report `toolVersion` matches `package.json`.
-- [ ] Confirm npm provenance is required for published artifacts.
-- [ ] Configure trusted publishing with GitHub OIDC before automation publishes.
+- [x] Confirm `publishConfig.access` is correct for the chosen package name.
+- [x] Confirm runtime report `toolVersion` matches `package.json`.
+- [x] Confirm npm provenance is required for published artifacts.
+- [x] Configure trusted publishing with GitHub OIDC before automation publishes.
 - [x] Add release workflow for tag/manual dispatch publishing after npm trusted publishing is configured.
 
 ## Local verification gate
@@ -82,13 +83,13 @@ Local package inspection:
 corepack pnpm run pack:dry-run
 ```
 
-After `"private": true` is removed during release prep, also run an npm publish dry-run before publishing:
+Run an npm publish dry-run before publishing:
 
 ```bash
-npm publish --dry-run --provenance
+npm publish --dry-run --access public
 ```
 
-Do not run a real `npm publish` from a local machine unless the release plan explicitly approves local publishing. Prefer GitHub trusted publishing with provenance.
+Do not run a real `npm publish` from a local machine unless the release plan explicitly approves local publishing. Prefer GitHub Trusted Publishing with automatic provenance.
 
 ## GitHub trusted publishing
 
@@ -111,7 +112,38 @@ Trusted publishing settings should point to:
 - owner/repo: `CaptainEv1dence/dr-context`
 - workflow: `release.yml`
 
-For the already-published `0.1.1` version, pushing tag `v0.1.1` is safe: the workflow should run checks, detect that `dr-context@0.1.1` already exists, and skip `npm publish`.
+The release workflow should use:
+
+- `permissions.id-token: write`;
+- `actions/setup-node@v4` with `node-version: 24`;
+- `registry-url: https://registry.npmjs.org`;
+- `npm publish --access public` without an explicit `--provenance` flag.
+
+For an already-published version, pushing a matching tag is safe: the workflow should run checks, detect that the version exists, and skip `npm publish`.
+
+## Token hygiene
+
+Trusted Publishing is the release path. Do not add npm tokens to GitHub secrets for normal releases.
+
+If an npm token was pasted in chat, used manually, or stored locally for a publish attempt, revoke it after the release:
+
+- npm UI: `https://www.npmjs.com/settings/captainev1dence/tokens`
+- npm CLI: `npm token revoke <token-id>`
+
+Do not copy token values into issues, docs, logs, commits, or release notes.
+
+## Published package smoke test
+
+On Windows, run published-package smoke tests from an isolated prefix so the local workspace does not shadow the temporary `npx` shims:
+
+```powershell
+$tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
+New-Item -ItemType Directory -Path $tmp | Out-Null
+npm exec --yes --prefix $tmp --package dr-context@0.1.6 -- dr-context --help
+npm exec --yes --prefix $tmp --package dr-context@0.1.6 -- dr-context check --root D:\random\dr-context
+npm exec --yes --prefix $tmp --package dr-context@0.1.6 -- dr-context discover --root D:\random\dr-context
+Remove-Item -Recurse -Force $tmp
+```
 
 ## GitHub Actions Node 20 warning
 

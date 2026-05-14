@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { join } from 'node:path';
 import { mkdir } from 'node:fs/promises';
 import { discoverCandidates } from '../src/discovery/discoverCandidates.js';
+import { toolVersion } from '../src/version.js';
 
 const fixturesRoot = join(import.meta.dirname, 'fixtures');
 
@@ -13,7 +14,7 @@ describe('repository candidate discovery', () => {
     expect(report).toMatchObject({
       schemaVersion: 'drctx.discover.v1',
       tool: 'drctx',
-      toolVersion: '0.1.5',
+      toolVersion,
       root: '<requested-root>',
       maxDepth: 3,
       summary: { candidates: 3 }

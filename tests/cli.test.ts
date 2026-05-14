@@ -8,6 +8,22 @@ const fixturesRoot = join(import.meta.dirname, 'fixtures');
 const originalCwd = process.cwd();
 
 describe('drctx CLI', () => {
+  test('uses drctx as the help command name when invoked through drctx', async () => {
+    const result = await runCli(['node', 'drctx', '--help']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Usage: drctx');
+  });
+
+  test('uses dr-context as the help command name when invoked through dr-context', async () => {
+    const result = await runCli(['node', 'dr-context', '--help']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Usage: dr-context');
+  });
+
   test('root command scans the current directory', async () => {
     const result = await runInFixture([], 'clean-repo');
 

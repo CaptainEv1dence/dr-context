@@ -4,11 +4,22 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.1.6 - 2026-05-14
+
+### Fixed
+
+- Remove an unsupported `actions/setup-node@v4` release workflow input that produced a non-failing warning.
+- Show the invoked binary name in CLI help so `dr-context --help` reports `Usage: dr-context` and `drctx --help` reports `Usage: drctx`.
+
+### Security
+
+- Document that any manually used or pasted npm tokens should be revoked after switching releases to Trusted Publishing.
+
 ## 0.1.5 - 2026-05-13
 
 ### Fixed
 
-- Match npm trusted publishing docs by using Node 24, disabling package-manager cache, and letting npm generate provenance automatically.
+- Match npm trusted publishing docs by using Node 24 and letting npm generate provenance automatically.
 
 ## 0.1.4 - 2026-05-13
 
