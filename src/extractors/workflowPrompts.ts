@@ -15,6 +15,11 @@ type StepRange = {
   end: number;
 };
 
+type ClaudeArgToken = {
+  value: string;
+  quoted: boolean;
+};
+
 const claudeActionPattern = /^anthropics\/(?:claude-code-action|claude-code-base-action)(?:@.+)?$/;
 
 const promptInputs: Record<string, WorkflowPromptKind> = {
@@ -110,13 +115,16 @@ function extractClaudeArgsPrompts(
 
   for (let index = 0; index < tokens.length; index += 1) {
     const token = tokens[index];
-    const equalMatch = token.match(/^(--system-prompt|--append-system-prompt)=(.+)$/s);
-    const flag = equalMatch?.[1] ?? token;
+    const equalMatch = token.value.match(/^(--system-prompt|--append-system-prompt)=(.+)$/s);
+    const flag = equalMatch?.[1] ?? token.value;
     if (flag !== '--system-prompt' && flag !== '--append-system-prompt') {
       continue;
     }
 
-    const rawValue = equalMatch?.[2] ?? tokens[index + 1];
+    const valueToken = equalMatch
+      ? { value: equalMatch[2], quoted: token.quoted }
+      : acceptableSeparateValue(tokens, index + 1);
+    const rawValue = valueToken?.value;
     if (!rawValue) {
       continue;
     }
@@ -137,17 +145,31 @@ function extractClaudeArgsPrompts(
   return prompts;
 }
 
-function tokenizeClaudeArgs(value: string): string[] {
-  const tokens: string[] = [];
+function acceptableSeparateValue(tokens: ClaudeArgToken[], valueIndex: number): ClaudeArgToken | undefined {
+  const valueToken = tokens[valueIndex];
+  if (!valueToken || valueToken.value.startsWith('--')) {
+    return undefined;
+  }
+
+  const followingToken = tokens[valueIndex + 1];
+  if (!valueToken.quoted && followingToken && !followingToken.value.startsWith('--')) {
+    return undefined;
+  }
+
+  return valueToken;
+}
+
+function tokenizeClaudeArgs(value: string): ClaudeArgToken[] {
+  const tokens: ClaudeArgToken[] = [];
   const tokenPattern = /(?:\S+=)"([^"]*)"|(?:\S+=)'([^']*)'|"([^"]*)"|'([^']*)'|(\S+)/g;
   for (const match of value.matchAll(tokenPattern)) {
     const rawToken = match[0];
     if (rawToken.includes('=') && (match[1] !== undefined || match[2] !== undefined)) {
-      tokens.push(`${rawToken.slice(0, rawToken.indexOf('=') + 1)}${match[1] ?? match[2] ?? ''}`);
+      tokens.push({ value: `${rawToken.slice(0, rawToken.indexOf('=') + 1)}${match[1] ?? match[2] ?? ''}`, quoted: true });
       continue;
     }
 
-    tokens.push(match[3] ?? match[4] ?? match[5] ?? '');
+    tokens.push({ value: match[3] ?? match[4] ?? match[5] ?? '', quoted: match[3] !== undefined || match[4] !== undefined });
   }
   return tokens;
 }
@@ -214,6 +236,7 @@ function lineContainsFlagValue(line: string, flag: string, value: string): boole
     line.includes(`${flag}=${value}`) ||
     line.includes(`${flag}="${value}"`) ||
     line.includes(`${flag}='${value}'`) ||
+    line.includes(`${flag} ${value}`) ||
     line.includes(`${flag} "${value}"`) ||
     line.includes(`${flag} '${value}'`)
   );
