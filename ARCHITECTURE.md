@@ -21,6 +21,7 @@ RawFile[]
   |       lockfiles                   |
   |       markdown instructions       |
   |       GitHub Actions YAML         |
+  |       workflow-embedded prompts   |
   |       Makefile / justfile         |
   |       architecture docs           |
   |                                   v
@@ -48,7 +49,7 @@ RawFile[]
 2. **IO** owns filesystem access.
 3. **Discovery** finds relevant files but does not parse semantics.
 4. **Extractors** turn raw files into source-backed facts.
-5. **Checks** are pure functions over `CheckContext`.
+5. **Checks** are pure functions over `CheckContext`, including workflow prompt checks over extracted workflow prompt facts.
 6. **Reporters** render `Report` objects only.
 
 ## Extension points

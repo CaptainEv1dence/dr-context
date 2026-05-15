@@ -181,6 +181,7 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Candidate root discovery for folders that contain multiple repos or shared agent instructions.
 - Workspace scanning with privacy-preserving aggregate JSON and text output.
 - Context manifests with package manager, verification commands, first-read docs, CI commands, and agent instruction files.
+- Workflow-embedded Claude Code Action prompt extraction for manifests and conservative findings.
 - Cross-agent command drift, stale file reference, and unsafe instruction detection.
 - Evidence-backed text and JSON reports.
 - SARIF 2.1.0 reporting for code scanning integrations.
@@ -199,7 +200,15 @@ Dr. Context treats these files as local repo context. It does not call vendor AP
 | Gemini | `GEMINI.md` | Supported |
 | Explicit agent guide | `AGENT_GUIDE.md` | Supported |
 | Windsurf / Continue / Aider / Cody | Known local rule/config files | Detection-only in 0.3.1 |
-| Claude Code Action | `custom_instructions`, `--append-system-prompt`, `prompt`, `direct_prompt` | Planned |
+| Claude Code Action | `prompt`, `claude_args --system-prompt`, `claude_args --append-system-prompt`, legacy `custom_instructions`, legacy `direct_prompt` in GitHub workflows | Extracted into manifest and checked for conservative hidden/unsafe prompt findings. |
+
+### Workflow-embedded prompts
+
+Dr. Context scans Claude Code Action prompt inputs in `.github/workflows/*.yml` and `.github/workflows/*.yaml`. It extracts current v1 `prompt`, `claude_args --system-prompt`, and `claude_args --append-system-prompt` values, plus legacy `custom_instructions` and `direct_prompt` values for older workflows.
+
+`drctx manifest --json` includes the literal workflow prompt text. Review manifests from private repositories before publishing them, because workflow prompts can contain private guidance. Human-readable manifest text reports only prompt kind, source location, and action name, not prompt bodies.
+
+Workflow prompt findings are conservative. Dr. Context flags explicit unsafe guidance such as skipped tests or `--no-verify`, and reports an info finding when agent context exists only as a hidden workflow prompt instead of a repo-visible instruction file.
 
 ## Discover candidate roots
 
@@ -263,7 +272,9 @@ Use `manifest` when an agent, CI job, or human needs the repository's context co
 drctx manifest --json --root .
 ```
 
-Manifest JSON uses `schemaVersion: "drctx.manifest.v1"` and includes package manager evidence, agent instruction files, verification commands, first-read docs, and CI command sources.
+Manifest JSON uses `schemaVersion: "drctx.manifest.v1"` and includes package manager evidence, agent instruction files, verification commands, first-read docs, CI command sources, and workflow-embedded prompt facts.
+
+Workflow prompt facts in manifest JSON include literal prompt text. Human-readable manifest output lists workflow prompt kind, source location, and action name without printing prompt bodies.
 
 Use `--path` to print the effective instruction files for a target file:
 

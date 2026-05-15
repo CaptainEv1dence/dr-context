@@ -4,6 +4,15 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.4 - Unreleased
+
+### Added
+
+- Extract Claude Code Action workflow prompt inputs, including current v1 `prompt`, `claude_args --system-prompt`, and `claude_args --append-system-prompt`, into manifests.
+- Extract legacy `custom_instructions` and `direct_prompt` workflow prompt inputs for older Claude workflows.
+- Flag unsafe workflow-embedded agent prompts with source-backed findings.
+- Flag hidden workflow-only prompt context when no repo-visible agent instruction file exists.
+
 ## 0.3.3 - 2026-05-15
 
 ### Added

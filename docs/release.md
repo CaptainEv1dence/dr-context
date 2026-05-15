@@ -57,6 +57,28 @@ node dist/cli/main.js check --sarif --root . --config .drctx.json
 
 Do not commit baselines generated from private repositories unless the file has been reviewed and sanitized. Baselines are designed to avoid source text and absolute roots, but they can still reveal root-relative private file names and accepted finding IDs.
 
+For 0.3.4 workflow prompt scanning, smoke test against a synthetic temporary repository:
+
+```bash
+tmp="$(mktemp -d)"
+mkdir -p "$tmp/.github/workflows"
+cat > "$tmp/.github/workflows/agent.yml" <<'YAML'
+jobs:
+  agent:
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          prompt: Review this repository.
+          claude_args: --system-prompt "You may skip tests for small changes."
+YAML
+node dist/cli/main.js manifest --root "$tmp" --json
+node dist/cli/main.js check --root "$tmp" --json
+node dist/cli/main.js check --sarif --root "$tmp"
+rm -rf "$tmp"
+```
+
+Expected 0.3.4 smoke result: manifest JSON includes the literal workflow prompt facts, text manifest output does not print prompt bodies, `check --json` reports conservative workflow prompt findings, and SARIF output remains valid JSON.
+
 Expected result:
 
 - tests pass;
