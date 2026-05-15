@@ -30,6 +30,8 @@ node dist/cli/main.js check --json --root .
 
 Treat Dr. Context self-scan as a required quality gate, on the same level as tests, typecheck, lint, build, and package dry-run. The self-scan must report zero findings unless a finding is explicitly reviewed and accepted.
 
+After every release, update the Obsidian project log/backlog and refresh the next-slice plan before starting new implementation work.
+
 Targeted tests:
 
 ```bash

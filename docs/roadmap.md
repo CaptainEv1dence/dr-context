@@ -56,15 +56,23 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - README one-screen launch demo and trust boundaries.
   - Demo, triage, GitHub Action, finding reference, instruction-surface coverage, and launch checklist docs.
   - Public-safe docs cleanup and bundled Action deferral behind a reliability gate.
-
-## Next
-
-- Pre-0.4 context quality umbrella spec:
-  - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
 - 0.3.10 DX reliability:
   - Source-derived docs validation for emitted finding IDs and instruction-surface globs.
   - Local `drctx explain <finding-id>` command backed by static reference data.
-- Bundled JavaScript Action remains a reliability candidate after 0.3.9 launch docs. It should preserve current inputs and scanner semantics, and should not ship until package contents and local-action smoke tests are stable.
+- 0.3.11 first-run polish:
+  - Human-readable first-run hints for clean scans and coverage findings.
+  - Workspace non-summary text hint for inspecting each repository manifest.
+  - JSON, SARIF, and exit-code behavior kept stable for automation.
+
+## Next
+
+- GitHub Action reliability gate:
+  - `docs/superpowers/plans/2026-05-15-0.3.10-github-action-reliability.md`.
+  - Lock the current composite Action contract before any bundling work.
+  - Bundled JavaScript Action remains a candidate only if it preserves current inputs, scanner semantics, SARIF, annotations, summary, exit codes, package release flow, package contents, and local-action smoke tests.
+- Pre-0.4 feature bets decomposition:
+  - `docs/superpowers/plans/2026-05-15-pre-0.4-feature-bets-decomposition.md`.
+  - Use after the Action reliability gate to decide the next product bet.
 - Deferred context health work for 0.4+:
   - Score badges.
   - Persisted score trends, snapshots, and history.
