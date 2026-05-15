@@ -62,6 +62,7 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         include: [...(loadedConfig.include ?? []), ...(effectiveOptions.include ?? [])],
         exclude: [...(loadedConfig.exclude ?? []), ...(effectiveOptions.exclude ?? [])]
       };
+      const suppressions = suppressionsFromConfig(loadedConfig);
       if (effectiveOptions.inheritParentInstructions && !effectiveOptions.workspace) {
         throw usageError('--inherit-parent-instructions requires --workspace');
       }
@@ -71,15 +72,17 @@ export async function runCli(argv: string[]): Promise<CliResult> {
           strict: scanConfig.strict,
           include: scanConfig.include,
           exclude: scanConfig.exclude,
+          suppressions,
           maxDepth,
           inheritParentInstructions: Boolean(effectiveOptions.inheritParentInstructions)
         });
 
         stdout += effectiveOptions.json
-          ? renderWorkspaceJson(report)
+          ? renderWorkspaceJson(report, { showSuppressed: Boolean(effectiveOptions.showSuppressed) })
           : renderWorkspaceText(report, {
               summaryOnly: Boolean(effectiveOptions.summaryOnly),
-              maxFindings: parseOptionalNonNegativeInteger(effectiveOptions.maxFindings, '--max-findings')
+              maxFindings: parseOptionalNonNegativeInteger(effectiveOptions.maxFindings, '--max-findings'),
+              showSuppressed: Boolean(effectiveOptions.showSuppressed)
             });
         exitCode = exitCodeForWorkspaceReport(report, scanConfig.strict);
         return;
@@ -90,15 +93,6 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         include: scanConfig.include,
         exclude: scanConfig.exclude
       });
-      const suppressions = [
-        ...loadedConfig.suppressions,
-        ...(loadedConfig.baseline?.findings.map((entry) => ({
-          id: entry.id,
-          file: entry.file,
-          fingerprint: entry.fingerprint,
-          reason: entry.reason
-        })) ?? [])
-      ];
       const finalReport = withSuppressionResult(report, applySuppressions(report.findings, suppressions));
 
       stdout += renderScanReport(finalReport, effectiveOptions);
@@ -186,6 +180,18 @@ export async function runCli(argv: string[]): Promise<CliResult> {
   }
 
   return { stdout, stderr, exitCode };
+}
+
+function suppressionsFromConfig(loadedConfig: Awaited<ReturnType<typeof loadConfig>>) {
+  return [
+    ...loadedConfig.suppressions,
+    ...(loadedConfig.baseline?.findings.map((entry) => ({
+      id: entry.id,
+      file: entry.file,
+      fingerprint: entry.fingerprint,
+      reason: entry.reason
+    })) ?? [])
+  ];
 }
 
 function createProgram(

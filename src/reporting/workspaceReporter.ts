@@ -1,12 +1,17 @@
 import type { Report, WorkspaceReport } from '../core/types.js';
 
-export function renderWorkspaceJson(report: WorkspaceReport): string {
-  return `${JSON.stringify(redactWorkspaceReport(report), null, 2)}\n`;
+export type WorkspaceJsonOptions = {
+  showSuppressed?: boolean;
+};
+
+export function renderWorkspaceJson(report: WorkspaceReport, options: WorkspaceJsonOptions = {}): string {
+  return `${JSON.stringify(redactWorkspaceReport(report, options), null, 2)}\n`;
 }
 
 export type WorkspaceTextOptions = {
   summaryOnly?: boolean;
   maxFindings?: number;
+  showSuppressed?: boolean;
 };
 
 export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceTextOptions = {}): string {
@@ -17,6 +22,9 @@ export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceT
     `Totals: ${report.summary.errors} error(s), ${report.summary.warnings} warning(s), ${report.summary.infos} info(s).`,
     ''
   ];
+  if ((report.summary.suppressed ?? 0) > 0) {
+    lines.splice(4, 0, `Suppressed findings: ${report.summary.suppressed}`);
+  }
 
   if (options.summaryOnly) {
     return `${lines.join('\n')}\n`;
@@ -43,6 +51,14 @@ export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceT
         lines.push(`  Suggested fix: ${finding.suggestion}`);
       }
     }
+    if (options.showSuppressed && entry.report.suppressedFindings) {
+      for (const finding of entry.report.suppressedFindings) {
+        const location = finding.primarySource?.file
+          ? `${entry.path}/${finding.primarySource.file}${finding.primarySource.line ? `:${finding.primarySource.line}` : ''}`
+          : entry.path;
+        lines.push(`- SUPPRESSED ${finding.id}: ${finding.title} (${location})`);
+      }
+    }
   }
 
   if (options.maxFindings !== undefined && omittedFindings > 0) {
@@ -52,19 +68,19 @@ export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceT
   return `${lines.join('\n')}\n`;
 }
 
-function redactWorkspaceReport(report: WorkspaceReport): WorkspaceReport {
+function redactWorkspaceReport(report: WorkspaceReport, options: WorkspaceJsonOptions): WorkspaceReport {
   return {
     ...report,
     root: '<requested-root>',
     reports: report.reports.map((entry) => ({
       path: entry.path,
-      report: redactScanReport(entry.report)
+      report: redactScanReport(entry.report, options)
     }))
   };
 }
 
-function redactScanReport(report: Report): Report {
-  return {
+function redactScanReport(report: Report, options: WorkspaceJsonOptions): Report {
+  const redactedReport: Report = {
     ...report,
     root: '<candidate-root>',
     inheritedInstructionFiles: report.inheritedInstructionFiles?.map((entry) => ({
@@ -78,8 +94,22 @@ function redactScanReport(report: Report): Report {
         ...entry,
         source: entry.source ? redactSourceText(entry.source) : undefined
       }))
-    }))
+    })),
+    suppressedFindings: options.showSuppressed
+      ? report.suppressedFindings?.map((finding) => ({
+          ...finding,
+          primarySource: finding.primarySource ? redactSourceText(finding.primarySource) : undefined,
+          evidence: finding.evidence.map((entry) => ({
+            ...entry,
+            source: entry.source ? redactSourceText(entry.source) : undefined
+          }))
+        }))
+      : undefined
   };
+  if (!options.showSuppressed) {
+    delete redactedReport.suppressedFindings;
+  }
+  return redactedReport;
 }
 
 function redactSourceText<T extends { text?: string }>(source: T): T {

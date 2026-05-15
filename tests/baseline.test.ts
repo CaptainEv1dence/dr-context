@@ -84,6 +84,42 @@ describe('baseline command', () => {
     expect(result.stderr).toContain('Dr. Context usage error');
     expect(result.stderr).not.toContain('internal error');
   });
+
+  test('workspace reports aggregate suppressed findings', async () => {
+    const root = await makeRepo({
+      'AGENTS.md': '# Workspace root\n\nRun `pnpm test`.\n',
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
+      'packages/api/AGENTS.md': '# API package\n\nRun `pnpm test`.\n',
+      'packages/api/package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run","lint":"eslint ."}}',
+      'packages/api/pnpm-lock.yaml': "lockfileVersion: '9.0'\n"
+    });
+    const baselinePath = join(root, 'packages/api/.drctx-baseline.json');
+
+    await runCli(['node', 'dr-context', 'baseline', '--root', join(root, 'packages/api'), '--output', baselinePath]);
+    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: 'packages/api/.drctx-baseline.json' }));
+
+    const result = await runCli(['node', 'dr-context', 'check', '--workspace', '--json', '--show-suppressed', '--root', root]);
+    const report = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(report.summary.suppressed).toBeGreaterThan(0);
+    expect(JSON.stringify(report)).toContain('suppressedFindings');
+  });
+
+  test('SARIF omits suppressed findings by default', async () => {
+    const root = await makeRepo(repoWithWarning);
+    const baselinePath = join(root, '.drctx-baseline.json');
+
+    await runCli(['node', 'dr-context', 'baseline', '--root', root, '--output', baselinePath]);
+    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: '.drctx-baseline.json' }));
+
+    const result = await runCli(['node', 'dr-context', 'check', '--sarif', '--root', root]);
+    const sarif = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(sarif.runs[0].results).toEqual([]);
+  });
 });
 
 async function makeRepo(files: Record<string, string>): Promise<string> {

@@ -80,6 +80,7 @@ export type WorkspaceReport = {
     errors: number;
     warnings: number;
     infos: number;
+    suppressed?: number;
   };
 };
 
@@ -248,6 +249,7 @@ export type EffectiveConfig = {
   strict: boolean;
   include: string[];
   exclude: string[];
+  suppressions?: FindingSuppression[];
   targetPath?: string;
   inheritParentInstructions?: boolean;
   inheritedAgentInstructionDocs?: AgentInstructionDocFact[];
