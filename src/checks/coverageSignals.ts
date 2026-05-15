@@ -9,7 +9,8 @@ export const coverageSignalsCheck: Check = {
       context.facts.ciCommands.length > 0 ||
       context.facts.architectureDocs.length > 0 ||
       context.facts.commandMentions.length > 0 ||
-      context.facts.agentInstructionDocs.length > 0;
+      context.facts.agentInstructionDocs.length > 0 ||
+      context.facts.workflowPrompts.length > 0;
 
     if (!hasAnyFacts) {
       return [noScannableContextFinding()];

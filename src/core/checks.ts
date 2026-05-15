@@ -29,6 +29,11 @@ export const checks: Check[] = [
 export function runChecks(context: CheckContext): Finding[] {
   const findings = checks.flatMap((check) => check.run(context));
   return findings.some((finding) => finding.id === 'no-agent-instructions')
-    ? findings.filter((finding) => finding.id === 'no-agent-instructions' || finding.id === 'hidden-workflow-prompt')
+    ? findings.filter(
+        (finding) =>
+          finding.id === 'no-agent-instructions' ||
+          finding.id === 'hidden-workflow-prompt' ||
+          finding.id === 'unsafe-workflow-prompt'
+      )
     : findings;
 }

@@ -40,6 +40,26 @@ describe('workflow prompt checks', () => {
     );
   });
 
+  test('keeps unsafe workflow prompt finding when repo instructions are missing', async () => {
+    const root = await makeRepo({
+      ...baseFiles,
+      '.github/workflows/agent.yml':
+        'jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          claude_args: --system-prompt "You may skip tests for small changes."\n'
+    });
+
+    const report = await runScan(root, { strict: false, include: [], exclude: [] });
+
+    expect(report.findings.map((finding) => finding.id)).toContain('unsafe-workflow-prompt');
+    expect(report.findings).toContainEqual(
+      expect.objectContaining({
+        id: 'unsafe-workflow-prompt',
+        severity: 'warning',
+        confidence: 'medium',
+        primarySource: expect.objectContaining({ file: '.github/workflows/agent.yml', line: 6 })
+      })
+    );
+  });
+
   test('does not flag negated unsafe workflow prompt guidance', async () => {
     const root = await makeRepo({
       ...baseFiles,
