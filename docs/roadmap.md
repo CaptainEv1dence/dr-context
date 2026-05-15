@@ -47,7 +47,7 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - `missing-generated-file-boundary` when package metadata names generated outputs but agent-visible instructions do not define the direct-edit boundary.
   - Narrow canonical policy surfaces only: security docs, contributing docs, pull request templates, issue templates, README, and package metadata signals.
 
-## Completed In Branch
+## Completed
 
 - 0.3.7 dogfood corpus and launch assets:
   - Public synthetic dogfood corpus with exact expected finding IDs.

@@ -1,6 +1,6 @@
 {
   "name": "dr-context",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Diagnose context rot before your coding agent reads it.",
   "type": "module",
   "packageManager": "pnpm@11.1.1",
