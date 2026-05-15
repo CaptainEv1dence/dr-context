@@ -90,7 +90,8 @@ function targetInstructionIncludes(targetPath: string | undefined): string[] {
   }
 
   const parts = targetPath.split('/').filter(Boolean);
-  const directories = parts.includes('.') ? parts.slice(0, -1) : parts;
+  const lastPart = parts.at(-1) ?? '';
+  const directories = lastPart.includes('.') ? parts.slice(0, -1) : parts;
   const includes = ['AGENTS.md'];
 
   for (let index = 0; index < directories.length; index += 1) {
