@@ -26,6 +26,11 @@ describe('exitCodeForReport', () => {
     expect(exitCodeForReport(report(scanSummary({ errors: 0, warnings: 0, infos: 0 })), false)).toBe(0);
   });
 
+  test('keeps clean and coverage-info reports at exit code 0', () => {
+    expect(exitCodeForReport(report(scanSummary({ errors: 0, warnings: 0, infos: 0 })), false)).toBe(0);
+    expect(exitCodeForReport(report(scanSummary({ errors: 0, warnings: 0, infos: 1 })), false)).toBe(0);
+  });
+
   test('returns 1 when error-level findings exist', () => {
     expect(exitCodeForReport(report(scanSummary({ errors: 1, warnings: 0, infos: 0 })), false)).toBe(1);
   });

@@ -22,6 +22,10 @@ describe('renderJson', () => {
       tool: 'drctx'
     });
   });
+
+  test('omits first-run guidance text from JSON output', () => {
+    expect(renderJson(emptyReport)).not.toContain('Next: run `drctx manifest --root .`');
+  });
 });
 
 describe('renderSarif', () => {
@@ -96,6 +100,10 @@ describe('renderSarif', () => {
 
     expect(output.runs[0].tool.driver.rules).toEqual([]);
     expect(output.runs[0].results).toEqual([]);
+  });
+
+  test('omits first-run guidance text from SARIF output', () => {
+    expect(renderSarif(emptyReport)).not.toContain('Next: run `drctx manifest --root .`');
   });
 });
 
