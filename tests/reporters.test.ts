@@ -3,7 +3,8 @@ import { renderJson } from '../src/reporting/jsonReporter.js';
 import { renderSarif } from '../src/reporting/sarifReporter.js';
 import { renderText } from '../src/reporting/textReporter.js';
 import { renderWorkspaceJson, renderWorkspaceText } from '../src/reporting/workspaceReporter.js';
-import type { Report } from '../src/core/types.js';
+import { calculateHealthSummary } from '../src/core/health.js';
+import type { Report, WorkspaceReport } from '../src/core/types.js';
 
 const emptyReport: Report = {
   schemaVersion: 'drctx.report.v1',
@@ -11,7 +12,7 @@ const emptyReport: Report = {
   toolVersion: '0.1.5',
   root: '/repo',
   findings: [],
-  summary: { errors: 0, warnings: 0, infos: 0 }
+  summary: scanSummary({ errors: 0, warnings: 0, infos: 0 })
 };
 
 describe('renderJson', () => {
@@ -43,7 +44,7 @@ describe('renderSarif', () => {
             suggestion: 'Use `pnpm test` or add a "test:unit" script to package.json.'
           }
         ],
-        summary: { errors: 1, warnings: 0, infos: 0 }
+        summary: scanSummary({ errors: 1, warnings: 0, infos: 0 })
       })
     );
 
@@ -121,7 +122,7 @@ describe('renderText', () => {
           suggestion: 'Use `pnpm test` or add a "test:unit" script to package.json.'
         }
       ],
-      summary: { errors: 1, warnings: 0, infos: 0 }
+      summary: scanSummary({ errors: 1, warnings: 0, infos: 0 })
     });
 
     expect(output).toContain('Evidence:');
@@ -144,7 +145,7 @@ describe('renderText', () => {
           evidence: []
         }
       ],
-      summary: { errors: 0, warnings: 0, infos: 1 }
+      summary: scanSummary({ errors: 0, warnings: 0, infos: 1 })
     });
 
     expect(output).not.toContain('Evidence:');
@@ -161,7 +162,7 @@ describe('workspace reporters', () => {
         toolVersion: '0.2.0',
         root: '<requested-root>',
         reports: [{ path: 'repo-a', report: emptyReport }],
-        summary: { roots: 1, errors: 0, warnings: 0, infos: 0 }
+        summary: workspaceSummary({ roots: 1, errors: 0, warnings: 0, infos: 0 })
       })
     );
 
@@ -178,8 +179,8 @@ describe('workspace reporters', () => {
       tool: 'drctx',
       toolVersion: '0.2.0',
       root: '<requested-root>',
-      reports: [{ path: 'repo-a', report: { ...emptyReport, summary: { errors: 0, warnings: 1, infos: 0 } } }],
-      summary: { roots: 1, errors: 0, warnings: 1, infos: 0 }
+      reports: [{ path: 'repo-a', report: { ...emptyReport, summary: scanSummary({ errors: 0, warnings: 1, infos: 0 }) } }],
+      summary: workspaceSummary({ roots: 1, errors: 0, warnings: 1, infos: 0 })
     });
 
     expect(output).toContain('Dr. Context Workspace');
@@ -216,11 +217,11 @@ describe('workspace reporters', () => {
                   evidence: []
                 }
               ],
-              summary: { errors: 0, warnings: 2, infos: 0 }
+              summary: scanSummary({ errors: 0, warnings: 2, infos: 0 })
             }
           }
         ],
-        summary: { roots: 1, errors: 0, warnings: 2, infos: 0 }
+        summary: workspaceSummary({ roots: 1, errors: 0, warnings: 2, infos: 0 })
       },
       { maxFindings: 1 }
     );
@@ -237,8 +238,8 @@ describe('workspace reporters', () => {
         tool: 'drctx',
         toolVersion: '0.3.0',
         root: '<requested-root>',
-        reports: [{ path: 'repo-a', report: { ...emptyReport, summary: { errors: 0, warnings: 1, infos: 0 } } }],
-        summary: { roots: 1, errors: 0, warnings: 1, infos: 0 }
+        reports: [{ path: 'repo-a', report: { ...emptyReport, summary: scanSummary({ errors: 0, warnings: 1, infos: 0 }) } }],
+        summary: workspaceSummary({ roots: 1, errors: 0, warnings: 1, infos: 0 })
       },
       { summaryOnly: true }
     );
@@ -247,3 +248,19 @@ describe('workspace reporters', () => {
     expect(output).not.toContain('repo-a:');
   });
 });
+
+function scanSummary(counts: { errors: number; warnings: number; infos: number; suppressed?: number }): Report['summary'] {
+  return {
+    ...counts,
+    health: calculateHealthSummary(counts)
+  };
+}
+
+function workspaceSummary(
+  counts: { roots: number; errors: number; warnings: number; infos: number; suppressed?: number }
+): WorkspaceReport['summary'] {
+  return {
+    ...counts,
+    health: calculateHealthSummary(counts)
+  };
+}

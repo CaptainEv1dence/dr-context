@@ -2,6 +2,19 @@ export type Severity = 'error' | 'warning' | 'info';
 
 export type Confidence = 'high' | 'medium' | 'low';
 
+export type HealthGrade = 'excellent' | 'good' | 'fair' | 'poor';
+
+export type HealthSummary = {
+  score: number;
+  grade: HealthGrade;
+  penalties: {
+    errors: number;
+    warnings: number;
+    infos: number;
+  };
+  suppressedCount: number;
+};
+
 export type SourceSpan = {
   file: string;
   line?: number;
@@ -75,6 +88,7 @@ export type Report = {
     warnings: number;
     infos: number;
     suppressed?: number;
+    health: HealthSummary;
   };
 };
 
@@ -95,6 +109,7 @@ export type WorkspaceReport = {
     warnings: number;
     infos: number;
     suppressed?: number;
+    health: HealthSummary;
   };
 };
 

@@ -5,6 +5,7 @@ import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
 import { runScan } from './runScan.js';
 import { applySuppressions, withSuppressionResult } from './suppressions.js';
+import { calculateHealthSummary } from './health.js';
 import type { AgentInstructionDocFact, EffectiveConfig, WorkspaceReport } from './types.js';
 
 export async function runWorkspaceScan(root: string, config: EffectiveConfig & { maxDepth: number }): Promise<WorkspaceReport> {
@@ -27,6 +28,14 @@ export async function runWorkspaceScan(root: string, config: EffectiveConfig & {
     })
   );
 
+  const summaryCounts = {
+    roots: reports.length,
+    errors: reports.reduce((total, entry) => total + entry.report.summary.errors, 0),
+    warnings: reports.reduce((total, entry) => total + entry.report.summary.warnings, 0),
+    infos: reports.reduce((total, entry) => total + entry.report.summary.infos, 0),
+    suppressed: reports.reduce((total, entry) => total + (entry.report.summary.suppressed ?? 0), 0)
+  };
+
   return {
     schemaVersion: 'drctx.workspace-report.v1',
     tool: 'drctx',
@@ -34,11 +43,8 @@ export async function runWorkspaceScan(root: string, config: EffectiveConfig & {
     root: '<requested-root>',
     reports,
     summary: {
-      roots: reports.length,
-      errors: reports.reduce((total, entry) => total + entry.report.summary.errors, 0),
-      warnings: reports.reduce((total, entry) => total + entry.report.summary.warnings, 0),
-      infos: reports.reduce((total, entry) => total + entry.report.summary.infos, 0),
-      suppressed: reports.reduce((total, entry) => total + (entry.report.summary.suppressed ?? 0), 0)
+      ...summaryCounts,
+      health: calculateHealthSummary(summaryCounts)
     }
   };
 }
