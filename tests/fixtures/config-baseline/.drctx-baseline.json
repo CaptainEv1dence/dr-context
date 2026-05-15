@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "drctx.baseline.v1",
+  "tool": "drctx",
+  "root": "<requested-root>",
+  "findings": [
+    {
+      "fingerprint": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "id": "missing-verification-command",
+      "file": "package.json",
+      "title": "Verification script is not mentioned in agent instructions",
+      "reason": "Synthetic accepted finding for fixture coverage."
+    }
+  ]
+}

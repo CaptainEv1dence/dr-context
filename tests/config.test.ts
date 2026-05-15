@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, test } from 'vitest';
 import { ConfigUsageError, loadConfig } from '../src/config/loadConfig.js';
+import { fixtureRoot } from './helpers.js';
 
 async function makeRepo(files: Record<string, string>): Promise<string> {
   const root = join(tmpdir(), `drctx-config-${crypto.randomUUID()}`);
@@ -75,5 +76,17 @@ describe('loadConfig', () => {
     });
 
     await expect(loadConfig(root, {})).rejects.toThrow(/baseline/i);
+  });
+
+  test('loads the committed config-baseline fixture', async () => {
+    const config = await loadConfig(fixtureRoot('config-baseline'), {});
+
+    expect(config.exclude).toEqual(['vendor/**']);
+    expect(config.strict).toBe(true);
+    expect(config.baseline?.findings).toHaveLength(1);
+  });
+
+  test('rejects the committed config-invalid fixture', async () => {
+    await expect(loadConfig(fixtureRoot('config-invalid'), {})).rejects.toBeInstanceOf(ConfigUsageError);
   });
 });
