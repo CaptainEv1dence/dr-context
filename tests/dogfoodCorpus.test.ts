@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { readdir, readFile } from 'node:fs/promises';
+import { access, readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { runScan } from '../src/core/runScan.js';
 import { fixtureRoot } from './helpers.js';
@@ -25,10 +25,18 @@ async function readExpected(caseName: string): Promise<DogfoodExpected> {
 
 async function caseNames(): Promise<string[]> {
   const entries = await readdir(corpusRoot, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
+  const directories = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  const caseDirectories = await Promise.all(
+    directories.map(async (name) => {
+      try {
+        await access(join(corpusRoot, name, 'drctx.expected.json'));
+        return name;
+      } catch {
+        return undefined;
+      }
+    })
+  );
+  return caseDirectories.filter((name): name is string => name !== undefined).sort();
 }
 
 async function scanFindingIds(caseName: string, expected: ExpectedScan): Promise<string[]> {

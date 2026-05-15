@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "drctx.false-positive-ledger.v1",
+  "entries": [
+    {
+      "case": "accepted-debt-example",
+      "findingId": "multiple-package-lockfiles",
+      "status": "accepted",
+      "reason": "Synthetic migration window keeps both lockfiles temporarily.",
+      "nextReview": "2026-06-01"
+    },
+    {
+      "case": "false-positive-example",
+      "findingId": "hidden-workflow-policy",
+      "status": "false-positive",
+      "reason": "Synthetic policy text was informational, not a repo workflow requirement."
+    },
+    {
+      "case": "fixed-example",
+      "findingId": "package-manager-drift",
+      "status": "fixed",
+      "reason": "Synthetic AGENTS.md was updated to use pnpm."
+    }
+  ]
+}
