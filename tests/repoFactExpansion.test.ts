@@ -170,6 +170,61 @@ describe('extractRuntimeVersions', () => {
     ]);
   });
 
+  test('normalizes two-part static Node versions and minimum patch ranges', () => {
+    const files: RawFile[] = [
+      { path: '.nvmrc', content: '20.11\n' },
+      { path: '.node-version', content: 'v20.11\n' },
+      { path: 'package.json', content: '{\n  "engines": {\n    "node": ">=20.0.0"\n  }\n}\n' }
+    ];
+
+    expect(extractRuntimeVersions(files)).toEqual([
+      {
+        runtime: 'node',
+        version: '20.11',
+        normalizedMajor: 20,
+        confidence: 'high',
+        kind: 'nvmrc',
+        source: { file: '.nvmrc', line: 1 }
+      },
+      {
+        runtime: 'node',
+        version: 'v20.11',
+        normalizedMajor: 20,
+        confidence: 'high',
+        kind: 'node-version',
+        source: { file: '.node-version', line: 1 }
+      },
+      {
+        runtime: 'node',
+        version: '>=20.0.0',
+        minimumMajor: 20,
+        confidence: 'medium',
+        kind: 'package-engines',
+        source: { file: 'package.json', line: 3 }
+      }
+    ]);
+  });
+
+  test('extracts setup-node node-version when with block appears before uses in the same step', () => {
+    const files: RawFile[] = [
+      {
+        path: '.github/workflows/ci.yml',
+        content: 'jobs:\n  test:\n    steps:\n      - with:\n          node-version: 20\n        uses: actions/setup-node@v4\n'
+      }
+    ];
+
+    expect(extractRuntimeVersions(files)).toEqual([
+      {
+        runtime: 'node',
+        version: '20',
+        normalizedMajor: 20,
+        confidence: 'high',
+        kind: 'github-actions',
+        source: { file: '.github/workflows/ci.yml', line: 5 }
+      }
+    ]);
+  });
+
   test('marks unsupported dynamic Node runtime values while preserving raw values and source spans', () => {
     const files: RawFile[] = [
       { path: '.nvmrc', content: 'lts/*\n' },

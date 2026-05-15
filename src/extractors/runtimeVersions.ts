@@ -46,19 +46,30 @@ function extractGitHubActionNodeVersions(file: RawFile): RuntimeVersionFact[] {
   const facts: RuntimeVersionFact[] = [];
 
   for (let index = 0; index < fileLines.length; index += 1) {
-    if (!/uses:\s*actions\/setup-node@/i.test(fileLines[index])) {
+    const stepMatch = fileLines[index].match(/^(\s*)-\s+/);
+    if (!stepMatch) {
       continue;
     }
 
+    const stepIndent = stepMatch[1].length;
+    const stepLines: { text: string; line: number }[] = [{ text: fileLines[index], line: index + 1 }];
     for (let nextIndex = index + 1; nextIndex < fileLines.length; nextIndex += 1) {
       const line = fileLines[nextIndex];
-      if (/^\s*-\s+/.test(line)) {
+      if (line.trim() !== '' && indentation(line) <= stepIndent) {
         break;
       }
 
-      const match = line.match(/^\s*node-version:\s*(.+?)\s*$/);
+      stepLines.push({ text: line, line: nextIndex + 1 });
+    }
+
+    if (!stepLines.some(({ text }) => /uses:\s*actions\/setup-node@/i.test(text))) {
+      continue;
+    }
+
+    for (const { text, line } of stepLines) {
+      const match = text.match(/^\s*node-version:\s*(.+?)\s*$/);
       if (match) {
-        facts.push(...runtimeVersion(file, stripYamlQuotes(match[1].trim()), 'github-actions', nextIndex + 1));
+        facts.push(...runtimeVersion(file, stripYamlQuotes(match[1].trim()), 'github-actions', line));
         break;
       }
     }
@@ -82,7 +93,7 @@ function runtimeVersion(
 
 function normalizeNodeVersion(version: string): Pick<RuntimeVersionFact, 'normalizedMajor' | 'minimumMajor' | 'unsupportedReason' | 'confidence'> {
   const trimmed = version.trim();
-  const exact = trimmed.match(/^v?(\d+)(?:\.\d+\.\d+)?$/);
+  const exact = trimmed.match(/^v?(\d+)(?:\.\d+){0,2}$/);
   if (exact) {
     return { normalizedMajor: Number(exact[1]), confidence: 'high' };
   }
@@ -92,7 +103,7 @@ function normalizeNodeVersion(version: string): Pick<RuntimeVersionFact, 'normal
     return { normalizedMajor: Number(wildcard[1]), confidence: 'high' };
   }
 
-  const minimum = trimmed.match(/^>=(\d+)$/);
+  const minimum = trimmed.match(/^>=(\d+)(?:\.\d+){0,2}$/);
   if (minimum) {
     return { minimumMajor: Number(minimum[1]), confidence: 'medium' };
   }
@@ -132,6 +143,10 @@ function parsePackageJson(content: string): PackageJsonShape {
 
 function lines(content: string): string[] {
   return content.split('\n').map((line) => line.replace(/\r$/, ''));
+}
+
+function indentation(line: string): number {
+  return line.match(/^\s*/)?.[0].length ?? 0;
 }
 
 function stripYamlQuotes(value: string): string {
