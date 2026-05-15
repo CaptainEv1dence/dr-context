@@ -38,9 +38,9 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - `verification-command-conflict` when agent-visible instructions disagree with CI and package scripts for the same verification script.
   - Static Node and package-manager command normalization, including `corepack pnpm` and `corepack pnpm@<version>` as `pnpm` intent.
 
-## Completed In Branch
+## Completed
 
-- 0.3.6 rule-quality and safety/workflow hygiene checks, pending release:
+- 0.3.6 rule-quality and safety/workflow hygiene checks:
   - `oversized-instruction-file` for supported instruction surfaces over conservative size thresholds.
   - `duplicate-instruction-block` for deterministic repeated instruction blocks across supported instruction surfaces and workflow prompts.
   - `hidden-secret-hygiene-policy`, `hidden-destructive-action-policy`, and `hidden-workflow-policy` when canonical repo docs define policies that agent-visible instructions do not expose.
