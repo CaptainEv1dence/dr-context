@@ -145,24 +145,24 @@ Found 3 finding(s).
 AGENTS.md:7 - Docs mention npm, but this repo uses pnpm
 
 Evidence:
-- AGENTS.md:7 mentions `npm test`.
+- AGENTS.md:7 mentions the npm-based test command.
 - package.json declares packageManager: pnpm@11.1.1.
 - pnpm-lock.yaml indicates pnpm.
 
 Suggested fix:
-- Replace `npm test` with `pnpm test`.
+- Replace the npm-based test command with the pnpm test command.
 
 2. ERROR verification-command-conflict (high)
 AGENTS.md:7 - Agent instructions run npm for "test", but CI uses pnpm
 
 Evidence:
-- AGENTS.md:7 tells agents to run `npm test`.
+- AGENTS.md:7 tells agents to run the npm-based test command.
 - .github/workflows/ci.yml:8 runs `pnpm test`.
 - package.json defines script "test".
 - package.json declares packageManager: pnpm@11.1.1.
 
 Suggested fix:
-- Replace `npm test` with `pnpm test` so agent verification matches CI and package.json.
+- Replace the npm-based test command with the pnpm test command so agent verification matches CI and package.json.
 
 3. ERROR node-runtime-drift (high)
 .nvmrc:1 - Node runtime declarations conflict: 18 vs 20
@@ -383,13 +383,13 @@ Dr. Context compares static majors such as `20`, `v20`, `20.11.1`, `20.x`, and m
 
 The repository has a canonical JavaScript package-manager intent, usually from `package.json` `packageManager` or a single lockfile, but another deterministic source points to a different manager.
 
-For example, a repo with `packageManager: "pnpm@11.1.1"` and `pnpm-lock.yaml` should not tell agents to run `npm test`. `pnpm`, `corepack pnpm`, and `corepack pnpm@<version>` are normalized to the same intent.
+For example, a repo with `packageManager: "pnpm@11.1.1"` and `pnpm-lock.yaml` should not tell agents to use npm for tests. `pnpm`, `corepack pnpm`, and `corepack pnpm@<version>` are normalized to the same intent.
 
 ### `verification-command-conflict`
 
 Agent-visible instructions tell an agent to run a different package-manager command than CI and `package.json` use for the same verification script.
 
-For example, if `package.json` declares `packageManager: "pnpm@11.1.1"`, CI runs `pnpm test`, and `AGENTS.md` says `npm test`, Dr. Context reports a conflict and suggests `pnpm test`. README-only weak evidence does not create this error by itself.
+For example, if `package.json` declares `packageManager: "pnpm@11.1.1"`, CI runs `pnpm test`, and `AGENTS.md` tells agents to use npm for the same test script, Dr. Context reports a conflict and suggests the pnpm command. README-only weak evidence does not create this error by itself.
 
 ## Privacy and dogfood hygiene
 
