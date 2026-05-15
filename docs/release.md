@@ -148,6 +148,7 @@ Expected 0.3.8 smoke result: JSON output contains `summary.health.score`, `summa
 
 Before releasing 0.3.9, verify:
 
+- Public launch copy and pre-launch trust checks are reviewed in [`docs/launch.md`](launch.md).
 - After the remaining 0.3.9 docs tasks land, README links to demo, triage, GitHub Action, finding reference, and instruction-surface coverage docs.
 - Demo commands use synthetic fixtures only.
 - Published-package smoke uses `$version = "0.3.9"` or an explicit target-release placeholder.
