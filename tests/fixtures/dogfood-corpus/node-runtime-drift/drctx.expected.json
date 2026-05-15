@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "node-runtime-drift",
+  "description": "Synthetic repo with conflicting deterministic Node runtime declarations.",
+  "before": {
+    "root": "before",
+    "findingIds": ["node-runtime-drift"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

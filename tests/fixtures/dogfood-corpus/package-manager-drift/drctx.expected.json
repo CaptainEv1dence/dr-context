@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "package-manager-drift",
+  "description": "Synthetic pnpm repo whose agent instructions tell agents to use npm.",
+  "before": {
+    "root": "before",
+    "findingIds": ["package-manager-drift"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "verification-command-conflict",
+  "description": "Synthetic pnpm repo where CI and package metadata use pnpm but agent instructions say npm test.",
+  "before": {
+    "root": "before",
+    "findingIds": ["package-manager-drift", "verification-command-conflict"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}
