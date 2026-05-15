@@ -57,6 +57,16 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 - Pre-0.4 context quality umbrella spec:
   - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
+- 0.3.9 launch adoption polish:
+  - Rewrite the README top section around a one-screen “your repo lies to AI agents” demo.
+  - Add launch-grade docs for first-run triage, GitHub Action setup, finding reference, and demo outputs.
+  - Make the existing synthetic before/after examples easier to discover from the README.
+  - Explain how to use health, baselines, and suppressions without chasing the score or hiding debt.
+  - Add a recognized instruction-surface coverage map so users can see which local files Dr. Context treats as agent context for Claude/Codex/Copilot/Cursor/Gemini-style workflows without claiming live agent runtime visibility.
+- 0.3.9 optional narrow reliability slice:
+  - Evaluate a bundled JavaScript GitHub Action that avoids runtime `npm exec` and registry install-on-demand.
+  - Keep current Action inputs and scanner semantics if implemented.
+  - Defer if bundling expands beyond packaging, smoke tests, and release docs.
 - Deferred context health work for 0.4+:
   - Score badges.
   - Persisted score trends, snapshots, and history.
@@ -65,16 +75,17 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Telemetry-backed comparisons.
   - AI-generated health summaries.
 - Deferred heuristics remain visible until dogfood data supports them:
-  - `low-specificity-instruction`.
-  - `copied-docs-in-instructions`.
-  - `missing-instruction-example`.
+  - `missing-instruction-example` is the safest candidate, but should start as narrow `info` only after launch docs and corpus examples make “good context” concrete.
+  - `low-specificity-instruction` remains risky as a default finding; if explored, require strong generic-phrase matches plus absence of nearby commands, paths, or examples.
+  - `copied-docs-in-instructions` should be renamed or narrowed before implementation. Prefer deterministic repo-local duplication signals over claims that text was copied from external docs.
 - More context-file formats and stronger false-positive controls.
 
 ## Later
 
-- Optional bundled JavaScript Action to avoid npm install-on-demand.
 - MCP context gate after scoped manifests, config, and baseline mode are stable.
 - Optional safe fixes with `--dry-run` before any write mode.
+- Optional `drctx init` or templates for starter `AGENTS.md` / `.drctx.json`, with dry-run and no-overwrite behavior before any write mode.
+- Optional `drctx explain <finding-id>` or finding reference command backed by static local docs.
 - Optional agent view/probe simulation for Claude, Codex, Copilot, Cursor, OpenCode, and other adapters.
 - Optional AI remediation and prompt generation on top of deterministic findings.
-- Optional context compaction, session stale-assumption detector, handoff/checkpoint generation, and Ruler/Repomix integrations.
+- Optional context compaction, session stale-assumption detector, handoff/checkpoint generation, Ruler/Repomix integrations, and safe fix suggestions.
