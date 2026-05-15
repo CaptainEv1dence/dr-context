@@ -1,8 +1,20 @@
 import { describe, expect, test } from 'vitest';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { runScan } from '../src/core/runScan.js';
 
 const fixturesRoot = join(import.meta.dirname, 'fixtures');
+
+async function makeRepo(files: Record<string, string>): Promise<string> {
+  const root = join(tmpdir(), `drctx-stale-script-${crypto.randomUUID()}`);
+  for (const [path, content] of Object.entries(files)) {
+    const fullPath = join(root, path);
+    await mkdir(join(fullPath, '..'), { recursive: true });
+    await writeFile(fullPath, content);
+  }
+  return root;
+}
 
 describe('stale package script reference scan', () => {
   test('reports docs commands that reference missing package scripts', async () => {
@@ -50,5 +62,18 @@ describe('stale package script reference scan', () => {
     });
 
     expect(report.findings.filter((finding) => finding.id === 'stale-package-script-reference')).toHaveLength(0);
+  });
+
+  test('does not report npm token hygiene commands as stale package scripts', async () => {
+    const root = await makeRepo({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', scripts: { test: 'vitest run' } }),
+      'pnpm-lock.yaml': 'lockfileVersion: 9.0',
+      'AGENTS.md': 'Run tests with `pnpm test`.',
+      'SECURITY.md': 'If a token leaks, revoke it with `npm token revoke <token-id>`.'
+    });
+
+    const report = await runScan(root, { strict: false, include: [], exclude: [] });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('stale-package-script-reference');
   });
 });

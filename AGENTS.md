@@ -43,6 +43,7 @@ pnpm exec vitest run tests/path/to/test.test.ts
 - Checks must not read files, write files, log, or call process exit.
 - Extractors preserve source evidence: file, line, and raw text when practical.
 - Reporters render findings only. They must not infer new findings.
+- Treat `dist/`, `build/`, and other generated outputs as build artifacts; do not edit generated files directly.
 
 ## Testing rules
 

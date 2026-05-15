@@ -65,7 +65,11 @@ function extractInlineCommandsFromLine(file: string, line: string, lineNumber: n
 }
 
 function startsWithPackageManager(command: string): boolean {
-  return Boolean(normalizePackageManagerCommand(command));
+  if (!normalizePackageManagerCommand(command)) {
+    return false;
+  }
+
+  return !/^npm\s+token\b/i.test(command);
 }
 
 function isMarkdownLike(path: string): boolean {

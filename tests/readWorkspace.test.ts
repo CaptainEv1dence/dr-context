@@ -11,15 +11,21 @@ describe('readWorkspace', () => {
     expect(files.map((file) => file.path)).toEqual([
       '.cursor/rules/project.mdc',
       '.github/copilot-instructions.md',
+      '.github/ISSUE_TEMPLATE/bug.yml',
+      '.github/pull_request_template.md',
       '.github/workflows/ci.yml',
       'AGENTS.md',
       'ARCHITECTURE.md',
       'CLAUDE.md',
+      'CONTRIBUTING.md',
       'docs/adr/0001-example.md',
+      'docs/CONTRIBUTING.md',
+      'docs/SECURITY.md',
       'justfile',
       'Makefile',
       'package.json',
-      'pnpm-lock.yaml'
+      'pnpm-lock.yaml',
+      'SECURITY.md'
     ]);
   });
 

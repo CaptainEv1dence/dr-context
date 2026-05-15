@@ -172,4 +172,17 @@ describe('package manager drift scan', () => {
       suggestion: 'Align `corepack yarn test` with the canonical npm package manager intent.'
     });
   });
+
+  test('does not report npm token hygiene commands as package-manager drift', async () => {
+    const root = await makeRepo({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', scripts: { test: 'vitest run' } }),
+      'pnpm-lock.yaml': 'lockfileVersion: 9.0',
+      'AGENTS.md': 'Run tests with `pnpm test`.',
+      'SECURITY.md': 'If a token leaks, revoke it with `npm token revoke <token-id>`.'
+    });
+
+    const report = await runScan(root, { strict: false, include: [], exclude: [] });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('package-manager-drift');
+  });
 });
