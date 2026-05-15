@@ -148,7 +148,7 @@ Expected 0.3.8 smoke result: JSON output contains `summary.health.score`, `summa
 
 Before releasing 0.3.9, verify:
 
-- README links to demo, triage, GitHub Action, finding reference, and instruction-surface coverage docs.
+- After the remaining 0.3.9 docs tasks land, README links to demo, triage, GitHub Action, finding reference, and instruction-surface coverage docs.
 - Demo commands use synthetic fixtures only.
 - Published-package smoke uses `$version = "0.3.9"` or an explicit target-release placeholder.
 - Action examples use `v0.3.9` or an explicit target-release placeholder.

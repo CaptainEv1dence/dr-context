@@ -19,7 +19,7 @@ The fixture command below is for contributors who cloned Dr. Context itself.
 Run:
 
 ```bash
-drctx check --root tests/fixtures/dogfood-corpus/package-manager-drift/before
+corepack pnpm exec drctx check --root tests/fixtures/dogfood-corpus/package-manager-drift/before
 ```
 
 Expected finding IDs include:
