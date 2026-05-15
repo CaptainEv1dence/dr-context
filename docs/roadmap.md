@@ -17,15 +17,15 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 - Supported context surface registry for Copilot, Cursor, Gemini, exact `AGENT_GUIDE.md`, and detection-only local agent rule files.
 - Repo fact extraction for Makefile, justfile, Taskfile, README commands, Node runtime, package engines, and setup actions.
 - CI command classification and README supported context surface matrix.
-
-## Next
-
-- 0.3.2 scoped effective context implementation in progress:
+- 0.3.2 scoped effective context implementation:
   - Path-scoped manifest output, for example `drctx manifest --path backend/src/api.ts`.
   - Effective instruction files for target paths.
   - Opt-in parent/child agent-instruction inheritance for workspace scans.
   - Deterministic Cursor scoped rule metadata support.
   - Conservative invalid, stale, and broad scoped-rule findings.
+
+## Next
+
 - Scan embedded workflow agent prompts:
   - Claude Code Action `custom_instructions`.
   - Claude Code Action `claude_args: --append-system-prompt`.
