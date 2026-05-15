@@ -49,4 +49,11 @@ describe('finding reference catalog', () => {
     expect(getFindingReference('coverage-signals')).toBeUndefined();
     expect(getFindingReference('unknown-finding')).toBeUndefined();
   });
+
+  test('documents every catalog finding id', () => {
+    const doc = readFileSync('docs/finding-reference.md', 'utf8');
+    const documentedIds = [...doc.matchAll(/^### `([^`]+)`$/gm)].map((match) => match[1]).sort();
+
+    expect(documentedIds).toEqual(allFindingReferenceIds());
+  });
 });
