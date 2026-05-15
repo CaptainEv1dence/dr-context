@@ -213,11 +213,16 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Workspace scanning with privacy-preserving aggregate JSON and text output.
 - Context manifests with package manager, verification commands, first-read docs, CI commands, and agent instruction files.
 - Workflow-embedded Claude Code Action prompt extraction for manifests and conservative findings.
-- Rule quality checks for oversized instruction surfaces and duplicated instruction blocks.
-- Policy visibility checks for secret hygiene, destructive-action, generated-file, and workflow guidance that exists in canonical repo docs but is missing from agent-visible instructions.
 - Cross-agent command drift, stale file reference, and unsafe instruction detection.
 - Evidence-backed text and JSON reports.
 - SARIF 2.1.0 reporting for code scanning integrations.
+
+## Unreleased on this branch
+
+These checks are documented for the upcoming 0.3.6 release and are not part of the latest published 0.3.5 npm package yet:
+
+- Rule quality checks for oversized instruction surfaces and duplicated instruction blocks.
+- Policy visibility checks for secret hygiene, destructive-action, generated-file, and workflow guidance that exists in canonical repo docs but is missing from agent-visible instructions.
 
 ## Supported context surfaces
 
@@ -235,7 +240,7 @@ Dr. Context treats these files as local repo context. It does not call vendor AP
 | Windsurf / Continue / Aider / Cody | Known local rule/config files | Detection-only in 0.3.1 |
 | Claude Code Action | `prompt`, `claude_args --system-prompt`, `claude_args --append-system-prompt`, legacy `custom_instructions`, legacy `direct_prompt` in GitHub workflows | Extracted into manifest and checked for conservative hidden/unsafe prompt findings. |
 | Repo runtime and package-manager facts | `.nvmrc`, `.node-version`, `package.json`, JavaScript lockfiles, package-manager setup actions, deterministic README and agent-visible commands | Checked for deterministic drift in 0.3.5. Dynamic values are ignored instead of guessed. |
-| Canonical policy docs | `SECURITY.md`, `CONTRIBUTING.md`, `docs/SECURITY.md`, `docs/CONTRIBUTING.md`, pull request templates, issue templates, and package metadata naming generated outputs | Checked for conservative policy visibility gaps in 0.3.6. |
+| Canonical policy docs | `SECURITY.md`, `CONTRIBUTING.md`, `docs/SECURITY.md`, `docs/CONTRIBUTING.md`, pull request templates, issue templates, and package metadata naming generated outputs | Upcoming 0.3.6 branch checks for conservative policy visibility gaps. Not in latest published 0.3.5 yet. |
 
 ### Workflow-embedded prompts
 
@@ -396,17 +401,23 @@ For example, if `package.json` declares `packageManager: "pnpm@11.1.1"`, CI runs
 
 ### `oversized-instruction-file`
 
+Unreleased on this branch for upcoming 0.3.6.
+
 An agent instruction surface is large enough to become hard for agents and humans to keep current. Generic agent instruction files report when they exceed 500 lines or 30 KB. Cursor scoped rules and workflow-embedded prompts use surface-specific thresholds.
 
 Split oversized guidance into smaller scoped files or link to canonical docs instead of embedding long content.
 
 ### `duplicate-instruction-block`
 
+Unreleased on this branch for upcoming 0.3.6.
+
 The same normalized instruction block appears in more than one supported instruction surface or workflow prompt.
 
 Dr. Context only reports deterministic overlap, such as repeated blocks with at least 5 non-empty lines or 300 normalized characters. It does not do semantic similarity matching.
 
 ### Policy visibility findings
+
+Unreleased on this branch for upcoming 0.3.6.
 
 Dr. Context reports conservative policy visibility gaps when a repository already documents a policy in canonical repo docs, but agent-visible instructions do not mention or link to that policy.
 
