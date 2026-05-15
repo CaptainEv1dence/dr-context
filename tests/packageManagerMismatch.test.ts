@@ -1,8 +1,20 @@
 import { describe, expect, test } from 'vitest';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { runScan } from '../src/core/runScan.js';
 
 const fixturesRoot = join(import.meta.dirname, 'fixtures');
+
+async function makeRepo(files: Record<string, string>): Promise<string> {
+  const root = join(tmpdir(), `drctx-package-manager-drift-${crypto.randomUUID()}`);
+  for (const [path, content] of Object.entries(files)) {
+    const fullPath = join(root, path);
+    await mkdir(join(fullPath, '..'), { recursive: true });
+    await writeFile(fullPath, content);
+  }
+  return root;
+}
 
 describe('package manager drift scan', () => {
   test('reports npm commands in docs when package.json declares pnpm without legacy duplicate findings', async () => {
@@ -77,4 +89,37 @@ describe('package manager drift scan', () => {
       })
     ]);
   });
+
+  test.each(['npm', 'yarn', 'bun'] as const)(
+    'uses a valid generic suggestion when %s repos conflict with corepack pnpm docs',
+    async (manager) => {
+      const root = await makeRepo({
+        'package.json': JSON.stringify({ packageManager: `${manager}@1.0.0`, scripts: { test: 'vitest run' } }),
+        'AGENTS.md': 'Run tests with `corepack pnpm test`.'
+      });
+      const report = await runScan(root, { strict: false, include: [], exclude: [] });
+      const findings = report.findings.filter((finding) => finding.id === 'package-manager-drift');
+
+      expect(findings).toHaveLength(1);
+      expect(findings[0]).toMatchObject({
+        primarySource: { file: 'AGENTS.md', line: 1, text: 'Run tests with `corepack pnpm test`.' },
+        suggestion: `Align \`corepack pnpm test\` with the canonical ${manager} package manager intent.`
+      });
+      expect(findings[0]?.suggestion).not.toContain(`${manager}pack`);
+      expect(findings[0]?.evidence).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'command-mention',
+            message: 'AGENTS.md:1 mentions `corepack pnpm test`.',
+            source: expect.objectContaining({ file: 'AGENTS.md', line: 1 })
+          }),
+          expect.objectContaining({
+            kind: 'package-manager',
+            message: `package.json declares packageManager: ${manager}@1.0.0.`,
+            source: expect.objectContaining({ file: 'package.json', line: 1 })
+          })
+        ])
+      );
+    }
+  );
 });

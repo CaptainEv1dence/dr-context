@@ -64,7 +64,7 @@ export const packageManagerMismatchCheck: Check = {
                 ]
               : [])
           ],
-          suggestion: `Replace \`${mention.command}\` with \`${canonical.name}${mention.command.slice(mentionedManager.length)}\`.`
+          suggestion: commandSuggestion(mention.command, mentionedManager, canonical.name)
         }
       ];
     });
@@ -150,4 +150,12 @@ function packageManagerEvidenceKind(manager: PackageManagerEvidence): string {
 
 function sourceLabel(manager: PackageManagerEvidence): string {
   return isJsLockfile(manager) ? 'Lockfile' : 'Setup action';
+}
+
+function commandSuggestion(command: string, mentionedManager: string, canonicalManager: string): string {
+  if (command === mentionedManager || command.startsWith(`${mentionedManager} `)) {
+    return `Replace \`${command}\` with \`${canonicalManager}${command.slice(mentionedManager.length)}\`.`;
+  }
+
+  return `Align \`${command}\` with the canonical ${canonicalManager} package manager intent.`;
 }
