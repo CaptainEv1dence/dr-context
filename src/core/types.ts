@@ -31,6 +31,23 @@ export type Finding = {
   suggestion?: string;
 };
 
+export type FindingSuppression = {
+  id: string;
+  file?: string;
+  fingerprint?: string;
+  reason?: string;
+};
+
+export type SuppressedFinding = Finding & {
+  fingerprint: string;
+  suppression: FindingSuppression;
+};
+
+export type SuppressionResult = {
+  findings: Finding[];
+  suppressedFindings: SuppressedFinding[];
+};
+
 export type Report = {
   schemaVersion: 'drctx.report.v1';
   tool: 'drctx';
