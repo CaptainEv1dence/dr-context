@@ -65,7 +65,7 @@ Context health is a pure summary layer, not a check. It is derived from visible 
 
 Findings, fingerprints, SARIF results, baselines, and suppression matching remain the source of truth. Health must not create findings, hide findings, alter finding identity, or influence exit-code behavior.
 
-Reporters render precomputed `summary.health` only. Text, JSON, SARIF, workspace, CLI, and future host integrations must not recalculate health or infer new health facts from rendered output.
+Reporters that expose health render precomputed `summary.health` only. Text, JSON, workspace, CLI, and future host integrations must not recalculate health or infer new health facts from rendered output. SARIF remains finding-only and does not include, recalculate, or infer health.
 
 ## Fact normalization
 

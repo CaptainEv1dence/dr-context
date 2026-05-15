@@ -237,19 +237,22 @@ Do not copy token values into issues, docs, logs, commits, or release notes.
 
 After the target version has been published, run published-package smoke tests from an isolated prefix so the local workspace does not shadow the temporary `npx` shims:
 
+Set `$version` to the target release version before publishing smoke checks. Do not leave an old pinned package version in this checklist when preparing a release.
+
 ```powershell
+$version = "<target-release-version>"
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context --help
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- drctx --help
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context --help
+npm exec --yes --prefix $tmp --package dr-context@$version -- drctx --help
 $repo = Resolve-Path .
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context check --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context manifest --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context manifest --path README.md --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context manifest --path README.md --json --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context discover --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context check --workspace --root $repo
-npm exec --yes --prefix $tmp --package dr-context@0.3.2 -- dr-context check --workspace --inherit-parent-instructions --root tests/fixtures/workspace-inheritance
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context check --root $repo
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context manifest --root $repo
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context manifest --path README.md --root $repo
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context manifest --path README.md --json --root $repo
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context discover --root $repo
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context check --workspace --root $repo
+npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context check --workspace --inherit-parent-instructions --root tests/fixtures/workspace-inheritance
 Remove-Item -Recurse -Force $tmp
 ```
 
@@ -260,7 +263,7 @@ The repository root `action.yml` runs the published npm package through `npm exe
 Minimal usage:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.3.0
+- uses: CaptainEv1dence/dr-context@<target-release-tag>
   with:
     root: .
 ```
@@ -274,11 +277,13 @@ permissions:
 
 steps:
   - uses: actions/checkout@v6
-  - uses: CaptainEv1dence/dr-context@v0.3.0
+  - uses: CaptainEv1dence/dr-context@<target-release-tag>
     with:
       root: .
       upload-sarif: 'true'
 ```
+
+Replace `<target-release-tag>` with the release tag being validated before publishing examples or release notes.
 
 ## GitHub Actions runtime
 
