@@ -28,9 +28,6 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - `drctx baseline` for stable fingerprints of accepted findings.
   - Suppression-aware text, JSON, SARIF, and exit-code behavior.
   - Workspace baseline scoping by owning candidate path, with child config inheritance still deferred.
-
-## Unreleased
-
 - 0.3.4 workflow-embedded prompt scanning:
   - Claude Code Action current v1 `prompt`, `claude_args --system-prompt`, and `claude_args --append-system-prompt` extraction.
   - Legacy Claude workflow `custom_instructions` and `direct_prompt` extraction for older workflows.
@@ -38,24 +35,23 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 ## Next
 
-- Add rule-quality checks backed by public tool guidance:
-  - Oversized agent instruction files, especially Cursor rules above the documented 500-line guidance.
-  - Duplicate/conflicting instruction surfaces.
+- Pre-0.4 context quality umbrella spec:
+  - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
+- 0.3.5 drift and verification-command conflict checks:
+  - Node version drift between docs, `package.json` engines, `.nvmrc`, `.node-version`, and GitHub Actions.
+  - Package manager version drift between docs, `packageManager`, lockfiles, setup actions, and commands.
+  - Deterministic verification-command conflicts across package scripts, CI, README, and agent instructions.
+- 0.3.6 rule-quality and safety/workflow hygiene checks:
+  - Oversized agent instruction files.
+  - Duplicate instruction blocks.
   - Low-specificity guidance such as generic “best practices” rules, with conservative severity.
-  - Copied docs instead of references, repeated blocks, and context budget/noise estimates.
-  - Missing canonical examples when instructions say to follow a style or pattern.
-- Add runtime and tool-version drift checks:
-  - Node version drift between docs, `package.json` engines, `.nvmrc`, and GitHub Actions.
-  - Package manager version drift between docs, `packageManager`, lockfiles, and setup actions.
-- Add safety and workflow hygiene checks from the master plan:
-  - Secret hygiene instruction gaps.
-  - Destructive-action boundary gaps.
-  - Generated/dist do-not-edit guidance.
-  - Planning, TDD, review, and verification policy visibility when repo docs already define those workflows.
-- Add adoption and launch assets before broader integrations:
-  - Public/synthetic dogfood corpus and false-positive tracking.
-  - Before/after examples for AGENTS.md, CI/doc mismatch, workspace scans, and GitHub Action SARIF setup.
-  - Context health badge/score trend once findings are stable enough to summarize.
+  - Copied docs instead of references and missing canonical examples.
+  - Secret hygiene, destructive-action, generated/dist, planning, TDD, review, and verification visibility gaps when repo docs already define those policies.
+- 0.3.7 adoption and launch assets before broader integrations:
+  - Public synthetic dogfood corpus and false-positive tracking.
+  - Before/after examples for AGENTS.md, CI/doc mismatch, package-manager drift, workflow prompt risks, workspace scans, and GitHub Action SARIF setup.
+- 0.3.8 or 0.4.0 context health gate:
+  - Context health badge or score trend only if findings are stable enough to summarize without hiding raw evidence.
 - More context-file formats and stronger false-positive controls.
 
 ## Later
