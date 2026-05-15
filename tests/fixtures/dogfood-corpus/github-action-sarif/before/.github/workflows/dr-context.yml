@@ -1,0 +1,13 @@
+name: Dr. Context
+
+on:
+  pull_request:
+
+jobs:
+  context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: CaptainEv1dence/dr-context@v0.3.6
+        with:
+          sarif: true

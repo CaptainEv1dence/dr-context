@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "workflow-prompt-risk",
+  "description": "Synthetic Claude workflow whose hidden prompt contains unsafe test guidance before moving safe guidance into AGENTS.md.",
+  "before": {
+    "root": "before",
+    "findingIds": ["hidden-workflow-prompt", "no-agent-instructions", "unsafe-workflow-prompt"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "workspace-scan",
+  "description": "Synthetic workspace where scanning repo-b directly reveals missing agent instructions despite root and sibling instructions.",
+  "before": {
+    "root": "before/repo-b",
+    "findingIds": ["no-agent-instructions"]
+  }
+}

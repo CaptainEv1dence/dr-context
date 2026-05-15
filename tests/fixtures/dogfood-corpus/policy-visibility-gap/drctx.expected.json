@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "policy-visibility-gap",
+  "description": "Synthetic repo whose canonical secret policy is hidden from agent-visible instructions before being copied into AGENTS.md.",
+  "before": {
+    "root": "before",
+    "findingIds": ["hidden-secret-hygiene-policy"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

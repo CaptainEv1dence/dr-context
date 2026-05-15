@@ -1,0 +1,13 @@
+name: Agent Review
+
+on:
+  pull_request:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
+        with:
+          direct_prompt: Review this repository using the repository agent instructions.

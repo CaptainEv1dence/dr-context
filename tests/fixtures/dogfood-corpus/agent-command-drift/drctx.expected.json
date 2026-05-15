@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "agent-command-drift",
+  "description": "Synthetic pnpm repo whose agent instructions reference a missing package script.",
+  "before": {
+    "root": "before",
+    "findingIds": ["stale-package-script-reference"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

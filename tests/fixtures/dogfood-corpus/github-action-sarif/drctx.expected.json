@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "github-action-sarif",
+  "description": "Synthetic GitHub Action workflow using Dr. Context with SARIF output enabled.",
+  "before": {
+    "root": "before",
+    "findingIds": []
+  }
+}
