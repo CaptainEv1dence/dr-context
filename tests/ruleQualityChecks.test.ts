@@ -128,6 +128,16 @@ describe('rule quality checks', () => {
     expect(ids).toContain('duplicate-instruction-block');
   });
 
+  test('embedded duplicate 300 character paragraph emits duplicate-instruction-block without blank boundaries', async () => {
+    const paragraph = `${'Use deterministic local analysis, preserve source identity, avoid network calls, keep checks pure over extracted facts, and prefer false negatives over noisy findings. '.repeat(3)}Review evidence before reporting.`;
+    const ids = await scanFindingIds({
+      'AGENTS.md': `Project-specific opening. ${paragraph} Continue with AGENTS-only guidance.`,
+      'CLAUDE.md': `Claude-specific opening. ${paragraph} Continue with CLAUDE-only guidance.`
+    });
+
+    expect(ids).toContain('duplicate-instruction-block');
+  });
+
   test('frontmatter-only overlap does not emit duplicate-instruction-block', async () => {
     const ids = await scanFindingIds({
       '.cursor/rules/backend.mdc': '---\nglobs: [src/**/*.ts]\nalwaysApply: false\n---\nUse backend service patterns.',

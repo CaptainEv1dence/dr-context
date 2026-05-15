@@ -114,6 +114,10 @@ function blocksFromContent(content: string, source: SourceSpan): InstructionBloc
     byFingerprint.set(window.fingerprint, window);
   }
 
+  for (const window of normalizedSentenceWindows(stripped, source)) {
+    byFingerprint.set(window.fingerprint, window);
+  }
+
   return [...byFingerprint.values()];
 }
 
@@ -148,6 +152,41 @@ function normalizedLineWindows(content: string, source: SourceSpan): Instruction
       nonEmptyLines: lines.length,
       source
     });
+  }
+
+  return windows;
+}
+
+function normalizedSentenceWindows(content: string, source: SourceSpan): InstructionBlock[] {
+  const sentences = content
+    .split(/\r?\n/)
+    .map(normalizeLine)
+    .filter(Boolean)
+    .join(' ')
+    .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+    ?.map((sentence) => sentence.trim().replace(/\s+/g, ' '))
+    .filter(Boolean);
+  const windows: InstructionBlock[] = [];
+
+  if (!sentences) {
+    return windows;
+  }
+
+  for (let start = 0; start < sentences.length; start += 1) {
+    const parts: string[] = [];
+    for (let end = start; end < sentences.length; end += 1) {
+      parts.push(sentences[end]);
+      const normalized = parts.join(' ').replace(/\s+/g, ' ').trim();
+      if (normalized.length >= duplicateCharMinimum) {
+        windows.push({
+          fingerprint: normalized,
+          normalized,
+          nonEmptyLines: 1,
+          source
+        });
+        break;
+      }
+    }
   }
 
   return windows;
