@@ -54,6 +54,15 @@ describe('policy visibility checks', () => {
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-secret-hygiene-policy');
   });
 
+  test('workflow prompt secret guidance suppresses hidden-secret-hygiene-policy', async () => {
+    const report = await scan({
+      'SECURITY.md': 'Never commit secrets, tokens, credentials, or .env files.',
+      '.github/workflows/agent.yml': 'jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          direct_prompt: Never commit secrets or .env files.\n'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-secret-hygiene-policy');
+  });
+
   test('no canonical policy source does not emit hidden-secret-hygiene-policy', async () => {
     const report = await scan({});
 
@@ -90,6 +99,15 @@ describe('policy visibility checks', () => {
     const report = await scan({
       'CONTRIBUTING.md': 'Do not force push, run git reset --hard, rm -rf files, or drop table data without approval.',
       'AGENTS.md': 'Never use destructive commands like force push or reset --hard without approval.'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-destructive-action-policy');
+  });
+
+  test('workflow prompt destructive boundary suppresses hidden-destructive-action-policy', async () => {
+    const report = await scan({
+      'CONTRIBUTING.md': 'Do not force push, run git reset --hard, rm -rf files, or drop table data without approval.',
+      '.github/workflows/agent.yml': 'jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          direct_prompt: Never use destructive commands like force push or reset --hard without approval.\n'
     });
 
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-destructive-action-policy');
@@ -136,6 +154,37 @@ describe('policy visibility checks', () => {
     expect(report.findings.map((finding) => finding.id)).not.toContain('missing-generated-file-boundary');
   });
 
+  test('workflow prompt generated boundary suppresses missing-generated-file-boundary', async () => {
+    const report = await scan({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', main: './dist/index.js', scripts: { test: 'vitest run' } }),
+      '.github/workflows/agent.yml': 'jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          direct_prompt: Do not edit generated dist files directly.\n'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('missing-generated-file-boundary');
+  });
+
+  test('string-form package bin generated output with missing agent docs emits missing-generated-file-boundary', async () => {
+    const report = await scan({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', bin: 'dist/cli.js', scripts: { test: 'vitest run' } })
+    });
+
+    const finding = report.findings.find((item) => item.id === 'missing-generated-file-boundary');
+    expect(finding).toMatchObject({
+      severity: 'info',
+      confidence: 'high',
+      primarySource: { file: 'package.json' }
+    });
+    expect(finding?.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'generated-artifact-metadata',
+          message: 'package.json bin points to generated output.',
+          source: expect.objectContaining({ file: 'package.json' })
+        })
+      ])
+    );
+  });
+
   test('ignored dist output alone does not emit missing-generated-file-boundary', async () => {
     const report = await scan({
       'dist/index.js': 'console.log("generated");'
@@ -166,6 +215,15 @@ describe('policy visibility checks', () => {
     const report = await scan({
       '.github/pull_request_template.md': 'Use TDD, run tests before committing, request review before merge, and verify changes before release.',
       'AGENTS.md': 'Use TDD and run tests before committing. Request review before merge.'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-workflow-policy');
+  });
+
+  test('workflow prompt workflow guidance suppresses hidden-workflow-policy', async () => {
+    const report = await scan({
+      '.github/pull_request_template.md': 'Use TDD, run tests before committing, request review before merge, and verify changes before release.',
+      '.github/workflows/agent.yml': 'jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          direct_prompt: Use TDD and run tests before committing. Request review before merge.\n'
     });
 
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-workflow-policy');

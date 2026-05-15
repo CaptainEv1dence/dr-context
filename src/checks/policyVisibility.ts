@@ -49,7 +49,7 @@ const policyFamilies: PolicyFamily[] = [
 export const hiddenPolicyVisibilityChecks: Check[] = policyFamilies.map((family) => ({
   id: family.id,
   run({ facts }) {
-    const agentVisibleContent = facts.agentInstructionDocs.map((doc) => doc.content).join('\n');
+    const agentVisibleContent = agentVisiblePolicyContent(facts);
     if (family.agentVisibleMatches(agentVisibleContent)) {
       return [];
     }
@@ -66,7 +66,7 @@ export const hiddenPolicyVisibilityChecks: Check[] = policyFamilies.map((family)
 export const missingGeneratedFileBoundaryCheck: Check = {
   id: 'missing-generated-file-boundary',
   run({ facts }) {
-    const agentVisibleContent = facts.agentInstructionDocs.map((doc) => doc.content).join('\n');
+    const agentVisibleContent = agentVisiblePolicyContent(facts);
     if (hasGeneratedBoundaryGuidance(agentVisibleContent)) {
       return [];
     }
@@ -138,6 +138,10 @@ function generatedArtifactEvidence(file: RawFile): { message: string; source: So
     messages.push(`${file.path} files includes generated output entries.`);
   }
 
+  if (typeof parsed.bin === 'string' && namesGeneratedOutput(parsed.bin)) {
+    messages.push(`${file.path} bin points to generated output.`);
+  }
+
   if (isRecord(parsed.bin) && Object.values(parsed.bin).some((entry) => typeof entry === 'string' && namesGeneratedOutput(entry))) {
     messages.push(`${file.path} bin points to generated output.`);
   }
@@ -191,6 +195,10 @@ function parsePackageJson(content: string): unknown {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function agentVisiblePolicyContent(facts: { agentInstructionDocs: { content: string }[]; workflowPrompts: { value: string }[] }): string {
+  return [...facts.agentInstructionDocs.map((doc) => doc.content), ...facts.workflowPrompts.map((prompt) => prompt.value)].join('\n');
 }
 
 function sourceForFile(file: RawFile): SourceSpan {
