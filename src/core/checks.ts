@@ -4,6 +4,7 @@ import { coverageSignalsCheck } from '../checks/coverageSignals.js';
 import { hiddenArchitectureDocCheck } from '../checks/hiddenArchitectureDoc.js';
 import { missingVerificationCommandCheck } from '../checks/missingVerificationCommand.js';
 import { packageManagerMismatchCheck } from '../checks/packageManagerMismatch.js';
+import { duplicateInstructionBlockCheck, oversizedInstructionFileCheck } from '../checks/ruleQuality.js';
 import { runtimeDriftCheck } from '../checks/runtimeDrift.js';
 import { scopedRulesCheck } from '../checks/scopedRules.js';
 import { stalePackageScriptReferenceCheck } from '../checks/stalePackageScriptReference.js';
@@ -23,6 +24,8 @@ export const checks: Check[] = [
   unsafeAgentInstructionsCheck,
   unsafeWorkflowPromptCheck,
   hiddenWorkflowPromptCheck,
+  oversizedInstructionFileCheck,
+  duplicateInstructionBlockCheck,
   scopedRulesCheck,
   stalePackageScriptReferenceCheck,
   ciDocCommandMismatchCheck,
@@ -37,6 +40,8 @@ export function runChecks(context: CheckContext): Finding[] {
         (finding) =>
           finding.id === 'no-agent-instructions' ||
           finding.id === 'hidden-workflow-prompt' ||
+          finding.id === 'oversized-instruction-file' ||
+          finding.id === 'duplicate-instruction-block' ||
           finding.id === 'unsafe-workflow-prompt'
       )
     : findings;
