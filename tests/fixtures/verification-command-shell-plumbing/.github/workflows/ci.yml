@@ -1,0 +1,7 @@
+name: CI
+jobs:
+  test:
+    steps:
+      - run: |
+          set -e
+          pnpm test 2>&1 | tee test.log

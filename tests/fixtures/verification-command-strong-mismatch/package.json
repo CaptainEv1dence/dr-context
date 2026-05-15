@@ -1,0 +1,7 @@
+{
+  "name": "verification-command-strong-mismatch",
+  "packageManager": "pnpm@11.1.1",
+  "scripts": {
+    "test": "vitest run"
+  }
+}

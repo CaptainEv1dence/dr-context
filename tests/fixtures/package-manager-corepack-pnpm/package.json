@@ -1,0 +1,7 @@
+{
+  "name": "package-manager-corepack-pnpm",
+  "packageManager": "pnpm@11.1.1",
+  "scripts": {
+    "test": "vitest run"
+  }
+}

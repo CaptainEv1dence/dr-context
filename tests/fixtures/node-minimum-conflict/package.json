@@ -1,0 +1,10 @@
+{
+  "name": "node-minimum-conflict",
+  "packageManager": "pnpm@11.1.1",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

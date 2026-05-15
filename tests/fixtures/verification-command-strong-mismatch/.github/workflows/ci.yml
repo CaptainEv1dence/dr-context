@@ -1,0 +1,5 @@
+name: CI
+jobs:
+  test:
+    steps:
+      - run: corepack pnpm test
