@@ -135,6 +135,15 @@ corepack pnpm exec vitest run tests/dogfoodCorpus.test.ts
 
 Expected 0.3.7 smoke result: the synthetic corpus reports the exact expected finding IDs for each case, public docs contain only synthetic or sanitized examples, and no public docs contain private paths, private repository names, raw private findings, secrets, credentials, customer data, or bug bounty target details.
 
+For 0.3.8 context health summaries, run JSON and text smoke checks after building:
+
+```bash
+node dist/cli/main.js check --json --root .
+node dist/cli/main.js check --root .
+```
+
+Expected 0.3.8 smoke result: JSON output contains `summary.health.score`, `summary.health.grade`, `summary.health.penalties`, and `summary.health.suppressedCount`. Text output contains `Context health: <score>/100 (<grade>)`. Findings remain the source of truth; do not treat the score as a release gate unless a future release explicitly adds that behavior.
+
 Expected result:
 
 - tests pass;

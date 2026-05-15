@@ -37,29 +37,33 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - `package-manager-drift` for conflicts between canonical package-manager intent, lockfiles, setup actions, and deterministic command mentions.
   - `verification-command-conflict` when agent-visible instructions disagree with CI and package scripts for the same verification script.
   - Static Node and package-manager command normalization, including `corepack pnpm` and `corepack pnpm@<version>` as `pnpm` intent.
-
-## Completed
-
 - 0.3.6 rule-quality and safety/workflow hygiene checks:
   - `oversized-instruction-file` for supported instruction surfaces over conservative size thresholds.
   - `duplicate-instruction-block` for deterministic repeated instruction blocks across supported instruction surfaces and workflow prompts.
   - `hidden-secret-hygiene-policy`, `hidden-destructive-action-policy`, and `hidden-workflow-policy` when canonical repo docs define policies that agent-visible instructions do not expose.
   - `missing-generated-file-boundary` when package metadata names generated outputs but agent-visible instructions do not define the direct-edit boundary.
   - Narrow canonical policy surfaces only: security docs, contributing docs, pull request templates, issue templates, README, and package metadata signals.
-
-## Completed
-
 - 0.3.7 dogfood corpus and launch assets:
   - Public synthetic dogfood corpus with exact expected finding IDs.
   - False-positive tracking format for synthetic and sanitized aggregate dogfood runs.
   - Before/after examples for package-manager drift, Node runtime drift, verification-command conflict, workflow prompt risk, policy visibility gaps, workspace scans, and GitHub Action SARIF setup.
+- 0.3.8 current-run context health summary:
+  - Deterministic `summary.health` in scan and workspace JSON reports.
+  - Text reports render `Context health: <score>/100 (<grade>)`.
+  - Health is derived from visible finding counts after suppression filtering and includes aggregate `suppressedCount`.
+  - Findings remain the source of truth for evidence, identity, SARIF, baselines, suppressions, and exit codes.
 
 ## Next
 
 - Pre-0.4 context quality umbrella spec:
   - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
-- 0.3.8 or 0.4.0 context health gate:
-  - Context health badge or score trend only if findings are stable enough to summarize without hiding raw evidence.
+- Deferred context health work for 0.4+:
+  - Score badges.
+  - Persisted score trends, snapshots, and history.
+  - Score-based exit gates such as a future minimum-health flag.
+  - Hosted benchmarking or score services.
+  - Telemetry-backed comparisons.
+  - AI-generated health summaries.
 - Deferred heuristics remain visible until dogfood data supports them:
   - `low-specificity-instruction`.
   - `copied-docs-in-instructions`.

@@ -4,6 +4,16 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.8 - Unreleased
+
+### Added
+
+- Add deterministic context health summaries to scan and workspace JSON/text reports, including score, grade, severity penalties, and suppressed finding counts.
+
+### Changed
+
+- Keep findings as the source of truth: health summaries do not affect finding identity, baselines, suppressions, SARIF output, or exit codes.
+
 ## 0.3.7 - 2026-05-15
 
 ### Added

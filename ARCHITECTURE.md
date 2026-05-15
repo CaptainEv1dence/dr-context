@@ -33,13 +33,16 @@ RawFile[]
                                   CheckContext
                                       |
                                       v
-                               CheckRegistry
-                                      |
-                                      v
-                                  Finding[]
-                                      |
-                                      v
-                         TextReporter / JsonReporter
+                                   CheckRegistry
+                                       |
+                                       v
+                                   Finding[]
+                                       |
+                                       v
+                              Summary + Health
+                                       |
+                                       v
+                          TextReporter / JsonReporter
                                       |
                                       v
                                   ExitCode
@@ -53,7 +56,16 @@ RawFile[]
 4. **Extractors** turn raw files into source-backed facts.
 5. **Extractors** also normalize deterministic comparison facts, such as Node majors and package-manager command intent, while preserving raw source evidence.
 6. **Checks** are pure functions over `CheckContext`, including workflow prompt checks over extracted workflow prompt facts, rule-quality checks over instruction facts, and policy visibility checks over already-read canonical policy files.
-7. **Reporters** render `Report` objects only.
+7. **Summary** derives aggregate counts and context health from already-produced findings after suppression filtering.
+8. **Reporters** render `Report` objects only.
+
+## Context health boundary
+
+Context health is a pure summary layer, not a check. It is derived from visible finding counts after baseline and suppression filtering with the deterministic formula `100 - errors * 35 - warnings * 10 - infos * 2`, clamped to `0..100`, plus a stable grade and `suppressedCount`.
+
+Findings, fingerprints, SARIF results, baselines, and suppression matching remain the source of truth. Health must not create findings, hide findings, alter finding identity, or influence exit-code behavior.
+
+Reporters render precomputed `summary.health` only. Text, JSON, SARIF, workspace, CLI, and future host integrations must not recalculate health or infer new health facts from rendered output.
 
 ## Fact normalization
 

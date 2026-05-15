@@ -36,3 +36,5 @@ Use `schemaVersion` value `drctx.false-positive-ledger.v1` and one entry per tra
 Never store private repository names, private paths, secrets, credentials, customer data, raw private findings, or raw private scan output in public ledgers.
 
 Use synthetic cases or sanitized aggregate notes. Keep examples public-safe and avoid copying local paths, issue details, customer labels, bug bounty targets, or organization-specific identifiers into docs, fixtures, tests, changelogs, or release notes.
+
+Health-score sanity notes may record aggregate counts such as total findings, score range, grade, suppressed finding count, and whether the score matched reviewer intuition. Do not store raw private scan JSON, private paths, private repo names, raw logs, raw finding details, or issue-specific evidence in health notes.

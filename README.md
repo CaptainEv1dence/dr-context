@@ -88,6 +88,42 @@ drctx check --root . --config .drctx.json --show-suppressed
 
 Workspace limitation in 0.3.3: the root config is shared across workspace candidates. A baseline entry only applies to findings owned by that candidate path, and child config inheritance is not implemented yet.
 
+## Context health
+
+Scan JSON and workspace JSON reports include a deterministic `summary.health` object for trend-friendly summaries. Findings remain the source of truth: health never changes finding IDs, fingerprints, SARIF results, baseline matching, suppression matching, or exit codes.
+
+Health is calculated from visible findings after baseline and suppression filtering:
+
+```text
+score = clamp(100 - errors * 35 - warnings * 10 - infos * 2, 0, 100)
+```
+
+Grades are stable labels over the score: `excellent` for `95..100`, `good` for `80..94`, `fair` for `60..79`, and `poor` for `0..59`. Suppressed findings do not reduce the score, but `summary.health.suppressedCount` keeps accepted context debt visible.
+
+The health object is an aggregate summary only:
+
+```json
+{
+  "summary": {
+    "errors": 1,
+    "warnings": 2,
+    "infos": 3,
+    "health": {
+      "score": 39,
+      "grade": "poor",
+      "penalties": {
+        "errors": 35,
+        "warnings": 20,
+        "infos": 6
+      },
+      "suppressedCount": 4
+    }
+  }
+}
+```
+
+Use findings and evidence to decide what to fix. Use health to summarize the current run, compare aggregate quality over time, or make dashboards outside the scanner.
+
 Emit SARIF for GitHub code scanning or other SARIF consumers:
 
 ```bash
@@ -214,6 +250,7 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Context manifests with package manager, verification commands, first-read docs, CI commands, and agent instruction files.
 - Workflow-embedded Claude Code Action prompt extraction for manifests and conservative findings.
 - Cross-agent command drift, stale file reference, and unsafe instruction detection.
+- Deterministic current-run context health summaries in JSON and text reports.
 - Evidence-backed text and JSON reports.
 - SARIF 2.1.0 reporting for code scanning integrations.
 
@@ -441,6 +478,7 @@ See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and token hygiene g
 - Human-readable text is the default output.
 - `--json` emits `schemaVersion: "drctx.report.v1"` for tool consumers.
 - Findings include source-backed evidence, confidence, severity, and suggested fixes.
+- `summary.health` is a precomputed deterministic summary in JSON reports; text reports render it as `Context health: <score>/100 (<grade>)`.
 - Exit code `0`: no error-level findings.
 - Exit code `1`: one or more error-level findings, or warnings in `--strict` mode.
 - Exit code `2`: runtime/config/internal error.
