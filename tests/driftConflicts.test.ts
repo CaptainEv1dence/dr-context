@@ -131,8 +131,27 @@ describe('package manager drift scan', () => {
 describe('verification command conflict scan', () => {
   test('reports strong AGENTS, CI, and package-script verification mismatches', async () => {
     const report = await scanFixture('verification-command-strong-mismatch');
+    const findings = report.findings.filter((finding) => finding.id === 'verification-command-conflict');
 
-    expect(report.findings.filter((finding) => finding.id === 'verification-command-conflict')).toHaveLength(1);
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: 'AGENTS.md', line: 3 },
+      suggestion: 'Replace `npm test` with `pnpm test` so agent verification matches CI and package.json.'
+    });
+    expect(findings[0]?.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'agent-visible-command', source: expect.objectContaining({ file: 'AGENTS.md', line: 3 }) }),
+        expect.objectContaining({ kind: 'ci-command', source: expect.objectContaining({ file: '.github/workflows/ci.yml', line: 5 }) }),
+        expect.objectContaining({ kind: 'package-json-script', source: expect.objectContaining({ file: 'package.json', line: 5 }) }),
+        expect.objectContaining({ kind: 'package-manager', source: expect.objectContaining({ file: 'package.json', line: 3 }) })
+      ])
+    );
+  });
+
+  test('does not report different verification intents as conflicts', async () => {
+    const report = await scanFixture('verification-command-different-intent');
+
+    expect(report.findings.filter((finding) => finding.id === 'verification-command-conflict')).toHaveLength(0);
   });
 
   test('does not report README-only weak verification evidence', async () => {

@@ -9,6 +9,7 @@ import { scopedRulesCheck } from '../checks/scopedRules.js';
 import { stalePackageScriptReferenceCheck } from '../checks/stalePackageScriptReference.js';
 import { staleFileReferenceCheck } from '../checks/staleFileReference.js';
 import { unsafeAgentInstructionsCheck } from '../checks/unsafeAgentInstructions.js';
+import { verificationCommandConflictCheck } from '../checks/verificationCommandConflict.js';
 import { hiddenWorkflowPromptCheck, unsafeWorkflowPromptCheck } from '../checks/workflowPrompts.js';
 import type { Check, CheckContext, Finding } from './types.js';
 
@@ -16,6 +17,7 @@ export const checks: Check[] = [
   coverageSignalsCheck,
   runtimeDriftCheck,
   packageManagerMismatchCheck,
+  verificationCommandConflictCheck,
   agentDocCommandDriftCheck,
   staleFileReferenceCheck,
   unsafeAgentInstructionsCheck,
