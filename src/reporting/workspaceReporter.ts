@@ -31,6 +31,8 @@ export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceT
     return `${lines.join('\n')}\n`;
   }
 
+  lines.push('Next: inspect each repository with `drctx manifest --root <repo>`.');
+
   let emittedFindings = 0;
   let omittedFindings = 0;
   for (const entry of report.reports) {

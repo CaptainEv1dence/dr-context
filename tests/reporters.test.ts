@@ -198,6 +198,20 @@ describe('workspace reporters', () => {
     expect(output).toContain('repo-a: 0 error(s), 1 warning(s), 0 info(s)');
   });
 
+  test('non-summary workspace text includes manifest guidance', () => {
+    const output = renderWorkspaceText({
+      schemaVersion: 'drctx.workspace-report.v1',
+      tool: 'drctx',
+      toolVersion: '0.3.11',
+      root: '<requested-root>',
+      reports: [{ path: 'repo-a', report: emptyReport }],
+      summary: workspaceSummary({ roots: 1, errors: 0, warnings: 0, infos: 0 })
+    });
+
+    expect(output).toContain('Next: inspect each repository with `drctx manifest --root <repo>`.');
+    expect(output.match(/Next: inspect each repository with `drctx manifest --root <repo>`\./g)).toHaveLength(1);
+  });
+
   test('prints a truncation notice when workspace text findings are limited', () => {
     const output = renderWorkspaceText(
       {
@@ -257,6 +271,22 @@ describe('workspace reporters', () => {
 
     expect(output).toContain('Totals: 0 error(s), 1 warning(s), 0 info(s).');
     expect(output).not.toContain('repo-a:');
+  });
+
+  test('workspace summary-only text omits manifest guidance', () => {
+    const output = renderWorkspaceText(
+      {
+        schemaVersion: 'drctx.workspace-report.v1',
+        tool: 'drctx',
+        toolVersion: '0.3.11',
+        root: '<requested-root>',
+        reports: [{ path: 'repo-a', report: emptyReport }],
+        summary: workspaceSummary({ roots: 1, errors: 0, warnings: 0, infos: 0 })
+      },
+      { summaryOnly: true }
+    );
+
+    expect(output).not.toContain('Next: inspect each repository with `drctx manifest --root <repo>`.');
   });
 });
 
