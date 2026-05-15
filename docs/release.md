@@ -240,7 +240,7 @@ After the target version has been published, run published-package smoke tests f
 Set `$version` to the target release version before publishing smoke checks. Do not leave an old pinned package version in this checklist when preparing a release.
 
 ```powershell
-$version = "<target-release-version>"
+$version = "0.3.8"
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
 npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context --help
@@ -263,7 +263,7 @@ The repository root `action.yml` runs the published npm package through `npm exe
 Minimal usage:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@<target-release-tag>
+- uses: CaptainEv1dence/dr-context@v0.3.8
   with:
     root: .
 ```
@@ -277,13 +277,13 @@ permissions:
 
 steps:
   - uses: actions/checkout@v6
-  - uses: CaptainEv1dence/dr-context@<target-release-tag>
+  - uses: CaptainEv1dence/dr-context@v0.3.8
     with:
       root: .
       upload-sarif: 'true'
 ```
 
-Replace `<target-release-tag>` with the release tag being validated before publishing examples or release notes.
+Replace `v0.3.8` with the release tag being validated before publishing examples or release notes for a future release.
 
 ## GitHub Actions runtime
 

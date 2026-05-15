@@ -47,17 +47,16 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Public synthetic dogfood corpus with exact expected finding IDs.
   - False-positive tracking format for synthetic and sanitized aggregate dogfood runs.
   - Before/after examples for package-manager drift, Node runtime drift, verification-command conflict, workflow prompt risk, policy visibility gaps, workspace scans, and GitHub Action SARIF setup.
+- 0.3.8 context health summary:
+  - Deterministic `summary.health` in scan and workspace JSON reports.
+  - Text reports render `Context health: <score>/100 (<grade>)`.
+  - Health is derived from visible finding counts after suppression filtering and includes aggregate `suppressedCount`.
+  - Findings remain the source of truth for evidence, identity, SARIF, baselines, suppressions, and exit codes.
 
 ## Next
 
 - Pre-0.4 context quality umbrella spec:
   - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
-- 0.3.8 current branch release-bound context health summary:
-  - Deterministic `summary.health` in scan and workspace JSON reports.
-  - Text reports render `Context health: <score>/100 (<grade>)`.
-  - Health is derived from visible finding counts after suppression filtering and includes aggregate `suppressedCount`.
-  - Findings remain the source of truth for evidence, identity, SARIF, baselines, suppressions, and exit codes.
-  - Not yet listed as shipped until the 0.3.8 release is published.
 - Deferred context health work for 0.4+:
   - Score badges.
   - Persisted score trends, snapshots, and history.

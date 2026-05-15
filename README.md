@@ -133,13 +133,13 @@ drctx check --sarif --root . > dr-context.sarif
 Run in GitHub Actions:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@<target-release-tag>
+- uses: CaptainEv1dence/dr-context@v0.3.8
   with:
     root: .
     upload-sarif: 'true'
 ```
 
-Replace `<target-release-tag>` with the release tag you intend to run, for example `v0.3.7` or a newer published release.
+Replace `v0.3.8` with a newer published release tag when upgrading.
 
 ## Quick start
 

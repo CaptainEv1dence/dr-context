@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: CaptainEv1dence/dr-context@v0.3.7
+      - uses: CaptainEv1dence/dr-context@v0.3.8
         with:
           upload-sarif: 'true'
 ```

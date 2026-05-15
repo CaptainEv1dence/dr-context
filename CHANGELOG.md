@@ -4,7 +4,7 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
-## 0.3.8 - Unreleased
+## 0.3.8 - 2026-05-15
 
 ### Added
 
