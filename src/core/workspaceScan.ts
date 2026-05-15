@@ -16,9 +16,13 @@ export async function runWorkspaceScan(root: string, config: EffectiveConfig & {
         ...config,
         inheritedAgentInstructionDocs: candidate.path === '.' ? [] : inheritedDocs
       });
+      const suppressions = [
+        ...(config.suppressions ?? []),
+        ...(config.workspaceBaselineSuppressions?.candidatePath === candidate.path ? config.workspaceBaselineSuppressions.suppressions : [])
+      ];
       return {
         path: candidate.path,
-        report: withSuppressionResult(report, applySuppressions(report.findings, config.suppressions ?? []))
+        report: withSuppressionResult(report, applySuppressions(report.findings, suppressions))
       };
     })
   );

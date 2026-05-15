@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { writeFile } from 'node:fs/promises';
-import { basename, extname, resolve } from 'node:path';
+import { basename, dirname, extname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ConfigUsageError, loadConfig } from '../config/loadConfig.js';
 import type { BaselineFile } from '../config/types.js';
@@ -62,7 +62,6 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         include: [...(loadedConfig.include ?? []), ...(effectiveOptions.include ?? [])],
         exclude: [...(loadedConfig.exclude ?? []), ...(effectiveOptions.exclude ?? [])]
       };
-      const suppressions = suppressionsFromConfig(loadedConfig);
       if (effectiveOptions.inheritParentInstructions && !effectiveOptions.workspace) {
         throw usageError('--inherit-parent-instructions requires --workspace');
       }
@@ -72,7 +71,8 @@ export async function runCli(argv: string[]): Promise<CliResult> {
           strict: scanConfig.strict,
           include: scanConfig.include,
           exclude: scanConfig.exclude,
-          suppressions,
+          suppressions: loadedConfig.suppressions,
+          workspaceBaselineSuppressions: workspaceBaselineSuppressionsFromConfig(loadedConfig),
           maxDepth,
           inheritParentInstructions: Boolean(effectiveOptions.inheritParentInstructions)
         });
@@ -93,6 +93,7 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         include: scanConfig.include,
         exclude: scanConfig.exclude
       });
+      const suppressions = [...loadedConfig.suppressions, ...baselineSuppressionsFromConfig(loadedConfig)];
       const finalReport = withSuppressionResult(report, applySuppressions(report.findings, suppressions));
 
       stdout += renderScanReport(finalReport, effectiveOptions);
@@ -182,16 +183,27 @@ export async function runCli(argv: string[]): Promise<CliResult> {
   return { stdout, stderr, exitCode };
 }
 
-function suppressionsFromConfig(loadedConfig: Awaited<ReturnType<typeof loadConfig>>) {
-  return [
-    ...loadedConfig.suppressions,
-    ...(loadedConfig.baseline?.findings.map((entry) => ({
+function baselineSuppressionsFromConfig(loadedConfig: Awaited<ReturnType<typeof loadConfig>>) {
+  return (
+    loadedConfig.baseline?.findings.map((entry) => ({
       id: entry.id,
       file: entry.file,
       fingerprint: entry.fingerprint,
       reason: entry.reason
-    })) ?? [])
-  ];
+    })) ?? []
+  );
+}
+
+function workspaceBaselineSuppressionsFromConfig(loadedConfig: Awaited<ReturnType<typeof loadConfig>>) {
+  if (!loadedConfig.baselinePath || !loadedConfig.baseline) {
+    return undefined;
+  }
+
+  const candidatePath = dirname(loadedConfig.baselinePath).replaceAll('\\', '/');
+  return {
+    candidatePath: candidatePath === '.' ? '.' : candidatePath,
+    suppressions: baselineSuppressionsFromConfig(loadedConfig)
+  };
 }
 
 function createProgram(

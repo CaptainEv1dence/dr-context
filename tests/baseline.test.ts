@@ -107,6 +107,37 @@ describe('baseline command', () => {
     expect(JSON.stringify(report)).toContain('suppressedFindings');
   });
 
+  test('workspace baseline suppressions apply only to the owning candidate', async () => {
+    const root = await makeRepo({
+      'AGENTS.md': '# Workspace root\n\nRun `pnpm test`.\n',
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
+      'packages/api/AGENTS.md': '# API package\n\nRun `pnpm test`.\n',
+      'packages/api/package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run","lint":"eslint ."}}',
+      'packages/api/pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
+      'packages/web/AGENTS.md': '# Web package\n\nRun `pnpm test`.\n',
+      'packages/web/package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run","lint":"eslint ."}}',
+      'packages/web/pnpm-lock.yaml': "lockfileVersion: '9.0'\n"
+    });
+    const baselinePath = join(root, 'packages/api/.drctx-baseline.json');
+
+    await runCli(['node', 'dr-context', 'baseline', '--root', join(root, 'packages/api'), '--output', baselinePath]);
+    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: 'packages/api/.drctx-baseline.json' }));
+
+    const result = await runCli(['node', 'dr-context', 'check', '--workspace', '--json', '--show-suppressed', '--root', root]);
+    const report = JSON.parse(result.stdout);
+    const apiReport = report.reports.find((entry: { path: string }) => entry.path === 'packages/api').report;
+    const webReport = report.reports.find((entry: { path: string }) => entry.path === 'packages/web').report;
+
+    expect(result.exitCode).toBe(0);
+    expect(report.summary.warnings).toBe(1);
+    expect(report.summary.suppressed).toBe(1);
+    expect(apiReport.findings).toEqual([]);
+    expect(apiReport.suppressedFindings).toHaveLength(1);
+    expect(webReport.findings).toHaveLength(1);
+    expect(webReport.summary.suppressed).toBe(0);
+  });
+
   test('SARIF omits suppressed findings by default', async () => {
     const root = await makeRepo(repoWithWarning);
     const baselinePath = join(root, '.drctx-baseline.json');
