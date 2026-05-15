@@ -9,8 +9,17 @@ async function scanFixture(name: string) {
 describe('Node runtime drift scan', () => {
   test('reports exact/static Node major mismatches', async () => {
     const report = await scanFixture('node-exact-static-mismatch');
+    const findings = report.findings.filter((finding) => finding.id === 'node-runtime-drift');
 
-    expect(report.findings.filter((finding) => finding.id === 'node-runtime-drift')).toHaveLength(1);
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: '.nvmrc', line: 1 },
+      evidence: [
+        { kind: 'runtime-version', source: { file: '.nvmrc', line: 1 } },
+        { kind: 'runtime-version', source: { file: '.node-version', line: 1 } }
+      ],
+      suggestion: expect.stringContaining('Align Node runtime declarations')
+    });
   });
 
   test('does not report aligned exact/static Node values', async () => {
@@ -27,8 +36,17 @@ describe('Node runtime drift scan', () => {
 
   test('reports exact/static Node versions below the minimum Node range', async () => {
     const report = await scanFixture('node-minimum-conflict');
+    const findings = report.findings.filter((finding) => finding.id === 'node-runtime-drift');
 
-    expect(report.findings.filter((finding) => finding.id === 'node-runtime-drift')).toHaveLength(1);
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: '.nvmrc', line: 1 },
+      evidence: [
+        { kind: 'runtime-version', source: { file: '.nvmrc', line: 1 } },
+        { kind: 'runtime-version', source: { file: 'package.json', line: 8 } }
+      ],
+      suggestion: expect.stringContaining('Align Node runtime declarations')
+    });
   });
 
   test('does not report unsupported dynamic Node values', async () => {
