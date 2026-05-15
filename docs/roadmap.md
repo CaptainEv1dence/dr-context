@@ -60,9 +60,11 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 - 0.3.9 launch adoption polish:
   - Rewrite the README top section around a one-screen “your repo lies to AI agents” demo.
   - Add launch-grade docs for first-run triage, GitHub Action setup, finding reference, and demo outputs.
+  - Clean up stale README, release, and example docs from previous releases; README should become an onboarding gateway, not a full docs dump.
   - Make the existing synthetic before/after examples easier to discover from the README.
   - Explain how to use health, baselines, and suppressions without chasing the score or hiding debt.
-  - Add a recognized instruction-surface coverage map so users can see which local files Dr. Context treats as agent context for Claude/Codex/Copilot/Cursor/Gemini-style workflows without claiming live agent runtime visibility.
+  - Add a source-accurate recognized instruction-surface coverage map so users can see which local files Dr. Context treats as agent context without claiming live agent runtime visibility.
+  - Verify public docs contain only synthetic or sanitized examples, current release tags or explicit placeholders, and no private paths, tokens, raw private findings, or bug bounty target details.
 - 0.3.9 optional narrow reliability slice:
   - Evaluate a bundled JavaScript GitHub Action that avoids runtime `npm exec` and registry install-on-demand.
   - Keep current Action inputs and scanner semantics if implemented.
@@ -89,3 +91,4 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 - Optional agent view/probe simulation for Claude, Codex, Copilot, Cursor, OpenCode, and other adapters.
 - Optional AI remediation and prompt generation on top of deterministic findings.
 - Optional context compaction, session stale-assumption detector, handoff/checkpoint generation, Ruler/Repomix integrations, and safe fix suggestions.
+- Optional generated or tested docs-reference accuracy for shipped finding IDs and recognized instruction-surface globs.
