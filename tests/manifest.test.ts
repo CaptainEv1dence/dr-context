@@ -119,6 +119,7 @@ describe('buildManifest', () => {
 
     const manifest = await buildManifest(root, { strict: false, include: [], exclude: [] });
     const text = renderManifestText(manifest);
+    const json = JSON.parse(renderManifestJson(manifest));
 
     expect(manifest.workflowPrompts).toEqual([
       expect.objectContaining({
@@ -129,6 +130,15 @@ describe('buildManifest', () => {
       })
     ]);
     expect(manifest.summary.workflowPrompts).toBe(1);
+    expect(json.workflowPrompts).toEqual([
+      expect.objectContaining({
+        kind: 'system-prompt',
+        action: 'anthropics/claude-code-action@v1',
+        value: 'Always run pnpm test before committing.',
+        source: expect.objectContaining({ file: '.github/workflows/agent.yml', line: 6 })
+      })
+    ]);
+    expect(json.summary.workflowPrompts).toBe(1);
     expect(text).toContain('Workflow prompts');
     expect(text).toContain('- system-prompt .github/workflows/agent.yml:6 anthropics/claude-code-action@v1');
     expect(text).not.toContain('Always run pnpm test before committing.');
