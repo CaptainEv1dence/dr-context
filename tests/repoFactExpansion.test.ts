@@ -64,24 +64,32 @@ describe('extractRuntimeVersions', () => {
       {
         runtime: 'node',
         version: '24',
+        normalizedMajor: 24,
+        confidence: 'high',
         kind: 'nvmrc',
         source: { file: '.nvmrc', line: 1 }
       },
       {
         runtime: 'node',
         version: '24.1.0',
+        normalizedMajor: 24,
+        confidence: 'high',
         kind: 'node-version',
         source: { file: '.node-version', line: 1 }
       },
       {
         runtime: 'node',
         version: '>=24',
+        minimumMajor: 24,
+        confidence: 'medium',
         kind: 'package-engines',
         source: { file: 'package.json', line: 3 }
       },
       {
         runtime: 'node',
         version: '24',
+        normalizedMajor: 24,
+        confidence: 'high',
         kind: 'github-actions',
         source: { file: '.github/workflows/ci.yml', line: 6 }
       }
@@ -98,14 +106,110 @@ describe('extractRuntimeVersions', () => {
       {
         runtime: 'node',
         version: '24',
+        normalizedMajor: 24,
+        confidence: 'high',
         kind: 'nvmrc',
         source: { file: '.nvmrc', line: 2 }
       },
       {
         runtime: 'node',
         version: '24.1.0',
+        normalizedMajor: 24,
+        confidence: 'high',
         kind: 'node-version',
         source: { file: '.node-version', line: 2 }
+      }
+    ]);
+  });
+
+  test('normalizes supported Node runtime version forms while preserving raw values and source spans', () => {
+    const files: RawFile[] = [
+      { path: '.nvmrc', content: 'v20.11.1\n' },
+      { path: '.node-version', content: '20.x\n' },
+      { path: 'package.json', content: '{\n  "engines": {\n    "node": ">=20"\n  }\n}\n' },
+      {
+        path: '.github/workflows/ci.yml',
+        content:
+          'jobs:\n  test:\n    steps:\n      - uses: actions/setup-node@v4\n        with:\n          node-version: "20.*"\n'
+      }
+    ];
+
+    expect(extractRuntimeVersions(files)).toEqual([
+      {
+        runtime: 'node',
+        version: 'v20.11.1',
+        normalizedMajor: 20,
+        confidence: 'high',
+        kind: 'nvmrc',
+        source: { file: '.nvmrc', line: 1 }
+      },
+      {
+        runtime: 'node',
+        version: '20.x',
+        normalizedMajor: 20,
+        confidence: 'high',
+        kind: 'node-version',
+        source: { file: '.node-version', line: 1 }
+      },
+      {
+        runtime: 'node',
+        version: '>=20',
+        minimumMajor: 20,
+        confidence: 'medium',
+        kind: 'package-engines',
+        source: { file: 'package.json', line: 3 }
+      },
+      {
+        runtime: 'node',
+        version: '20.*',
+        normalizedMajor: 20,
+        confidence: 'high',
+        kind: 'github-actions',
+        source: { file: '.github/workflows/ci.yml', line: 6 }
+      }
+    ]);
+  });
+
+  test('marks unsupported dynamic Node runtime values while preserving raw values and source spans', () => {
+    const files: RawFile[] = [
+      { path: '.nvmrc', content: 'lts/*\n' },
+      { path: '.node-version', content: 'latest\n' },
+      { path: 'package.json', content: '{\n  "engines": {\n    "node": "node"\n  }\n}\n' },
+      {
+        path: '.github/workflows/ci.yml',
+        content:
+          'jobs:\n  test:\n    strategy:\n      matrix:\n        node-version: [20, 22]\n    steps:\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ matrix.node-version }}\n'
+      }
+    ];
+
+    expect(extractRuntimeVersions(files)).toEqual([
+      {
+        runtime: 'node',
+        version: 'lts/*',
+        unsupportedReason: 'dynamic',
+        kind: 'nvmrc',
+        source: { file: '.nvmrc', line: 1 }
+      },
+      {
+        runtime: 'node',
+        version: 'latest',
+        unsupportedReason: 'dynamic',
+        kind: 'node-version',
+        source: { file: '.node-version', line: 1 }
+      },
+      {
+        runtime: 'node',
+        version: 'node',
+        unsupportedReason: 'dynamic',
+        kind: 'package-engines',
+        source: { file: 'package.json', line: 3 }
+      },
+      {
+        runtime: 'node',
+        version: '${{ matrix.node-version }}',
+        unsupportedReason: 'dynamic',
+        kind: 'github-actions',
+        source: { file: '.github/workflows/ci.yml', line: 9 }
       }
     ]);
   });

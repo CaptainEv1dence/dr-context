@@ -215,6 +215,10 @@ export type BuildTargetFact = {
 export type RuntimeVersionFact = {
   runtime: 'node';
   version: string;
+  normalizedMajor?: number;
+  minimumMajor?: number;
+  unsupportedReason?: 'dynamic' | 'unsupported';
+  confidence?: Confidence;
   kind: 'nvmrc' | 'node-version' | 'package-engines' | 'github-actions';
   source: SourceSpan;
 };

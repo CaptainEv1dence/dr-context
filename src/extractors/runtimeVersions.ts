@@ -42,14 +42,29 @@ function extractPackageEngine(file: RawFile): RuntimeVersionFact[] {
 }
 
 function extractGitHubActionNodeVersions(file: RawFile): RuntimeVersionFact[] {
-  return lines(file.content).flatMap((line, index) => {
-    const match = line.match(/^\s*node-version:\s*(.+?)\s*$/);
-    if (!match) {
-      return [];
+  const fileLines = lines(file.content);
+  const facts: RuntimeVersionFact[] = [];
+
+  for (let index = 0; index < fileLines.length; index += 1) {
+    if (!/uses:\s*actions\/setup-node@/i.test(fileLines[index])) {
+      continue;
     }
 
-    return runtimeVersion(file, stripYamlQuotes(match[1].trim()), 'github-actions', index + 1);
-  });
+    for (let nextIndex = index + 1; nextIndex < fileLines.length; nextIndex += 1) {
+      const line = fileLines[nextIndex];
+      if (/^\s*-\s+/.test(line)) {
+        break;
+      }
+
+      const match = line.match(/^\s*node-version:\s*(.+?)\s*$/);
+      if (match) {
+        facts.push(...runtimeVersion(file, stripYamlQuotes(match[1].trim()), 'github-actions', nextIndex + 1));
+        break;
+      }
+    }
+  }
+
+  return facts;
 }
 
 function runtimeVersion(
@@ -62,7 +77,37 @@ function runtimeVersion(
     return [];
   }
 
-  return [{ runtime: 'node', version, kind, source: { file: file.path, line } }];
+  return [{ runtime: 'node', version, ...normalizeNodeVersion(version), kind, source: { file: file.path, line } }];
+}
+
+function normalizeNodeVersion(version: string): Pick<RuntimeVersionFact, 'normalizedMajor' | 'minimumMajor' | 'unsupportedReason' | 'confidence'> {
+  const trimmed = version.trim();
+  const exact = trimmed.match(/^v?(\d+)(?:\.\d+\.\d+)?$/);
+  if (exact) {
+    return { normalizedMajor: Number(exact[1]), confidence: 'high' };
+  }
+
+  const wildcard = trimmed.match(/^v?(\d+)\.(?:x|\*)$/i);
+  if (wildcard) {
+    return { normalizedMajor: Number(wildcard[1]), confidence: 'high' };
+  }
+
+  const minimum = trimmed.match(/^>=(\d+)$/);
+  if (minimum) {
+    return { minimumMajor: Number(minimum[1]), confidence: 'medium' };
+  }
+
+  return { unsupportedReason: dynamicNodeVersion(trimmed) ? 'dynamic' : 'unsupported' };
+}
+
+function dynamicNodeVersion(version: string): boolean {
+  return (
+    /^(?:lts\/\*|node|latest)$/i.test(version) ||
+    version.includes('${{') ||
+    version.startsWith('$') ||
+    version.startsWith('matrix.') ||
+    version.startsWith('*')
+  );
 }
 
 function firstNonEmptyLine(content: string): { text: string; line: number } | undefined {
