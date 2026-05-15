@@ -37,7 +37,9 @@ export const verificationCommandConflictCheck: Check = {
         return [];
       }
 
-      const ciMatch = ciVerificationCommands.find((entry) => entry.invocation.scriptName === agentInvocation.scriptName);
+      const ciMatch = ciVerificationCommands.find(
+        (entry) => entry.invocation.scriptName === agentInvocation.scriptName && entry.invocation.manager === canonicalManager.name
+      );
       const script = scriptsByName.get(agentInvocation.scriptName);
       if (!ciMatch || !script || seen.has(agentInvocation.scriptName)) {
         return [];

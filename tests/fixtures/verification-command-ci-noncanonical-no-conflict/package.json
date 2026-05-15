@@ -1,0 +1,7 @@
+{
+  "name": "verification-command-ci-noncanonical-no-conflict",
+  "packageManager": "pnpm@11.1.1",
+  "scripts": {
+    "test": "vitest run"
+  }
+}

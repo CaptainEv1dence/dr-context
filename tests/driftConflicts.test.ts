@@ -148,6 +148,12 @@ describe('verification command conflict scan', () => {
     );
   });
 
+  test('does not report conflicts when CI uses the same non-canonical manager as agent instructions', async () => {
+    const report = await scanFixture('verification-command-ci-noncanonical-no-conflict');
+
+    expect(report.findings.filter((finding) => finding.id === 'verification-command-conflict')).toHaveLength(0);
+  });
+
   test('does not report different verification intents as conflicts', async () => {
     const report = await scanFixture('verification-command-different-intent');
 
