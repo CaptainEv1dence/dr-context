@@ -83,8 +83,6 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 - MCP context gate after scoped manifests, config, and baseline mode are stable.
 - Optional safe fixes with `--dry-run` before any write mode.
 - Optional `drctx init` or templates for starter `AGENTS.md` / `.drctx.json`, with dry-run and no-overwrite behavior before any write mode.
-- Optional `drctx explain <finding-id>` or finding reference command backed by static local docs.
 - Optional agent view/probe simulation for Claude, Codex, Copilot, Cursor, OpenCode, and other adapters.
 - Optional AI remediation and prompt generation on top of deterministic findings.
 - Optional context compaction, session stale-assumption detector, handoff/checkpoint generation, Ruler/Repomix integrations, and safe fix suggestions.
-- Optional generated or tested docs-reference accuracy for shipped finding IDs and recognized instruction-surface globs.
