@@ -23,6 +23,11 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Opt-in parent/child agent-instruction inheritance for workspace scans.
   - Deterministic Cursor scoped rule metadata support.
   - Conservative invalid, stale, and broad scoped-rule findings.
+- 0.3.3 config and baseline mode:
+  - `.drctx.json` config for shared include, exclude, strict, baseline, and suppression settings.
+  - `drctx baseline` for stable fingerprints of accepted findings.
+  - Suppression-aware text, JSON, SARIF, and exit-code behavior.
+  - Workspace baseline scoping by owning candidate path, with child config inheritance still deferred.
 
 ## Next
 
@@ -48,7 +53,6 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Public/synthetic dogfood corpus and false-positive tracking.
   - Before/after examples for AGENTS.md, CI/doc mismatch, workspace scans, and GitHub Action SARIF setup.
   - Context health badge/score trend once findings are stable enough to summarize.
-- Config file and baseline mode.
 - More context-file formats and stronger false-positive controls.
 
 ## Later

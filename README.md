@@ -54,6 +54,40 @@ drctx check --workspace --inherit-parent-instructions --root .
 
 Inherited instruction sources are explicitly marked in structured output.
 
+## Config and baselines
+
+Use `.drctx.json` when a repository needs repeatable local and CI checks:
+
+```json
+{
+  "exclude": ["vendor/**", "dist/**"],
+  "strict": true,
+  "baseline": ".drctx-baseline.json"
+}
+```
+
+Create a baseline from the current accepted findings:
+
+```bash
+drctx baseline --root . --output .drctx-baseline.json
+```
+
+Run checks with the config:
+
+```bash
+drctx check --root . --config .drctx.json
+```
+
+Baseline files store stable finding fingerprints and root-relative source file paths. They do not store absolute repository roots or source text.
+
+Known findings matched by the baseline are suppressed, so existing accepted context debt does not keep failing CI. New findings still report normally and still affect the exit code. Use `--show-suppressed` when you want visibility into what the baseline hid:
+
+```bash
+drctx check --root . --config .drctx.json --show-suppressed
+```
+
+Workspace limitation in 0.3.3: the root config is shared across workspace candidates. A baseline entry only applies to findings owned by that candidate path, and child config inheritance is not implemented yet.
+
 Emit SARIF for GitHub code scanning or other SARIF consumers:
 
 ```bash

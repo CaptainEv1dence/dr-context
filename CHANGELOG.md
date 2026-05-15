@@ -4,6 +4,19 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.3 - Unreleased
+
+### Added
+
+- Add `.drctx.json` config loading for shared include, exclude, strict, baseline, and suppression settings.
+- Add `drctx baseline` to record accepted existing findings as stable fingerprints.
+- Add suppression-aware text and JSON reporting so CI can stay clean while known findings remain visible on demand.
+
+### Changed
+
+- SARIF and exit-code logic ignore baseline-suppressed findings by default.
+- Workspace scans share the root config across candidates, while baseline entries apply only to findings owned by each candidate path.
+
 ## 0.3.2 - 2026-05-14
 
 ### Added

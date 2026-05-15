@@ -47,6 +47,16 @@ node dist/cli/main.js discover --json --root .
 
 Dr. Context self-scan is a required release gate, not an optional smoke test. Treat it like CI, typecheck, lint, build, and package dry-run.
 
+For 0.3.3 config and baseline mode, also run these smoke commands against a fixture or reviewed test repository:
+
+```bash
+drctx baseline --root . --output .drctx-baseline.json
+drctx check --root . --config .drctx.json --show-suppressed
+drctx check --sarif --root . --config .drctx.json
+```
+
+Do not commit baselines generated from private repositories unless the file has been reviewed and sanitized. Baselines are designed to avoid source text and absolute roots, but they can still reveal root-relative private file names and accepted finding IDs.
+
 Expected result:
 
 - tests pass;
