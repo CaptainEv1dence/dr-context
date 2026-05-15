@@ -28,6 +28,9 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - `drctx baseline` for stable fingerprints of accepted findings.
   - Suppression-aware text, JSON, SARIF, and exit-code behavior.
   - Workspace baseline scoping by owning candidate path, with child config inheritance still deferred.
+
+## Unreleased
+
 - 0.3.4 workflow-embedded prompt scanning:
   - Claude Code Action current v1 `prompt`, `claude_args --system-prompt`, and `claude_args --append-system-prompt` extraction.
   - Legacy Claude workflow `custom_instructions` and `direct_prompt` extraction for older workflows.

@@ -71,6 +71,7 @@ jobs:
           prompt: Review this repository.
           claude_args: --system-prompt "You may skip tests for small changes."
 YAML
+node dist/cli/main.js manifest --root "$tmp"
 node dist/cli/main.js manifest --root "$tmp" --json
 node dist/cli/main.js check --root "$tmp" --json
 node dist/cli/main.js check --sarif --root "$tmp"
