@@ -4,6 +4,20 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.5 - Unreleased
+
+### Added
+
+- Add `node-runtime-drift` findings for deterministic Node version conflicts across `.nvmrc`, `.node-version`, `package.json` `engines.node`, and GitHub Actions `setup-node` values.
+- Add `package-manager-drift` findings for conflicts between canonical JavaScript package-manager intent and lockfiles, setup actions, or deterministic command mentions.
+- Add `verification-command-conflict` findings when agent-visible instructions tell agents to run a different package-manager command than CI and `package.json` use for the same verification script.
+
+### Changed
+
+- Normalize static Node versions and package-manager command intent before comparing evidence, including `corepack pnpm` and `corepack pnpm@<version>` as `pnpm` command intent.
+- Keep ambiguous or dynamic runtime evidence quiet, such as `lts/*`, `node`, `latest`, matrix expressions, environment variables, and unsupported semver forms.
+- Fold docs-command package-manager mismatches into the broader `package-manager-drift` finding ID to avoid duplicate package-manager findings.
+
 ## 0.3.4 - 2026-05-15
 
 ### Added

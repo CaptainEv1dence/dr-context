@@ -24,6 +24,8 @@ RawFile[]
   |       workflow-embedded prompts   |
   |       Makefile / justfile         |
   |       architecture docs           |
+  |       normalized runtime facts     |
+  |       package-manager intent       |
   |                                   v
   +----------------------------> RepoFacts
                                       |
@@ -49,8 +51,27 @@ RawFile[]
 2. **IO** owns filesystem access.
 3. **Discovery** finds relevant files but does not parse semantics.
 4. **Extractors** turn raw files into source-backed facts.
-5. **Checks** are pure functions over `CheckContext`, including workflow prompt checks over extracted workflow prompt facts.
-6. **Reporters** render `Report` objects only.
+5. **Extractors** also normalize deterministic comparison facts, such as Node majors and package-manager command intent, while preserving raw source evidence.
+6. **Checks** are pure functions over `CheckContext`, including workflow prompt checks over extracted workflow prompt facts.
+7. **Reporters** render `Report` objects only.
+
+## Fact normalization
+
+Checks should compare normalized facts, not re-parse files. For 0.3.5, runtime extraction records Node version evidence with raw text plus deterministic comparison fields:
+
+- `normalizedMajor` for static exact or wildcard major forms such as `20`, `v20`, `20.11.1`, and `20.x`.
+- `minimumMajor` for minimum forms such as `>=20`.
+- `unsupportedReason` for dynamic or unsupported values such as `lts/*`, `node`, `latest`, matrix expressions, and environment variables.
+
+Package-manager command intent is normalized before package-manager checks compare command evidence. `pnpm`, `corepack pnpm`, and `corepack pnpm@<version>` all compare as `pnpm`; `corepack enable` alone is not package-manager command intent.
+
+The 0.3.5 drift checks follow the same purity boundary as earlier checks:
+
+- `node-runtime-drift` compares deterministic Node version facts only.
+- `package-manager-drift` compares canonical JavaScript package-manager intent against lockfiles, setup actions, and deterministic command mentions.
+- `verification-command-conflict` compares agent-visible verification commands against CI and package scripts for the same script intent.
+
+Ambiguous evidence should produce no finding rather than a guessed warning.
 
 ## Extension points
 

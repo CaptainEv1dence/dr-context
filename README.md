@@ -139,20 +139,48 @@ node dist/cli/main.js check --json --root .
 ```text
 Dr. Context
 
-Found 2 finding(s).
+Found 3 finding(s).
 
-1. WARNING ci-doc-command-mismatch (high)
-.github/workflows/ci.yml:8 - CI runs "lint" but agent instructions do not mention it
+1. ERROR package-manager-drift (high)
+AGENTS.md:7 - Docs mention npm, but this repo uses pnpm
 
 Evidence:
-- .github/workflows/ci.yml:8 runs `pnpm run lint`.
-- No agent-visible instruction mentions `pnpm run lint` or `pnpm lint`.
-- package.json defines script "lint".
+- AGENTS.md:7 mentions `npm test`.
+- package.json declares packageManager: pnpm@11.1.1.
+- pnpm-lock.yaml indicates pnpm.
 
 Suggested fix:
-- Add `pnpm run lint` to agent verification instructions so local agent checks match CI.
+- Replace `npm test` with `pnpm test`.
 
-2. WARNING ci-doc-command-mismatch (high)
+2. ERROR verification-command-conflict (high)
+AGENTS.md:7 - Agent instructions run npm for "test", but CI uses pnpm
+
+Evidence:
+- AGENTS.md:7 tells agents to run `npm test`.
+- .github/workflows/ci.yml:8 runs `pnpm test`.
+- package.json defines script "test".
+- package.json declares packageManager: pnpm@11.1.1.
+
+Suggested fix:
+- Replace `npm test` with `pnpm test` so agent verification matches CI and package.json.
+
+3. ERROR node-runtime-drift (high)
+.nvmrc:1 - Node runtime declarations conflict: 18 vs 20
+
+Evidence:
+- .nvmrc:1 declares Node 18.
+- .github/workflows/ci.yml:6 declares Node 20.
+
+Suggested fix:
+- Align Node runtime declarations so version files, package engines, and CI setup-node use overlapping Node versions.
+```
+
+Dr. Context prefers false negatives over noisy guesses. It does not flag dynamic runtime values such as `lts/*` or matrix expressions, and it treats `pnpm`, `corepack pnpm`, and `corepack pnpm@<version>` as the same package-manager intent.
+
+Another common output catches missing verification instructions without claiming a command conflict:
+
+```text
+1. WARNING ci-doc-command-mismatch (high)
 .github/workflows/ci.yml:9 - CI runs "typecheck" but agent instructions do not mention it
 
 Evidence:
@@ -170,7 +198,10 @@ AI coding agents often fail because repo context rots. The agent is told old com
 
 ## Current scope
 
-- Package manager mismatch.
+- Multiple package-manager lockfile detection.
+- Package manager drift between `packageManager`, lockfiles, setup actions, and deterministic command mentions.
+- Node runtime drift between `.nvmrc`, `.node-version`, package engines, and GitHub Actions setup-node values.
+- Verification command conflicts where agent-visible instructions disagree with CI and package scripts for the same script intent.
 - Stale command references.
 - Missing verification commands.
 - CI/doc command mismatch.
@@ -201,6 +232,7 @@ Dr. Context treats these files as local repo context. It does not call vendor AP
 | Explicit agent guide | `AGENT_GUIDE.md` | Supported |
 | Windsurf / Continue / Aider / Cody | Known local rule/config files | Detection-only in 0.3.1 |
 | Claude Code Action | `prompt`, `claude_args --system-prompt`, `claude_args --append-system-prompt`, legacy `custom_instructions`, legacy `direct_prompt` in GitHub workflows | Extracted into manifest and checked for conservative hidden/unsafe prompt findings. |
+| Repo runtime and package-manager facts | `.nvmrc`, `.node-version`, `package.json`, JavaScript lockfiles, package-manager setup actions, deterministic README and agent-visible commands | Checked for deterministic drift in 0.3.5. Dynamic values are ignored instead of guessed. |
 
 ### Workflow-embedded prompts
 
@@ -340,6 +372,24 @@ Produces a suggestion to document `forge test`.
 Multiple JavaScript package manager lockfiles were found, for example `package-lock.json` and `yarn.lock`.
 
 Keep one JavaScript package manager lockfile and remove stale lockfiles so agents use the intended package manager.
+
+### `node-runtime-drift`
+
+Node runtime declarations disagree across deterministic sources such as `.nvmrc`, `.node-version`, `package.json` `engines.node`, or GitHub Actions `actions/setup-node` `node-version` values.
+
+Dr. Context compares static majors such as `20`, `v20`, `20.11.1`, `20.x`, and minimum majors such as `>=20`. It stays quiet for dynamic or unsupported values such as `lts/*`, `node`, `latest`, matrix expressions, and environment variables.
+
+### `package-manager-drift`
+
+The repository has a canonical JavaScript package-manager intent, usually from `package.json` `packageManager` or a single lockfile, but another deterministic source points to a different manager.
+
+For example, a repo with `packageManager: "pnpm@11.1.1"` and `pnpm-lock.yaml` should not tell agents to run `npm test`. `pnpm`, `corepack pnpm`, and `corepack pnpm@<version>` are normalized to the same intent.
+
+### `verification-command-conflict`
+
+Agent-visible instructions tell an agent to run a different package-manager command than CI and `package.json` use for the same verification script.
+
+For example, if `package.json` declares `packageManager: "pnpm@11.1.1"`, CI runs `pnpm test`, and `AGENTS.md` says `npm test`, Dr. Context reports a conflict and suggests `pnpm test`. README-only weak evidence does not create this error by itself.
 
 ## Privacy and dogfood hygiene
 

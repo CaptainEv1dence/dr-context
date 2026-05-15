@@ -41,6 +41,8 @@ corepack pnpm run typecheck
 corepack pnpm run lint
 corepack pnpm run build
 corepack pnpm run pack:dry-run
+npm publish --dry-run --access public
+node dist/cli/main.js --version
 node dist/cli/main.js check --json --root .
 node dist/cli/main.js discover --json --root .
 ```
@@ -79,6 +81,47 @@ rm -rf "$tmp"
 ```
 
 Expected 0.3.4 smoke result: manifest JSON includes the literal workflow prompt facts, text manifest output does not print prompt bodies, `check --json` reports conservative workflow prompt findings, and SARIF output remains valid JSON.
+
+For 0.3.5 drift and verification-command conflicts, smoke test against a synthetic temporary repository:
+
+```bash
+tmp="$(mktemp -d)"
+mkdir -p "$tmp/.github/workflows"
+cat > "$tmp/package.json" <<'JSON'
+{
+  "packageManager": "pnpm@11.1.1",
+  "engines": { "node": ">=20" },
+  "scripts": { "test": "vitest run" }
+}
+JSON
+cat > "$tmp/.nvmrc" <<'EOF'
+18
+EOF
+cat > "$tmp/pnpm-lock.yaml" <<'EOF'
+lockfileVersion: '9.0'
+EOF
+cat > "$tmp/AGENTS.md" <<'EOF'
+# AGENTS.md
+
+Run `npm test` before committing.
+EOF
+cat > "$tmp/.github/workflows/ci.yml" <<'YAML'
+name: ci
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - run: pnpm test
+YAML
+node dist/cli/main.js check --root "$tmp" --json
+rm -rf "$tmp"
+```
+
+Expected 0.3.5 smoke result: `check --json` reports `node-runtime-drift`, `package-manager-drift`, and `verification-command-conflict` findings with only synthetic paths. Repeat with `AGENTS.md` changed to `corepack pnpm test` and `.nvmrc` changed to `20` to confirm the synthetic repo goes clean.
 
 Expected result:
 

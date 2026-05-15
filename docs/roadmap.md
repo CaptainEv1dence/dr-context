@@ -33,14 +33,18 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Legacy Claude workflow `custom_instructions` and `direct_prompt` extraction for older workflows.
   - Conservative unsafe workflow prompt and hidden workflow-only prompt findings.
 
+## Completed In Branch
+
+- 0.3.5 drift and verification-command conflict checks, pending release:
+  - `node-runtime-drift` for deterministic Node version conflicts between `.nvmrc`, `.node-version`, `package.json` engines, and GitHub Actions setup-node values.
+  - `package-manager-drift` for conflicts between canonical package-manager intent, lockfiles, setup actions, and deterministic command mentions.
+  - `verification-command-conflict` when agent-visible instructions disagree with CI and package scripts for the same verification script.
+  - Static Node and package-manager command normalization, including `corepack pnpm` and `corepack pnpm@<version>` as `pnpm` intent.
+
 ## Next
 
 - Pre-0.4 context quality umbrella spec:
   - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
-- 0.3.5 drift and verification-command conflict checks:
-  - Node version drift between docs, `package.json` engines, `.nvmrc`, `.node-version`, and GitHub Actions.
-  - Package manager version drift between docs, `packageManager`, lockfiles, setup actions, and commands.
-  - Deterministic verification-command conflicts across package scripts, CI, README, and agent instructions.
 - 0.3.6 rule-quality and safety/workflow hygiene checks:
   - Oversized agent instruction files.
   - Duplicate instruction blocks.
