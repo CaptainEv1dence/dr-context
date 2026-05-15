@@ -40,6 +40,10 @@ If either appears on a first run:
 3. Use `drctx manifest --json --root .` to inspect what Dr. Context recognized.
 4. For parent folders containing multiple repos, scan the specific repo root or use workspace mode intentionally.
 
+## First-run hints
+
+Text output may include short next-step hints after clean scans or coverage findings. These hints are for humans only. JSON and SARIF reports remain finding-focused for automation.
+
 ## Baselines And Suppressions
 
 Use a baseline when adopting Dr. Context in an existing repo with accepted findings:

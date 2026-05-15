@@ -148,6 +148,8 @@ Workspace limitation: the root config is shared across workspace candidates. A b
 
 Scan JSON and workspace JSON reports include a deterministic `summary.health` object for trend-friendly summaries. Findings remain the source of truth: health never changes finding IDs, fingerprints, SARIF results, baseline matching, suppression matching, or exit codes.
 
+Human-readable output may include next-step hints; JSON and SARIF stay stable for automation.
+
 Health is calculated from visible findings after baseline and suppression filtering:
 
 ```text
