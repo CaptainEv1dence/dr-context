@@ -49,6 +49,16 @@ async function scanFindingIds(caseName: string, expected: ExpectedScan): Promise
 }
 
 describe('synthetic dogfood corpus', () => {
+  test('GitHub Action SARIF fixture uses the real upload-sarif input', async () => {
+    const workflow = await readFile(
+      join(corpusRoot, 'github-action-sarif', 'before', '.github', 'workflows', 'dr-context.yml'),
+      'utf8'
+    );
+
+    expect(workflow).toContain("upload-sarif: 'true'");
+    expect(workflow).not.toMatch(/^\s+sarif:\s+true\s*$/m);
+  });
+
   test('every corpus case matches expected finding IDs', async () => {
     const names = await caseNames();
 

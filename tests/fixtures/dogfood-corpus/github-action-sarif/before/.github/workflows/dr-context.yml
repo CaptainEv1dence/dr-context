@@ -10,4 +10,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: CaptainEv1dence/dr-context@v0.3.6
         with:
-          sarif: true
+          upload-sarif: 'true'
