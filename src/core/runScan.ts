@@ -7,6 +7,7 @@ import { extractMarkdownCommands } from '../extractors/markdownCommands.js';
 import { extractPackageJsonScripts } from '../extractors/packageJsonScripts.js';
 import { extractPackageManagers } from '../extractors/packageManagers.js';
 import { extractRuntimeVersions } from '../extractors/runtimeVersions.js';
+import { extractWorkflowPrompts } from '../extractors/workflowPrompts.js';
 import { listWorkspaceFilePaths } from '../io/listWorkspaceFilePaths.js';
 import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
@@ -28,7 +29,7 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     runtimeVersions: extractRuntimeVersions(files),
     commandMentions: extractMarkdownCommands(files),
     ciCommands: extractCiCommands(files),
-    workflowPrompts: [],
+    workflowPrompts: extractWorkflowPrompts(files),
     architectureDocs: extractArchitectureDocs(files),
     agentInstructionDocs: extractAgentInstructionDocs(files),
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],

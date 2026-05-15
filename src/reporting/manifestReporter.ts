@@ -32,5 +32,16 @@ export function renderManifestText(manifest: Manifest): string {
     lines.push(`- ${command.command} (ciBacked=${command.ciBacked}, agentVisible=${command.agentVisible})`);
   }
 
+  if (manifest.workflowPrompts.length > 0) {
+    lines.push('', 'Workflow prompts');
+    for (const prompt of manifest.workflowPrompts) {
+      lines.push(`- ${prompt.kind} ${formatSource(prompt.source.file, prompt.source.line)} ${prompt.action}`);
+    }
+  }
+
   return `${lines.join('\n')}\n`;
+}
+
+function formatSource(file: string, line: number | undefined): string {
+  return line === undefined ? file : `${file}:${line}`;
 }

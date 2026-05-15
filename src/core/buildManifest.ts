@@ -5,6 +5,7 @@ import { extractLocalPathMentions } from '../extractors/localPathMentions.js';
 import { extractMarkdownCommands } from '../extractors/markdownCommands.js';
 import { extractPackageJsonScripts } from '../extractors/packageJsonScripts.js';
 import { extractPackageManagers } from '../extractors/packageManagers.js';
+import { extractWorkflowPrompts } from '../extractors/workflowPrompts.js';
 import { parsePackageScriptInvocation } from '../checks/packageScriptCommands.js';
 import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
@@ -21,6 +22,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
   const architectureDocs = extractArchitectureDocs(files);
   const agentInstructionDocs = extractAgentInstructionDocs(files);
   const localPathMentions = extractLocalPathMentions(files);
+  const workflowPrompts = extractWorkflowPrompts(files);
   const facts: RepoFacts = {
     root,
     packageManagers,
@@ -29,7 +31,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     runtimeVersions: [],
     commandMentions,
     ciCommands,
-    workflowPrompts: [],
+    workflowPrompts,
     architectureDocs,
     agentInstructionDocs,
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],
@@ -75,12 +77,14 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     effectiveInstructionFiles: effectiveContext?.instructionFiles,
     firstReads,
     ciCommands,
+    workflowPrompts,
     summary: {
       agentInstructionFiles: agentInstructionDocs.length,
       effectiveInstructionFiles: effectiveContext?.instructionFiles.length,
       verificationCommands: scriptCommands.length,
       firstReads: firstReads.length,
-      ciCommands: ciCommands.length
+      ciCommands: ciCommands.length,
+      workflowPrompts: workflowPrompts.length
     }
   };
 }

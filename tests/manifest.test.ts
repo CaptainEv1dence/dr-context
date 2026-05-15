@@ -5,7 +5,7 @@ import { describe, expect, test } from 'vitest';
 import { runCli } from '../src/cli/main.js';
 import { buildManifest } from '../src/core/buildManifest.js';
 import { normalizeRootContainedPath, normalizeRootContainedPathWith } from '../src/core/pathGuards.js';
-import { renderManifestJson } from '../src/reporting/manifestReporter.js';
+import { renderManifestJson, renderManifestText } from '../src/reporting/manifestReporter.js';
 import { fixtureRoot } from './helpers.js';
 
 async function makeRepo(files: Record<string, string>): Promise<string> {
@@ -107,6 +107,31 @@ describe('buildManifest', () => {
     expect(manifest.verificationCommands).toEqual(
       expect.arrayContaining([expect.objectContaining({ command: 'pnpm run pack:dry-run', ciBacked: true })])
     );
+  });
+
+  test('manifest includes workflow prompts from Claude workflow actions', async () => {
+    const root = await makeRepo({
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
+      'AGENTS.md': '# Agent instructions\n\nRun `pnpm test`.\n',
+      '.github/workflows/agent.yml': 'jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          claude_args: --system-prompt "Always run pnpm test before committing."\n'
+    });
+
+    const manifest = await buildManifest(root, { strict: false, include: [], exclude: [] });
+    const text = renderManifestText(manifest);
+
+    expect(manifest.workflowPrompts).toEqual([
+      expect.objectContaining({
+        kind: 'system-prompt',
+        action: 'anthropics/claude-code-action@v1',
+        value: 'Always run pnpm test before committing.',
+        source: expect.objectContaining({ file: '.github/workflows/agent.yml', line: 6 })
+      })
+    ]);
+    expect(manifest.summary.workflowPrompts).toBe(1);
+    expect(text).toContain('Workflow prompts');
+    expect(text).toContain('- system-prompt .github/workflows/agent.yml:6 anthropics/claude-code-action@v1');
+    expect(text).not.toContain('Always run pnpm test before committing.');
   });
 
   test('builds path-scoped effective instruction manifest', async () => {

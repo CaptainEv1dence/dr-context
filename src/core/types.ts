@@ -157,12 +157,14 @@ export type Manifest = {
   verificationCommands: ManifestVerificationCommand[];
   firstReads: ManifestFirstRead[];
   ciCommands: CiCommandMention[];
+  workflowPrompts: WorkflowPrompt[];
   summary: {
     agentInstructionFiles: number;
     effectiveInstructionFiles?: number;
     verificationCommands: number;
     firstReads: number;
     ciCommands: number;
+    workflowPrompts: number;
   };
 };
 
