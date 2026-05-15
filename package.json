@@ -33,6 +33,7 @@
     "ai-agents",
     "cli",
     "context",
+    "context-hygiene",
     "static-analysis",
     "developer-tools"
   ],
