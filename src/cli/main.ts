@@ -169,7 +169,8 @@ export async function runCli(argv: string[]): Promise<CliResult> {
     async (id, options) => {
       try {
         if (options.list) {
-          stdout += `${allFindingReferenceIds().join('\n')}\n`;
+          const findingIds = allFindingReferenceIds();
+          stdout += options.json ? `${JSON.stringify({ findingIds }, null, 2)}\n` : `${findingIds.join('\n')}\n`;
           exitCode = 0;
           return;
         }

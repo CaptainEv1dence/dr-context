@@ -168,6 +168,15 @@ describe('drctx CLI', () => {
     expect(result.stdout).toContain('node-runtime-drift');
   });
 
+  test('prints JSON for listed finding explanation ids', async () => {
+    const result = await runCli(['node', 'drctx', 'explain', '--list', '--json']);
+    const output = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(output.findingIds).toEqual(expect.arrayContaining(['package-manager-drift', 'node-runtime-drift']));
+  });
+
   test('prints manifest JSON reports with instruction surface metadata', async () => {
     const result = await runInFixture(['manifest', '--json'], 'copilot-instructions');
     const output = JSON.parse(result.stdout);
