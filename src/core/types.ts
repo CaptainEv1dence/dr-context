@@ -55,10 +55,12 @@ export type Report = {
   root: string;
   inheritedInstructionFiles?: EffectiveInstructionFile[];
   findings: Finding[];
+  suppressedFindings?: SuppressedFinding[];
   summary: {
     errors: number;
     warnings: number;
     infos: number;
+    suppressed?: number;
   };
 };
 

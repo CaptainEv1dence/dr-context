@@ -42,6 +42,15 @@ describe('drctx CLI', () => {
     expect(result.stdout.trim()).toBe(toolVersion);
   });
 
+  test('prints baseline and suppression options in help', async () => {
+    const result = await runCli(['node', 'dr-context', '--help']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('baseline');
+    expect(result.stdout).toContain('--config <path>');
+    expect(result.stdout).toContain('--show-suppressed');
+  });
+
   test('root command scans the current directory', async () => {
     const result = await runInFixture([], 'clean-repo');
 

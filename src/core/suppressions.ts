@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import type { Finding, FindingSuppression, SuppressedFinding, SuppressionResult } from './types.js';
+import { summarizeFindings } from './summary.js';
+import type { Finding, FindingSuppression, Report, SuppressedFinding, SuppressionResult } from './types.js';
 
 export function fingerprintFinding(finding: Finding): string {
   const input = [
@@ -28,6 +29,18 @@ export function applySuppressions(findings: Finding[], suppressions: FindingSupp
   }
 
   return { findings: activeFindings, suppressedFindings };
+}
+
+export function withSuppressionResult(report: Report, result: SuppressionResult): Report {
+  return {
+    ...report,
+    findings: result.findings,
+    suppressedFindings: result.suppressedFindings,
+    summary: {
+      ...summarizeFindings(result.findings),
+      suppressed: result.suppressedFindings.length
+    }
+  };
 }
 
 function matchesSuppression(finding: Finding, fingerprint: string, suppression: FindingSuppression): boolean {
