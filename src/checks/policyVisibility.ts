@@ -11,7 +11,7 @@ type PolicyFamily = {
   suggestion: string;
 };
 
-const canonicalPolicyPathPattern = /^(?:SECURITY\.md|CONTRIBUTING\.md|docs\/SECURITY\.md|docs\/CONTRIBUTING\.md|README\.md|\.github\/pull_request_template\.md|\.github\/ISSUE_TEMPLATE\/.+\.(?:md|ya?ml))$/i;
+const canonicalPolicyPathPattern = /^(?:SECURITY\.md|CONTRIBUTING\.md|docs\/SECURITY\.md|docs\/CONTRIBUTING\.md|docs\/adrs?\/.+\.mdx?|README\.md|\.github\/pull_request_template\.md|\.github\/ISSUE_TEMPLATE\/.+\.(?:md|ya?ml))$/i;
 
 const policyFamilies: PolicyFamily[] = [
   {

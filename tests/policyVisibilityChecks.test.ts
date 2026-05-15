@@ -191,6 +191,19 @@ describe('policy visibility checks', () => {
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-destructive-action-policy');
   });
 
+  test('already-read ADR with explicit destructive policy emits hidden-destructive-action-policy', async () => {
+    const report = await scan({
+      'docs/adr/0002-release-safety.md': 'Do not force push or run reset --hard without maintainer approval.'
+    });
+
+    const finding = report.findings.find((item) => item.id === 'hidden-destructive-action-policy');
+    expect(finding).toMatchObject({
+      severity: 'warning',
+      confidence: 'high',
+      primarySource: { file: 'docs/adr/0002-release-safety.md' }
+    });
+  });
+
   test('already-read arbitrary docs file with explicit destructive policy is not a canonical policy source', () => {
     const findings = runChecks(
       policyContext({
