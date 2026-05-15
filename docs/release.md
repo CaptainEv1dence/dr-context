@@ -144,6 +144,17 @@ node dist/cli/main.js check --root .
 
 Expected 0.3.8 smoke result: JSON output contains `summary.health.score`, `summary.health.grade`, `summary.health.penalties`, and `summary.health.suppressedCount`. Text output contains `Context health: <score>/100 (<grade>)`. Findings remain the source of truth; do not treat the score as a release gate unless a future release explicitly adds that behavior.
 
+## 0.3.9 launch docs smoke
+
+Before releasing 0.3.9, verify:
+
+- README links to demo, triage, GitHub Action, finding reference, and instruction-surface coverage docs.
+- Demo commands use synthetic fixtures only.
+- Published-package smoke uses `$version = "0.3.9"` or an explicit target-release placeholder.
+- Action examples use `v0.3.9` or an explicit target-release placeholder.
+- Existing examples and release snippets have no stale 0.3.8 tags unless clearly historical.
+- No public docs include private repo names, private paths, raw private findings, credentials, tokens, or bug bounty target details.
+
 Expected result:
 
 - tests pass;
@@ -240,7 +251,7 @@ After the target version has been published, run published-package smoke tests f
 Set `$version` to the target release version before publishing smoke checks. Do not leave an old pinned package version in this checklist when preparing a release.
 
 ```powershell
-$version = "0.3.8"
+$version = "0.3.9"
 $tmp = Join-Path $env:TEMP ("drctx-npx-smoke-" + [guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $tmp | Out-Null
 npm exec --yes --prefix $tmp --package dr-context@$version -- dr-context --help
@@ -263,7 +274,7 @@ The repository root `action.yml` runs the published npm package through `npm exe
 Minimal usage:
 
 ```yaml
-- uses: CaptainEv1dence/dr-context@v0.3.8
+- uses: CaptainEv1dence/dr-context@v0.3.9
   with:
     root: .
 ```
@@ -277,13 +288,13 @@ permissions:
 
 steps:
   - uses: actions/checkout@v6
-  - uses: CaptainEv1dence/dr-context@v0.3.8
+  - uses: CaptainEv1dence/dr-context@v0.3.9
     with:
       root: .
       upload-sarif: 'true'
 ```
 
-Replace `v0.3.8` with the release tag being validated before publishing examples or release notes for a future release.
+Replace `v0.3.9` with the release tag being validated before publishing examples or release notes for a future release.
 
 ## GitHub Actions runtime
 
