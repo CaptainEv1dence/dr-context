@@ -80,7 +80,7 @@ export const hiddenWorkflowPromptCheck: Check = {
             source: prompt.source
           }
         ],
-        suggestion: 'Add or reference canonical instructions in AGENTS.md or CLAUDE.md.'
+        suggestion: 'Add or reference canonical agent instructions in AGENTS.md or CLAUDE.md so local agents and humans see the same guidance.'
       }
     ];
   }
