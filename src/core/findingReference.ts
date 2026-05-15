@@ -117,7 +117,7 @@ export const findingReferences: FindingReference[] = [
     category: 'Commands and verification consistency',
     severityPolicy: 'Warning when a known local verification script is available but missing from agent-visible instructions.',
     confidencePolicy: 'High confidence when known verification script names are absent from CI and agent instruction command mentions.',
-    whenItFires: 'A verification script such as test, lint, typecheck, check, or format:check exists but is not mentioned for agents.',
+    whenItFires: 'A verification script exists, is not already represented in CI, and no agent-visible instruction mentions it.',
     evidenceShape: 'Package-json-script, agent-visible-command, and optional package-manager evidence for the omitted verification command.',
     suggestedFix: 'Add the exact verification command to agent-visible instructions using the repository package manager.',
     relatedDocs: ['docs/triage-findings.md']
@@ -176,7 +176,7 @@ export const findingReferences: FindingReference[] = [
     id: 'package-manager-drift',
     category: 'Commands and verification consistency',
     severityPolicy: 'Error when deterministic evidence shows a package-manager conflict across instructions, metadata, workflows, or lockfiles.',
-    confidencePolicy: 'High confidence only when static package-manager evidence disagrees across deterministic local sources.',
+    confidencePolicy: 'Follows canonical package-manager evidence and may be high or medium depending on evidence strength.',
     whenItFires: 'A repository declares or strongly evidences one JavaScript package manager while docs, instructions, or CI use another.',
     evidenceShape: 'Package metadata, lockfile, workflow setup, and command-mention evidence with source locations where available.',
     suggestedFix: 'Update agent-visible instructions and docs to use the canonical package-manager command, or fix stale metadata and lockfiles.',
