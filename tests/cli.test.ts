@@ -131,6 +131,43 @@ describe('drctx CLI', () => {
     });
   });
 
+  test('explains a known finding id', async () => {
+    const result = await runCli(['node', 'drctx', 'explain', 'package-manager-drift']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('package-manager-drift');
+    expect(result.stdout).toContain('Severity:');
+    expect(result.stdout).toContain('When it fires:');
+    expect(result.stdout).toContain('Suggested fix:');
+  });
+
+  test('prints JSON for finding explanations', async () => {
+    const result = await runCli(['node', 'drctx', 'explain', 'package-manager-drift', '--json']);
+    const output = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(output).toMatchObject({ id: 'package-manager-drift' });
+    expect(output.severityPolicy).toContain('package-manager');
+  });
+
+  test('reports usage error for unknown finding explanations', async () => {
+    const result = await runCli(['node', 'drctx', 'explain', 'not-a-real-finding']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain('Unknown finding id: not-a-real-finding');
+    expect(result.stderr).toContain('Run drctx explain --list');
+  });
+
+  test('lists known finding explanation ids', async () => {
+    const result = await runCli(['node', 'drctx', 'explain', '--list']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('package-manager-drift');
+    expect(result.stdout).toContain('node-runtime-drift');
+  });
+
   test('prints manifest JSON reports with instruction surface metadata', async () => {
     const result = await runInFixture(['manifest', '--json'], 'copilot-instructions');
     const output = JSON.parse(result.stdout);

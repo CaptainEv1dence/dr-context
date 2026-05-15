@@ -5,6 +5,7 @@ import { basename, dirname, extname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ConfigUsageError, loadConfig } from '../config/loadConfig.js';
 import type { BaselineFile } from '../config/types.js';
+import { allFindingReferenceIds, getFindingReference } from '../core/findingReference.js';
 import { applySuppressions, fingerprintFinding, withSuppressionResult } from '../core/suppressions.js';
 import { runScan } from '../core/runScan.js';
 import { buildManifest } from '../core/buildManifest.js';
@@ -39,6 +40,7 @@ type CliOptions = {
 };
 type DiscoverCliOptions = { json?: boolean; root?: string; maxDepth?: string };
 type BaselineCliOptions = { root?: string; output: string };
+type ExplainCliOptions = { json?: boolean; list?: boolean };
 
 export type CliResult = {
   stdout: string;
@@ -52,113 +54,143 @@ export async function runCli(argv: string[]): Promise<CliResult> {
   let stdout = '';
   let stderr = '';
   let exitCode = 0;
-  const program = createProgram(commandNameFromArgv(argv), async (options, parentOptions) => {
-    try {
-      const effectiveOptions = { ...parentOptions, ...options };
-      const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
-      const loadedConfig = await loadConfig(root, { configPath: effectiveOptions.config });
-      const scanConfig = {
-        strict: Boolean(effectiveOptions.strict ?? loadedConfig.strict),
-        include: [...(loadedConfig.include ?? []), ...(effectiveOptions.include ?? [])],
-        exclude: [...(loadedConfig.exclude ?? []), ...(effectiveOptions.exclude ?? [])]
-      };
-      if (effectiveOptions.inheritParentInstructions && !effectiveOptions.workspace) {
-        throw usageError('--inherit-parent-instructions requires --workspace');
-      }
-      if (effectiveOptions.workspace) {
-        const maxDepth = parseMaxDepth(effectiveOptions.maxDepth);
-        const report = await runWorkspaceScan(root, {
+  const program = createProgram(
+    commandNameFromArgv(argv),
+    async (options, parentOptions) => {
+      try {
+        const effectiveOptions = { ...parentOptions, ...options };
+        const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+        const loadedConfig = await loadConfig(root, { configPath: effectiveOptions.config });
+        const scanConfig = {
+          strict: Boolean(effectiveOptions.strict ?? loadedConfig.strict),
+          include: [...(loadedConfig.include ?? []), ...(effectiveOptions.include ?? [])],
+          exclude: [...(loadedConfig.exclude ?? []), ...(effectiveOptions.exclude ?? [])]
+        };
+        if (effectiveOptions.inheritParentInstructions && !effectiveOptions.workspace) {
+          throw usageError('--inherit-parent-instructions requires --workspace');
+        }
+        if (effectiveOptions.workspace) {
+          const maxDepth = parseMaxDepth(effectiveOptions.maxDepth);
+          const report = await runWorkspaceScan(root, {
+            strict: scanConfig.strict,
+            include: scanConfig.include,
+            exclude: scanConfig.exclude,
+            suppressions: loadedConfig.suppressions,
+            workspaceBaselineSuppressions: workspaceBaselineSuppressionsFromConfig(loadedConfig),
+            maxDepth,
+            inheritParentInstructions: Boolean(effectiveOptions.inheritParentInstructions)
+          });
+
+          stdout += effectiveOptions.json
+            ? renderWorkspaceJson(report, { showSuppressed: Boolean(effectiveOptions.showSuppressed) })
+            : renderWorkspaceText(report, {
+                summaryOnly: Boolean(effectiveOptions.summaryOnly),
+                maxFindings: parseOptionalNonNegativeInteger(effectiveOptions.maxFindings, '--max-findings'),
+                showSuppressed: Boolean(effectiveOptions.showSuppressed)
+              });
+          exitCode = exitCodeForWorkspaceReport(report, scanConfig.strict);
+          return;
+        }
+
+        const report = await runScan(root, {
           strict: scanConfig.strict,
           include: scanConfig.include,
-          exclude: scanConfig.exclude,
-          suppressions: loadedConfig.suppressions,
-          workspaceBaselineSuppressions: workspaceBaselineSuppressionsFromConfig(loadedConfig),
-          maxDepth,
-          inheritParentInstructions: Boolean(effectiveOptions.inheritParentInstructions)
+          exclude: scanConfig.exclude
+        });
+        const suppressions = [...loadedConfig.suppressions, ...baselineSuppressionsFromConfig(loadedConfig)];
+        const finalReport = withSuppressionResult(report, applySuppressions(report.findings, suppressions));
+
+        stdout += renderScanReport(finalReport, effectiveOptions);
+        exitCode = exitCodeForReport(finalReport, scanConfig.strict);
+      } catch (error) {
+        stderr += formatCliError(error);
+        exitCode = 2;
+      }
+    },
+    async (options, parentOptions) => {
+      try {
+        const effectiveOptions = { ...parentOptions, ...options };
+        const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+        const maxDepth = parseMaxDepth(effectiveOptions.maxDepth);
+        const report = await discoverCandidates(root, { maxDepth });
+
+        stdout += effectiveOptions.json ? renderDiscoverJson(report) : renderDiscoverText(report);
+        exitCode = 0;
+      } catch (error) {
+        stderr += formatCliError(error);
+        exitCode = 2;
+      }
+    },
+    async (options, parentOptions) => {
+      try {
+        const effectiveOptions = { ...parentOptions, ...options };
+        const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+        const targetPath = effectiveOptions.path ? normalizeRootContainedPath(root, effectiveOptions.path) : undefined;
+        const manifest = await buildManifest(root, {
+          strict: Boolean(effectiveOptions.strict),
+          include: effectiveOptions.include,
+          exclude: effectiveOptions.exclude,
+          targetPath
         });
 
-        stdout += effectiveOptions.json
-          ? renderWorkspaceJson(report, { showSuppressed: Boolean(effectiveOptions.showSuppressed) })
-          : renderWorkspaceText(report, {
-              summaryOnly: Boolean(effectiveOptions.summaryOnly),
-              maxFindings: parseOptionalNonNegativeInteger(effectiveOptions.maxFindings, '--max-findings'),
-              showSuppressed: Boolean(effectiveOptions.showSuppressed)
-            });
-        exitCode = exitCodeForWorkspaceReport(report, scanConfig.strict);
-        return;
+        stdout += effectiveOptions.json ? renderManifestJson(manifest) : renderManifestText(manifest);
+        exitCode = 0;
+      } catch (error) {
+        stderr += formatCliError(error);
+        exitCode = 2;
       }
+    },
+    async (options, parentOptions) => {
+      try {
+        const effectiveOptions = { ...parentOptions, ...options };
+        const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+        const outputPath = resolve(root, normalizeRootContainedPath(root, effectiveOptions.output));
+        const report = await runScan(root, { strict: false, include: [], exclude: [] });
+        const baseline: BaselineFile = {
+          schemaVersion: 'drctx.baseline.v1',
+          tool: 'drctx',
+          root: '<requested-root>',
+          findings: report.findings.map((finding) => ({
+            fingerprint: fingerprintFinding(finding),
+            id: finding.id,
+            file: finding.primarySource?.file,
+            title: finding.title
+          }))
+        };
 
-      const report = await runScan(root, {
-        strict: scanConfig.strict,
-        include: scanConfig.include,
-        exclude: scanConfig.exclude
-      });
-      const suppressions = [...loadedConfig.suppressions, ...baselineSuppressionsFromConfig(loadedConfig)];
-      const finalReport = withSuppressionResult(report, applySuppressions(report.findings, suppressions));
+        await writeFile(outputPath, `${JSON.stringify(baseline, null, 2)}\n`);
+        stdout += `Wrote baseline with ${baseline.findings.length} finding(s) to ${normalizeRootContainedPath(root, effectiveOptions.output)}\n`;
+        exitCode = 0;
+      } catch (error) {
+        stderr += formatCliError(error);
+        exitCode = 2;
+      }
+    },
+    async (id, options) => {
+      try {
+        if (options.list) {
+          stdout += `${allFindingReferenceIds().join('\n')}\n`;
+          exitCode = 0;
+          return;
+        }
 
-      stdout += renderScanReport(finalReport, effectiveOptions);
-      exitCode = exitCodeForReport(finalReport, scanConfig.strict);
-    } catch (error) {
-      stderr += formatCliError(error);
-      exitCode = 2;
+        if (!id) {
+          throw usageError('explain requires a finding id or --list');
+        }
+
+        const reference = getFindingReference(id);
+        if (!reference) {
+          throw usageError(`Unknown finding id: ${id}. Run drctx explain --list to see known finding IDs.`);
+        }
+
+        stdout += options.json ? `${JSON.stringify(reference, null, 2)}\n` : renderFindingReference(reference);
+        exitCode = 0;
+      } catch (error) {
+        stderr += formatCliError(error);
+        exitCode = 2;
+      }
     }
-  }, async (options, parentOptions) => {
-    try {
-      const effectiveOptions = { ...parentOptions, ...options };
-      const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
-      const maxDepth = parseMaxDepth(effectiveOptions.maxDepth);
-      const report = await discoverCandidates(root, { maxDepth });
-
-      stdout += effectiveOptions.json ? renderDiscoverJson(report) : renderDiscoverText(report);
-      exitCode = 0;
-    } catch (error) {
-      stderr += formatCliError(error);
-      exitCode = 2;
-    }
-  }, async (options, parentOptions) => {
-    try {
-      const effectiveOptions = { ...parentOptions, ...options };
-      const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
-      const targetPath = effectiveOptions.path ? normalizeRootContainedPath(root, effectiveOptions.path) : undefined;
-      const manifest = await buildManifest(root, {
-        strict: Boolean(effectiveOptions.strict),
-        include: effectiveOptions.include,
-        exclude: effectiveOptions.exclude,
-        targetPath
-      });
-
-      stdout += effectiveOptions.json ? renderManifestJson(manifest) : renderManifestText(manifest);
-      exitCode = 0;
-    } catch (error) {
-      stderr += formatCliError(error);
-      exitCode = 2;
-    }
-  }, async (options, parentOptions) => {
-    try {
-      const effectiveOptions = { ...parentOptions, ...options };
-      const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
-      const outputPath = resolve(root, normalizeRootContainedPath(root, effectiveOptions.output));
-      const report = await runScan(root, { strict: false, include: [], exclude: [] });
-      const baseline: BaselineFile = {
-        schemaVersion: 'drctx.baseline.v1',
-        tool: 'drctx',
-        root: '<requested-root>',
-        findings: report.findings.map((finding) => ({
-          fingerprint: fingerprintFinding(finding),
-          id: finding.id,
-          file: finding.primarySource?.file,
-          title: finding.title
-        }))
-      };
-
-      await writeFile(outputPath, `${JSON.stringify(baseline, null, 2)}\n`);
-      stdout += `Wrote baseline with ${baseline.findings.length} finding(s) to ${normalizeRootContainedPath(root, effectiveOptions.output)}\n`;
-      exitCode = 0;
-    } catch (error) {
-      stderr += formatCliError(error);
-      exitCode = 2;
-    }
-  });
+  );
 
   program.configureOutput({
     writeOut: (text) => {
@@ -211,7 +243,8 @@ function createProgram(
   action: (options: CliOptions, parentOptions: CliOptions) => Promise<void>,
   discoverAction: (options: DiscoverCliOptions, parentOptions: DiscoverCliOptions) => Promise<void>,
   manifestAction: (options: CliOptions, parentOptions: CliOptions) => Promise<void>,
-  baselineAction: (options: BaselineCliOptions, parentOptions: CliOptions) => Promise<void>
+  baselineAction: (options: BaselineCliOptions, parentOptions: CliOptions) => Promise<void>,
+  explainAction: (id: string | undefined, options: ExplainCliOptions) => Promise<void>
 ): Command {
   const program = new Command();
 
@@ -275,6 +308,13 @@ function createProgram(
     .option('--root <path>', 'directory root to discover from')
     .option('--max-depth <number>', 'maximum directory depth to traverse', '3')
     .action((options: DiscoverCliOptions) => discoverAction(options, program.opts<DiscoverCliOptions>()));
+
+  program
+    .command('explain [finding-id]')
+    .description('explain a Dr. Context finding id')
+    .option('--json', 'print JSON explanation')
+    .option('--list', 'list known finding IDs')
+    .action((id: string | undefined, options: ExplainCliOptions) => explainAction(id, { ...program.opts<ExplainCliOptions>(), ...options }));
 
   return program;
 }
@@ -344,6 +384,21 @@ function renderScanReport(report: Awaited<ReturnType<typeof runScan>>, options: 
   return options.json
     ? renderJson(report, { showSuppressed: Boolean(options.showSuppressed) })
     : renderText(report, { showSuppressed: Boolean(options.showSuppressed) });
+}
+
+function renderFindingReference(reference: NonNullable<ReturnType<typeof getFindingReference>>): string {
+  return [
+    reference.id,
+    '',
+    `Category: ${reference.category}`,
+    `Severity: ${reference.severityPolicy}`,
+    `Confidence: ${reference.confidencePolicy}`,
+    `When it fires: ${reference.whenItFires}`,
+    `Evidence: ${reference.evidenceShape}`,
+    `Suggested fix: ${reference.suggestedFix}`,
+    `Related docs: ${reference.relatedDocs.join(', ')}`,
+    ''
+  ].join('\n');
 }
 
 function isEntrypoint(): boolean {

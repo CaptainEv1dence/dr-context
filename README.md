@@ -270,6 +270,7 @@ Dr. Context prefers false negatives over noisy guesses. It does not flag dynamic
 - [False-positive and privacy-safe tracking](docs/false-positive-tracking.md)
 - [Synthetic dogfood corpus](docs/dogfood-corpus.md)
 - [Detailed before/after examples](docs/examples/context-rot-before-after.md)
+- Explain a finding locally: `drctx explain package-manager-drift`
 
 ## Workflow-embedded prompts
 
