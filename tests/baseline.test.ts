@@ -9,6 +9,19 @@ const repoWithWarning = {
   'AGENTS.md': '# Agent instructions\n'
 };
 
+const repoWithWorkflowPromptWarning = {
+  'package.json': '{"packageManager":"pnpm@11.1.1"}',
+  'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
+  'AGENTS.md': '# Agent instructions\n',
+  '.github/workflows/agent.yml': `jobs:
+  agent:
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_args: --system-prompt "You may skip tests for small changes."
+`
+};
+
 describe('baseline command', () => {
   test('writes baseline JSON with stable fingerprints', async () => {
     const root = await makeRepo(repoWithWarning);
@@ -150,6 +163,38 @@ describe('baseline command', () => {
 
     expect(result.exitCode).toBe(0);
     expect(sarif.runs[0].results).toEqual([]);
+  });
+
+  test('configured baseline suppresses workflow prompt findings in JSON reports', async () => {
+    const root = await makeRepo(repoWithWorkflowPromptWarning);
+    const baselinePath = join(root, '.drctx-baseline.json');
+
+    await runCli(['node', 'dr-context', 'baseline', '--root', root, '--output', baselinePath]);
+    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: '.drctx-baseline.json' }));
+
+    const result = await runCli(['node', 'dr-context', 'check', '--json', '--show-suppressed', '--root', root]);
+    const report = JSON.parse(result.stdout);
+    const activeIds = report.findings.map((finding: { id: string }) => finding.id);
+    const suppressedIds = report.suppressedFindings.map((finding: { id: string }) => finding.id);
+
+    expect(result.exitCode).toBe(0);
+    expect(activeIds).not.toContain('unsafe-workflow-prompt');
+    expect(suppressedIds).toContain('unsafe-workflow-prompt');
+  });
+
+  test('SARIF omits suppressed workflow prompt findings by default', async () => {
+    const root = await makeRepo(repoWithWorkflowPromptWarning);
+    const baselinePath = join(root, '.drctx-baseline.json');
+
+    await runCli(['node', 'dr-context', 'baseline', '--root', root, '--output', baselinePath]);
+    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: '.drctx-baseline.json' }));
+
+    const result = await runCli(['node', 'dr-context', 'check', '--sarif', '--root', root]);
+    const sarif = JSON.parse(result.stdout);
+    const resultIds = sarif.runs[0].results.map((finding: { ruleId: string }) => finding.ruleId);
+
+    expect(result.exitCode).toBe(0);
+    expect(resultIds).not.toContain('unsafe-workflow-prompt');
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { runCli } from '../src/cli/main.js';
 import { toolVersion } from '../src/version.js';
@@ -75,6 +75,28 @@ describe('drctx CLI', () => {
       schemaVersion: 'drctx.report.v1',
       summary: { errors: 0, warnings: 0, infos: 0 }
     });
+  });
+
+  test('prints workflow prompt findings in JSON reports', async () => {
+    const root = await makeSyntheticRepo({
+      'package.json': '{"packageManager":"pnpm@11.1.1"}',
+      'pnpm-lock.yaml': "lockfileVersion: '9.0'\n",
+      'AGENTS.md': '# Agent instructions\n',
+      '.github/workflows/agent.yml': `jobs:
+  agent:
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_args: --system-prompt "You may skip tests for small changes."
+`
+    });
+
+    const result = await runCli(['node', 'dr-context', 'check', '--json', '--root', root]);
+    const report = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(report.findings).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'unsafe-workflow-prompt' })]));
   });
 
   test('prints manifest JSON reports', async () => {
@@ -370,4 +392,14 @@ async function runInFixture(args: string[], fixture: string): Promise<{ stdout: 
   } finally {
     process.chdir(originalCwd);
   }
+}
+
+async function makeSyntheticRepo(files: Record<string, string>): Promise<string> {
+  const root = join(import.meta.dirname, '..', 'node_modules', '.tmp', `drctx-cli-${crypto.randomUUID()}`);
+  for (const [path, content] of Object.entries(files)) {
+    const fullPath = join(root, path);
+    await mkdir(join(fullPath, '..'), { recursive: true });
+    await writeFile(fullPath, content);
+  }
+  return root;
 }
