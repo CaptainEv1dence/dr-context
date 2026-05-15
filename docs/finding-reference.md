@@ -10,7 +10,7 @@ Coverage findings such as `no-agent-instructions` and `no-scannable-context` are
 
 ### `package-manager-drift`
 
-Default severity: error, except the related multiple-lockfile case uses `multiple-package-lockfiles`.
+Default severity: error.
 
 Confidence policy: inherits the canonical package manager evidence confidence.
 
@@ -42,7 +42,7 @@ Default severity: warning.
 
 Confidence policy: high; based on known verification script names in `package.json` that are not already represented in CI or agent instructions.
 
-When it fires: a verification script such as test, lint, typecheck, check, or format:check exists but no agent-visible instruction mentions it.
+When it fires: a verification script such as test, lint, typecheck, check, or format:check exists, is not already represented in CI, and no agent-visible instruction mentions it.
 
 Evidence source shape: package-json-script, agent-visible-command, and optional package-manager evidence.
 
@@ -137,20 +137,6 @@ Suggested fix: keep one JavaScript package manager lockfile and remove stale loc
 Related docs/examples: `docs/triage-findings.md`.
 
 ## Context coverage and visibility
-
-### `coverage-signals`
-
-Default severity: not emitted directly.
-
-Confidence policy: not emitted directly.
-
-When it fires: this is the source check family for coverage findings; emitted findings use `no-scannable-context` or `no-agent-instructions`.
-
-Evidence source shape: see the emitted coverage finding IDs.
-
-Suggested fix: see the emitted coverage finding IDs.
-
-Related docs/examples: `docs/instruction-surface-coverage.md`.
 
 ### `no-scannable-context`
 
@@ -307,20 +293,6 @@ Evidence source shape: duplicate-instruction-block entries pointing to the dupli
 Suggested fix: keep the rule in one canonical place and reference it from narrower surfaces.
 
 Related docs/examples: `docs/triage-findings.md`.
-
-### `scoped-rules`
-
-Default severity: not emitted directly.
-
-Confidence policy: not emitted directly.
-
-When it fires: this is the source check family for Cursor scoped rule findings; emitted findings use `invalid-scoped-rule-glob`, `scoped-rule-matches-no-files`, or `scoped-rule-too-broad`.
-
-Evidence source shape: see the emitted scoped-rule finding IDs.
-
-Suggested fix: see the emitted scoped-rule finding IDs.
-
-Related docs/examples: `docs/instruction-surface-coverage.md`.
 
 ### `invalid-scoped-rule-glob`
 
