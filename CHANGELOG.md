@@ -4,6 +4,12 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.11 - 2026-05-16
+
+### Added
+
+- Add concise first-run hints to human-readable scan and workspace output while keeping JSON and SARIF stable for automation.
+
 ## 0.3.10 - 2026-05-16
 
 ### Added
