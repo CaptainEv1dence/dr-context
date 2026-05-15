@@ -25,6 +25,8 @@ export function renderText(report: Report, options: TextReportOptions = {}): str
     lines.push(renderFinding(finding, index + 1), '');
   }
 
+  appendCoverageGuidance(lines, report.findings);
+
   if (suppressed > 0) {
     appendSuppressed(lines, report, options);
   }
@@ -42,7 +44,7 @@ function renderFinding(finding: Finding, index: number): string {
     lines.push('', 'Evidence:', ...finding.evidence.map(renderEvidenceItem));
   }
 
-  if (finding.suggestion) {
+  if (finding.suggestion && !usesCoverageGuidance(finding)) {
     lines.push('', 'Suggested fix:', `- ${finding.suggestion}`);
   }
 
@@ -63,6 +65,20 @@ function formatSource(source?: SourceSpan): string {
   }
 
   return `${source.file}${source.line ? `:${source.line}` : ''}`;
+}
+
+function appendCoverageGuidance(lines: string[], visibleFindings: Finding[]): void {
+  if (visibleFindings.some((finding) => finding.id === 'no-scannable-context')) {
+    lines.push('Check the --root path. Dr. Context did not find supported context files there.');
+  }
+
+  if (visibleFindings.some((finding) => finding.id === 'no-agent-instructions')) {
+    lines.push('Add an AGENTS.md or another recognized instruction file, then rerun `drctx check --root .`.');
+  }
+}
+
+function usesCoverageGuidance(finding: Finding): boolean {
+  return finding.id === 'no-scannable-context' || finding.id === 'no-agent-instructions';
 }
 
 function appendSuppressed(lines: string[], report: Report, options: TextReportOptions): void {

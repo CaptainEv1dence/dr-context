@@ -119,6 +119,36 @@ describe('drctx CLI', () => {
     );
   });
 
+  test('guides text scans when no scannable context is found', async () => {
+    const root = await makeSyntheticRepo({
+      'src/index.ts': 'export const ok = true;\n'
+    });
+
+    const result = await runCli(['node', 'dr-context', 'check', '--root', root]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Check the --root path. Dr. Context did not find supported context files there.');
+    expect(result.stdout).not.toContain(
+      'Run Dr. Context at a repository root or add supported context files such as AGENTS.md, package.json, or CI workflows.'
+    );
+  });
+
+  test('guides text scans when package facts exist without agent instructions', async () => {
+    const root = await makeSyntheticRepo({
+      'package.json': '{"scripts":{"test":"vitest"}}\n'
+    });
+
+    const result = await runCli(['node', 'dr-context', 'check', '--root', root]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Add an AGENTS.md or another recognized instruction file, then rerun `drctx check --root .`.');
+    expect(result.stdout).not.toContain(
+      'Add an AGENTS.md or another supported agent instruction file with exact verification commands and first-read docs.'
+    );
+  });
+
   test('prints manifest JSON reports', async () => {
     const result = await runInFixture(['manifest', '--json'], 'clean-repo');
     const output = JSON.parse(result.stdout);
