@@ -52,23 +52,18 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Text reports render `Context health: <score>/100 (<grade>)`.
   - Health is derived from visible finding counts after suppression filtering and includes aggregate `suppressedCount`.
   - Findings remain the source of truth for evidence, identity, SARIF, baselines, suppressions, and exit codes.
+- 0.3.9 launch adoption polish:
+  - README one-screen launch demo and trust boundaries.
+  - Demo, triage, GitHub Action, finding reference, instruction-surface coverage, and launch checklist docs.
+  - Public-safe docs cleanup and bundled Action deferral behind a reliability gate.
 
 ## Next
 
 - Pre-0.4 context quality umbrella spec:
   - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
-- 0.3.9 launch adoption polish:
-  - Rewrite the README top section around a one-screen “your repo lies to AI agents” demo.
-  - Add launch-grade docs for first-run triage, GitHub Action setup, finding reference, and demo outputs.
-  - Clean up stale README, release, and example docs from previous releases; README should become an onboarding gateway, not a full docs dump.
-  - Make the existing synthetic before/after examples easier to discover from the README.
-  - Explain how to use health, baselines, and suppressions without chasing the score or hiding debt.
-  - Add a source-accurate recognized instruction-surface coverage map so users can see which local files Dr. Context treats as agent context without claiming live agent runtime visibility.
-  - Verify public docs contain only synthetic or sanitized examples, current release tags or explicit placeholders, and no private paths, tokens, raw private findings, or bug bounty target details.
-- 0.3.9 optional narrow reliability slice:
-  - Evaluate a bundled JavaScript GitHub Action that avoids runtime `npm exec` and registry install-on-demand.
-  - Keep current Action inputs and scanner semantics if implemented.
-  - Defer if bundling expands beyond packaging, smoke tests, and release docs.
+- 0.3.10 DX reliability:
+  - Source-derived docs validation for emitted finding IDs and instruction-surface globs.
+  - Local `drctx explain <finding-id>` command backed by static reference data.
 - Bundled JavaScript Action remains a reliability candidate after 0.3.9 launch docs. It should preserve current inputs and scanner semantics, and should not ship until package contents and local-action smoke tests are stable.
 - Deferred context health work for 0.4+:
   - Score badges.
