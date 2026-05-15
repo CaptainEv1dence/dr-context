@@ -96,7 +96,10 @@ describe('drctx CLI', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe('');
-    expect(report.findings).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'unsafe-workflow-prompt' })]));
+    expect(report.summary).toMatchObject({ errors: 0, warnings: 1, infos: 0 });
+    expect(report.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'unsafe-workflow-prompt', severity: 'warning' })])
+    );
   });
 
   test('prints manifest JSON reports', async () => {
