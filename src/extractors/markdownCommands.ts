@@ -1,6 +1,5 @@
-import type { CommandMention, PackageManagerName, RawFile } from '../core/types.js';
-
-const packageManagerCommands: PackageManagerName[] = ['npm', 'pnpm', 'yarn', 'bun'];
+import type { CommandMention, RawFile } from '../core/types.js';
+import { normalizePackageManagerCommand } from '../core/packageManagerIntent.js';
 
 export function extractMarkdownCommands(files: RawFile[]): CommandMention[] {
   return files.flatMap((file) => extractMarkdownCommandsFromFile(file));
@@ -28,6 +27,7 @@ function extractMarkdownCommandsFromFile(file: RawFile): CommandMention[] {
     if (inFence && startsWithPackageManager(trimmed)) {
       mentions.push({
         command: trimmed,
+        packageManager: normalizePackageManagerCommand(trimmed),
         context: 'code-block',
         source: {
           file: file.path,
@@ -50,6 +50,7 @@ function extractInlineCommandsFromLine(file: string, line: string, lineNumber: n
     if (startsWithPackageManager(command)) {
       mentions.push({
         command,
+        packageManager: normalizePackageManagerCommand(command),
         context: 'inline-code',
         source: {
           file,
@@ -64,7 +65,7 @@ function extractInlineCommandsFromLine(file: string, line: string, lineNumber: n
 }
 
 function startsWithPackageManager(command: string): boolean {
-  return packageManagerCommands.some((manager) => command === manager || command.startsWith(`${manager} `));
+  return Boolean(normalizePackageManagerCommand(command));
 }
 
 function isMarkdownLike(path: string): boolean {

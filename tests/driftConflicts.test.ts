@@ -71,8 +71,60 @@ describe('package manager drift scan', () => {
 
   test('reports npm commands that conflict with canonical pnpm intent', async () => {
     const report = await scanFixture('package-manager-npm-conflicts-with-pnpm');
+    const findings = report.findings.filter((finding) => finding.id === 'package-manager-drift');
 
-    expect(report.findings.filter((finding) => finding.id === 'package-manager-drift')).toHaveLength(1);
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: 'AGENTS.md', line: 3 },
+      suggestion: 'Replace `npm test` with `pnpm test`.'
+    });
+    expect(findings[0]?.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'command-mention', source: expect.objectContaining({ file: 'AGENTS.md', line: 3 }) }),
+        expect.objectContaining({ kind: 'package-manager', source: expect.objectContaining({ file: 'package.json', line: 3 }) })
+      ])
+    );
+    expect(report.findings.filter((finding) => finding.id === 'package-manager-mismatch')).toHaveLength(0);
+  });
+
+  test('reports a lockfile that conflicts with package.json packageManager intent', async () => {
+    const report = await scanFixture('package-manager-lockfile-conflicts-with-package-json');
+    const findings = report.findings.filter((finding) => finding.id === 'package-manager-drift');
+
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: 'package-lock.json', line: 1 },
+      suggestion: expect.stringContaining('pnpm')
+    });
+    expect(findings[0]?.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'lockfile', source: expect.objectContaining({ file: 'package-lock.json', line: 1 }) }),
+        expect.objectContaining({ kind: 'package-manager', source: expect.objectContaining({ file: 'package.json', line: 3 }) })
+      ])
+    );
+  });
+
+  test('reports setup-action package manager conflicts with package.json packageManager intent', async () => {
+    const report = await scanFixture('package-manager-setup-action-conflicts-with-package-json');
+    const findings = report.findings.filter((finding) => finding.id === 'package-manager-drift');
+
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: '.github/workflows/ci.yml', line: 6 },
+      suggestion: expect.stringContaining('pnpm')
+    });
+    expect(findings[0]?.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'setup-action', source: expect.objectContaining({ file: '.github/workflows/ci.yml', line: 6 }) }),
+        expect.objectContaining({ kind: 'package-manager', source: expect.objectContaining({ file: 'package.json', line: 3 }) })
+      ])
+    );
+  });
+
+  test('does not treat corepack enable alone as a package manager command', async () => {
+    const report = await scanFixture('package-manager-corepack-enable-only');
+
+    expect(report.findings.filter((finding) => finding.id === 'package-manager-drift')).toHaveLength(0);
   });
 });
 

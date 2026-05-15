@@ -196,6 +196,7 @@ export type ScriptFact = {
 
 export type CommandMention = {
   command: string;
+  packageManager?: PackageManagerName;
   source: SourceSpan;
   context: 'inline-code' | 'code-block' | 'plain-text';
 };

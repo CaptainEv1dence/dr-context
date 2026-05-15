@@ -1,0 +1,7 @@
+{
+  "name": "package-manager-setup-action-conflicts-with-package-json",
+  "packageManager": "pnpm@11.1.1",
+  "scripts": {
+    "test": "vitest run"
+  }
+}

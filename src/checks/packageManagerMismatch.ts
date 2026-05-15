@@ -1,9 +1,11 @@
-import type { Check, CheckContext, Finding, PackageManagerEvidence, PackageManagerName } from '../core/types.js';
+import type { Check, CheckContext, Finding, PackageManagerEvidence } from '../core/types.js';
+import { jsPackageManagers, normalizePackageManagerCommand } from '../core/packageManagerIntent.js';
 
-const jsPackageManagers: PackageManagerName[] = ['npm', 'pnpm', 'yarn', 'bun'];
+const jsLockfiles = new Set(['package-lock.json', 'npm-shrinkwrap.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lock', 'bun.lockb']);
 
 export const packageManagerMismatchCheck: Check = {
-  id: 'package-manager-mismatch',
+  // Docs-command package manager mismatches are folded into the broader 0.3.5 drift finding.
+  id: 'package-manager-drift',
   run(context: CheckContext): Finding[] {
     const multipleLockfiles = multiplePackageLockfilesFinding(context.facts.packageManagers);
     if (multipleLockfiles) {
@@ -15,8 +17,16 @@ export const packageManagerMismatchCheck: Check = {
       return [];
     }
 
-    return context.facts.commandMentions.flatMap((mention) => {
-      const mentionedManager = commandManager(mention.command);
+    const evidenceFindings = context.facts.packageManagers.flatMap((manager) => {
+      if (manager === canonical || manager.name === canonical.name || !jsPackageManagers.includes(manager.name)) {
+        return [];
+      }
+
+      return [packageManagerEvidenceFinding(this.id, canonical, manager)];
+    });
+
+    const commandFindings: Finding[] = context.facts.commandMentions.flatMap((mention) => {
+      const mentionedManager = mention.packageManager ?? normalizePackageManagerCommand(mention.command);
       if (!mentionedManager || mentionedManager === canonical.name) {
         return [];
       }
@@ -58,8 +68,39 @@ export const packageManagerMismatchCheck: Check = {
         }
       ];
     });
+
+    return [...evidenceFindings, ...commandFindings];
   }
 };
+
+function packageManagerEvidenceFinding(
+  id: string,
+  canonical: PackageManagerEvidence,
+  manager: PackageManagerEvidence
+): Finding {
+  const kind = packageManagerEvidenceKind(manager);
+  return {
+    id,
+    title: `${sourceLabel(manager)} indicates ${manager.name}, but this repo uses ${canonical.name}`,
+    category: 'package-manager',
+    severity: 'error',
+    confidence: canonical.confidence,
+    primarySource: manager.source,
+    evidence: [
+      {
+        kind,
+        message: `${manager.source.file} indicates ${manager.name}.`,
+        source: manager.source
+      },
+      {
+        kind: 'package-manager',
+        message: `${canonical.source.file} declares packageManager: ${canonical.raw ?? canonical.name}.`,
+        source: canonical.source
+      }
+    ],
+    suggestion: `Align ${manager.source.file} with the canonical ${canonical.name} package manager intent.`
+  };
+}
 
 function multiplePackageLockfilesFinding(packageManagers: PackageManagerEvidence[]): Finding | undefined {
   const lockfiles = packageManagers.filter(
@@ -88,12 +129,25 @@ function multiplePackageLockfilesFinding(packageManagers: PackageManagerEvidence
 }
 
 function findCanonicalPackageManager(packageManagers: PackageManagerEvidence[]): PackageManagerEvidence | undefined {
-  return (
-    packageManagers.find((manager) => manager.source.file === 'package.json' && jsPackageManagers.includes(manager.name)) ??
-    packageManagers.find((manager) => jsPackageManagers.includes(manager.name))
+  const packageJson = packageManagers.find(
+    (manager) => manager.source.file === 'package.json' && jsPackageManagers.includes(manager.name)
   );
+  if (packageJson) {
+    return packageJson;
+  }
+
+  const lockfiles = packageManagers.filter((manager) => isJsLockfile(manager) && jsPackageManagers.includes(manager.name));
+  return lockfiles.length === 1 ? lockfiles[0] : undefined;
 }
 
-function commandManager(command: string): PackageManagerName | undefined {
-  return jsPackageManagers.find((manager) => command === manager || command.startsWith(`${manager} `));
+function isJsLockfile(manager: PackageManagerEvidence): boolean {
+  return jsLockfiles.has(manager.source.file);
+}
+
+function packageManagerEvidenceKind(manager: PackageManagerEvidence): string {
+  return isJsLockfile(manager) ? 'lockfile' : 'setup-action';
+}
+
+function sourceLabel(manager: PackageManagerEvidence): string {
+  return isJsLockfile(manager) ? 'Lockfile' : 'Setup action';
 }

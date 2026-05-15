@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { RawFile } from '../src/core/types.js';
 import { extractBuildTargets } from '../src/extractors/buildTargets.js';
+import { extractMarkdownCommands } from '../src/extractors/markdownCommands.js';
 import { extractRuntimeVersions } from '../src/extractors/runtimeVersions.js';
 
 describe('extractBuildTargets', () => {
@@ -48,6 +49,35 @@ describe('extractBuildTargets', () => {
         source: { file: 'justfile', line: 2 }
       }
     ]);
+  });
+});
+
+describe('extractMarkdownCommands', () => {
+  test('extracts corepack pnpm commands with normalized package manager intent', () => {
+    const files: RawFile[] = [
+      { path: 'AGENTS.md', content: 'Run `corepack pnpm test` and `corepack pnpm@11.1.1 lint`.' }
+    ];
+
+    expect(extractMarkdownCommands(files)).toEqual([
+      {
+        command: 'corepack pnpm test',
+        packageManager: 'pnpm',
+        context: 'inline-code',
+        source: { file: 'AGENTS.md', line: 1, text: 'Run `corepack pnpm test` and `corepack pnpm@11.1.1 lint`.' }
+      },
+      {
+        command: 'corepack pnpm@11.1.1 lint',
+        packageManager: 'pnpm',
+        context: 'inline-code',
+        source: { file: 'AGENTS.md', line: 1, text: 'Run `corepack pnpm test` and `corepack pnpm@11.1.1 lint`.' }
+      }
+    ]);
+  });
+
+  test('does not extract corepack enable as package manager command evidence', () => {
+    const files: RawFile[] = [{ path: 'AGENTS.md', content: 'Run `corepack enable` before install.' }];
+
+    expect(extractMarkdownCommands(files)).toEqual([]);
   });
 });
 

@@ -4,8 +4,8 @@ import { runScan } from '../src/core/runScan.js';
 
 const fixturesRoot = join(import.meta.dirname, 'fixtures');
 
-describe('package manager mismatch scan', () => {
-  test('reports npm commands in docs when package.json declares pnpm', async () => {
+describe('package manager drift scan', () => {
+  test('reports npm commands in docs when package.json declares pnpm without legacy duplicate findings', async () => {
     const report = await runScan(join(fixturesRoot, 'pnpm-repo-with-npm-docs'), {
       strict: false,
       include: [],
@@ -14,10 +14,11 @@ describe('package manager mismatch scan', () => {
 
     expect(report.summary.errors).toBe(1);
     expect(report.findings).toHaveLength(1);
+    expect(report.findings.filter((finding) => finding.id === 'package-manager-mismatch')).toHaveLength(0);
 
     const finding = report.findings[0];
     expect(finding).toMatchObject({
-      id: 'package-manager-mismatch',
+      id: 'package-manager-drift',
       category: 'package-manager',
       severity: 'error',
       confidence: 'high',

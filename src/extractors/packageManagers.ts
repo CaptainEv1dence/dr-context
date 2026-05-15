@@ -13,7 +13,8 @@ const lockfileManagers = new Map<string, PackageManagerName>([
 export function extractPackageManagers(files: RawFile[]): PackageManagerEvidence[] {
   return files.flatMap((file) => [
     ...extractPackageJsonPackageManager(file),
-    ...extractLockfilePackageManager(file)
+    ...extractLockfilePackageManager(file),
+    ...extractSetupActionPackageManager(file)
   ]);
 }
 
@@ -64,6 +65,55 @@ function extractLockfilePackageManager(file: RawFile): PackageManagerEvidence[] 
       }
     }
   ];
+}
+
+function extractSetupActionPackageManager(file: RawFile): PackageManagerEvidence[] {
+  if (!/^\.github\/workflows\/[^/]+\.ya?ml$/i.test(file.path)) {
+    return [];
+  }
+
+  const facts: PackageManagerEvidence[] = [];
+  for (const [index, line] of file.content.split('\n').entries()) {
+    const text = line.replace(/\r$/, '').trim();
+    const usesMatch = text.match(/^(?:-\s*)?uses:\s*(\S+)/i);
+    if (usesMatch) {
+      const action = usesMatch[1];
+      const name = setupActionPackageManager(action);
+      if (name) {
+        facts.push({
+          name,
+          raw: action,
+          confidence: 'medium',
+          source: { file: file.path, line: index + 1, text }
+        });
+      }
+      continue;
+    }
+
+    const cacheMatch = text.match(/^cache:\s*['"]?(npm|pnpm|yarn)['"]?\s*$/i);
+    if (cacheMatch) {
+      facts.push({
+        name: toPackageManagerName(cacheMatch[1].toLowerCase()),
+        raw: cacheMatch[1],
+        confidence: 'medium',
+        source: { file: file.path, line: index + 1, text }
+      });
+    }
+  }
+
+  return facts;
+}
+
+function setupActionPackageManager(action: string): PackageManagerName | undefined {
+  if (/^pnpm\/action-setup@/i.test(action)) {
+    return 'pnpm';
+  }
+
+  if (/^oven-sh\/setup-bun@/i.test(action)) {
+    return 'bun';
+  }
+
+  return undefined;
 }
 
 function toPackageManagerName(value: string): PackageManagerName {
