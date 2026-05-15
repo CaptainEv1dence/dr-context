@@ -19,11 +19,12 @@ export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceT
     'Dr. Context Workspace',
     '',
     `Scanned ${report.summary.roots} candidate root(s).`,
+    `Context health: ${report.summary.health.score}/100 (${report.summary.health.grade})`,
     `Totals: ${report.summary.errors} error(s), ${report.summary.warnings} warning(s), ${report.summary.infos} info(s).`,
     ''
   ];
   if ((report.summary.suppressed ?? 0) > 0) {
-    lines.splice(4, 0, `Suppressed findings: ${report.summary.suppressed}`);
+    lines.splice(5, 0, `Suppressed findings: ${report.summary.suppressed}`);
   }
 
   if (options.summaryOnly) {

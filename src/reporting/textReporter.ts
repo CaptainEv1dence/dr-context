@@ -7,12 +7,12 @@ export type TextReportOptions = {
 export function renderText(report: Report, options: TextReportOptions = {}): string {
   const suppressed = report.summary.suppressed ?? 0;
   if (report.findings.length === 0) {
-    const lines = ['Dr. Context', '', 'No context rot found.'];
+    const lines = ['Dr. Context', '', renderHealth(report.summary.health), '', 'No context rot found.'];
     appendSuppressed(lines, report, options);
     return `${lines.join('\n')}\n`;
   }
 
-  const lines = ['Dr. Context', '', `Found ${report.findings.length} finding(s).`, ''];
+  const lines = ['Dr. Context', '', renderHealth(report.summary.health), '', `Found ${report.findings.length} finding(s).`, ''];
 
   for (const [index, finding] of report.findings.entries()) {
     lines.push(renderFinding(finding, index + 1), '');
@@ -40,6 +40,10 @@ function renderFinding(finding: Finding, index: number): string {
   }
 
   return lines.join('\n');
+}
+
+function renderHealth(health: Report['summary']['health']): string {
+  return `Context health: ${health.score}/100 (${health.grade})`;
 }
 
 function renderEvidenceItem(evidence: Evidence): string {

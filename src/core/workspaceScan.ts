@@ -4,8 +4,8 @@ import { extractAgentInstructionDocs } from '../extractors/agentInstructionDocs.
 import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
 import { runScan } from './runScan.js';
+import { healthSummaryFromReports } from './health.js';
 import { applySuppressions, withSuppressionResult } from './suppressions.js';
-import { calculateHealthSummary } from './health.js';
 import type { AgentInstructionDocFact, EffectiveConfig, WorkspaceReport } from './types.js';
 
 export async function runWorkspaceScan(root: string, config: EffectiveConfig & { maxDepth: number }): Promise<WorkspaceReport> {
@@ -44,7 +44,7 @@ export async function runWorkspaceScan(root: string, config: EffectiveConfig & {
     reports,
     summary: {
       ...summaryCounts,
-      health: calculateHealthSummary(summaryCounts)
+      health: healthSummaryFromReports(reports.map((entry) => entry.report))
     }
   };
 }

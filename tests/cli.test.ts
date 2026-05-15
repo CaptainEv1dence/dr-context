@@ -56,6 +56,7 @@ describe('drctx CLI', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Context health: 100/100 (excellent)');
     expect(result.stdout).toContain('No context rot found.');
   });
 
@@ -238,6 +239,7 @@ describe('drctx CLI', () => {
     ]);
 
     expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Context health:');
     expect(result.stdout).toContain('Totals:');
     expect(result.stdout).not.toContain('package-only:');
   });
@@ -252,7 +254,18 @@ describe('drctx CLI', () => {
     expect(output).toMatchObject({
       schemaVersion: 'drctx.workspace-report.v1',
       root: '<requested-root>',
-      summary: { roots: 3, errors: 0, warnings: 1, infos: 1 }
+      summary: {
+        roots: 3,
+        errors: 0,
+        warnings: 1,
+        infos: 1,
+        health: {
+          score: 88,
+          grade: 'good',
+          penalties: { errors: 0, warnings: 10, infos: 2 },
+          suppressedCount: 0
+        }
+      }
     });
     expect(output.reports.map((entry: { path: string }) => entry.path)).toEqual(['.', 'package-only', 'repo-a']);
     expect(JSON.stringify(output)).not.toContain(join(fixturesRoot, 'discover-workspace'));
