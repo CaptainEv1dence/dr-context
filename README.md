@@ -80,7 +80,7 @@ drctx check --root . --config .drctx.json
 
 Baseline files store stable finding fingerprints and root-relative source file paths. They do not store absolute repository roots or source text.
 
-Known findings matched by the baseline are suppressed, so existing accepted context debt does not keep failing CI. New findings still report normally and still affect the exit code. Use `--show-suppressed` when you want visibility into what the baseline hid:
+Known findings matched by the baseline are suppressed, so existing accepted context debt does not keep failing CI. New findings still report normally and still affect the exit code when they are errors, or warnings with `strict` enabled. Use `--show-suppressed` when you want visibility into what the baseline hid:
 
 ```bash
 drctx check --root . --config .drctx.json --show-suppressed
@@ -199,7 +199,7 @@ Dr. Context treats these files as local repo context. It does not call vendor AP
 | Gemini | `GEMINI.md` | Supported |
 | Explicit agent guide | `AGENT_GUIDE.md` | Supported |
 | Windsurf / Continue / Aider / Cody | Known local rule/config files | Detection-only in 0.3.1 |
-| Claude Code Action | `custom_instructions`, `--append-system-prompt`, `prompt`, `direct_prompt` | Planned for 0.3.3 |
+| Claude Code Action | `custom_instructions`, `--append-system-prompt`, `prompt`, `direct_prompt` | Planned |
 
 ## Discover candidate roots
 
