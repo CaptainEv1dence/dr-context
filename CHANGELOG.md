@@ -4,6 +4,18 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.9 - Unreleased
+
+### Added
+
+- Add launch-grade README flow and demo docs for first-time users.
+- Add triage guidance for findings, health, baselines, and suppressions.
+- Add GitHub Action setup docs, finding reference, recognized instruction-surface coverage docs, and launch checklist.
+
+### Changed
+
+- Keep scanner behavior deterministic, local, read-only, and unchanged for this adoption release.
+
 ## 0.3.8 - 2026-05-15
 
 ### Added
