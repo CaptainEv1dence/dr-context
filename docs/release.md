@@ -127,6 +127,14 @@ For 0.3.6 rule-quality and policy visibility checks, smoke test against syntheti
 
 Expected 0.3.6 smoke result: targeted tests cover `oversized-instruction-file`, `duplicate-instruction-block`, `hidden-secret-hygiene-policy`, `hidden-destructive-action-policy`, `missing-generated-file-boundary`, and `hidden-workflow-policy`. A built self-scan of this repository should stay clean or any accepted findings must be documented before release.
 
+For 0.3.7 synthetic dogfood corpus and launch examples, run the corpus test:
+
+```bash
+corepack pnpm exec vitest run tests/dogfoodCorpus.test.ts
+```
+
+Expected 0.3.7 smoke result: the synthetic corpus reports the exact expected finding IDs for each case, public docs contain only synthetic or sanitized examples, and no public docs contain private paths, private repository names, raw private findings, secrets, credentials, customer data, or bug bounty target details.
+
 Expected result:
 
 - tests pass;

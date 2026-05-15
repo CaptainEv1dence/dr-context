@@ -4,6 +4,14 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## Unreleased
+
+### Added
+
+- Add a synthetic dogfood corpus with expected finding IDs for public-safe scanner examples.
+- Add false-positive tracking docs for synthetic and sanitized aggregate dogfood runs.
+- Add launch-ready before/after examples for context rot findings and GitHub Action SARIF setup.
+
 ## 0.3.6 - 2026-05-15
 
 ### Added

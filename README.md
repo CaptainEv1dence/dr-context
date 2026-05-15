@@ -428,6 +428,12 @@ Dr. Context is local and read-only by default. It does not call LLM or network A
 
 Do not publish raw scans from private repositories. Public examples, tests, issues, and release notes should use synthetic fixtures or sanitized aggregate findings only.
 
+Public examples:
+
+- [Synthetic dogfood corpus](docs/dogfood-corpus.md)
+- [Before/after context rot examples](docs/examples/context-rot-before-after.md)
+- [False-positive tracking](docs/false-positive-tracking.md)
+
 See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and token hygiene guidance.
 
 ## Output contracts

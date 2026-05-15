@@ -47,16 +47,23 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - `missing-generated-file-boundary` when package metadata names generated outputs but agent-visible instructions do not define the direct-edit boundary.
   - Narrow canonical policy surfaces only: security docs, contributing docs, pull request templates, issue templates, README, and package metadata signals.
 
+## Completed In Branch
+
+- 0.3.7 dogfood corpus and launch assets:
+  - Public synthetic dogfood corpus with exact expected finding IDs.
+  - False-positive tracking format for synthetic and sanitized aggregate dogfood runs.
+  - Before/after examples for package-manager drift, Node runtime drift, verification-command conflict, workflow prompt risk, policy visibility gaps, workspace scans, and GitHub Action SARIF setup.
+
 ## Next
 
 - Pre-0.4 context quality umbrella spec:
   - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
-- 0.3.7 adoption and launch assets before broader integrations:
-  - Public synthetic dogfood corpus and false-positive tracking.
-  - Before/after examples for AGENTS.md, CI/doc mismatch, package-manager drift, workflow prompt risks, workspace scans, and GitHub Action SARIF setup.
-  - Revisit deferred 0.3.6 heuristics only after synthetic dogfood data supports them: `low-specificity-instruction`, `copied-docs-in-instructions`, and `missing-instruction-example`.
 - 0.3.8 or 0.4.0 context health gate:
   - Context health badge or score trend only if findings are stable enough to summarize without hiding raw evidence.
+- Deferred heuristics remain visible until dogfood data supports them:
+  - `low-specificity-instruction`.
+  - `copied-docs-in-instructions`.
+  - `missing-instruction-example`.
 - More context-file formats and stronger false-positive controls.
 
 ## Later
