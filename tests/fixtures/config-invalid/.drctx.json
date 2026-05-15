@@ -1,0 +1,8 @@
+{
+  "unknownKey": true,
+  "suppressions": [
+    {
+      "id": "missing-verification-command"
+    }
+  ]
+}

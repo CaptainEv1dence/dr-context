@@ -1,0 +1,12 @@
+{
+  "exclude": ["vendor/**"],
+  "strict": true,
+  "baseline": ".drctx-baseline.json",
+  "suppressions": [
+    {
+      "id": "missing-verification-command",
+      "file": "package.json",
+      "reason": "Synthetic accepted finding for fixture coverage."
+    }
+  ]
+}
