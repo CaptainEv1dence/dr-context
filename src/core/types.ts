@@ -20,6 +20,20 @@ export type RawFile = {
   content: string;
 };
 
+export type WorkflowPromptKind =
+  | 'custom-instructions'
+  | 'system-prompt'
+  | 'append-system-prompt'
+  | 'prompt'
+  | 'direct-prompt';
+
+export type WorkflowPrompt = {
+  kind: WorkflowPromptKind;
+  action: string;
+  value: string;
+  source: SourceSpan;
+};
+
 export type Finding = {
   id: string;
   title: string;
