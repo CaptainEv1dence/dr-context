@@ -101,7 +101,10 @@ describe('renderSarif', () => {
 
 describe('renderText', () => {
   test('prints no-context-rot message for empty reports', () => {
-    expect(renderText(emptyReport)).toContain('No context rot found.');
+    const output = renderText(emptyReport);
+
+    expect(output).toContain('No context rot found.');
+    expect(output).toContain('Next: run `drctx manifest --root .` to inspect recognized context.');
   });
 
   test('prints finding evidence and suggestions without inferring them', () => {

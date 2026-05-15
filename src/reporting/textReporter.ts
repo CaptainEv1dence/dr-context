@@ -7,7 +7,14 @@ export type TextReportOptions = {
 export function renderText(report: Report, options: TextReportOptions = {}): string {
   const suppressed = report.summary.suppressed ?? 0;
   if (report.findings.length === 0) {
-    const lines = ['Dr. Context', '', renderHealth(report.summary.health), '', 'No context rot found.'];
+    const lines = [
+      'Dr. Context',
+      '',
+      renderHealth(report.summary.health),
+      '',
+      'No context rot found.',
+      'Next: run `drctx manifest --root .` to inspect recognized context.'
+    ];
     appendSuppressed(lines, report, options);
     return `${lines.join('\n')}\n`;
   }
