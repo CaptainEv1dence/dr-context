@@ -4,6 +4,19 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## Unreleased
+
+### Added
+
+- Add `oversized-instruction-file` findings for instruction surfaces that exceed conservative size thresholds.
+- Add `duplicate-instruction-block` findings for deterministic repeated instruction blocks across supported instruction surfaces and workflow prompts.
+- Add `hidden-secret-hygiene-policy`, `hidden-destructive-action-policy`, and `hidden-workflow-policy` findings when canonical repo docs define policies that are missing from agent-visible instructions.
+- Add `missing-generated-file-boundary` findings when package metadata names generated outputs but agent-visible instructions do not say whether agents should edit them directly.
+
+### Changed
+
+- Keep 0.3.6 rule-quality checks conservative by deferring broader heuristic checks such as `low-specificity-instruction`, `copied-docs-in-instructions`, and `missing-instruction-example` until dogfood data supports them.
+
 ## 0.3.5 - 2026-05-15
 
 ### Added

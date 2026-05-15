@@ -123,6 +123,10 @@ rm -rf "$tmp"
 
 Expected 0.3.5 smoke result: `check --json` reports `node-runtime-drift`, `package-manager-drift`, and `verification-command-conflict` findings with only synthetic paths. Repeat with `AGENTS.md` changed to `corepack pnpm test` and `.nvmrc` changed to `20` to confirm the synthetic repo goes clean.
 
+For 0.3.6 rule-quality and policy visibility checks, smoke test against synthetic temporary repositories or existing fixtures only. Do not use private repository paths or raw private scan output in release notes.
+
+Expected 0.3.6 smoke result: targeted tests cover `oversized-instruction-file`, `duplicate-instruction-block`, `hidden-secret-hygiene-policy`, `hidden-destructive-action-policy`, `missing-generated-file-boundary`, and `hidden-workflow-policy`. A built self-scan of this repository should stay clean or any accepted findings must be documented before release.
+
 Expected result:
 
 - tests pass;

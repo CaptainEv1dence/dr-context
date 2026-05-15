@@ -32,28 +32,29 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Claude Code Action current v1 `prompt`, `claude_args --system-prompt`, and `claude_args --append-system-prompt` extraction.
   - Legacy Claude workflow `custom_instructions` and `direct_prompt` extraction for older workflows.
   - Conservative unsafe workflow prompt and hidden workflow-only prompt findings.
-
-## Completed In Branch
-
-- 0.3.5 drift and verification-command conflict checks, pending release:
+- 0.3.5 drift and verification-command conflict checks:
   - `node-runtime-drift` for deterministic Node version conflicts between `.nvmrc`, `.node-version`, `package.json` engines, and GitHub Actions setup-node values.
   - `package-manager-drift` for conflicts between canonical package-manager intent, lockfiles, setup actions, and deterministic command mentions.
   - `verification-command-conflict` when agent-visible instructions disagree with CI and package scripts for the same verification script.
   - Static Node and package-manager command normalization, including `corepack pnpm` and `corepack pnpm@<version>` as `pnpm` intent.
 
+## Completed In Branch
+
+- 0.3.6 rule-quality and safety/workflow hygiene checks, pending release:
+  - `oversized-instruction-file` for supported instruction surfaces over conservative size thresholds.
+  - `duplicate-instruction-block` for deterministic repeated instruction blocks across supported instruction surfaces and workflow prompts.
+  - `hidden-secret-hygiene-policy`, `hidden-destructive-action-policy`, and `hidden-workflow-policy` when canonical repo docs define policies that agent-visible instructions do not expose.
+  - `missing-generated-file-boundary` when package metadata names generated outputs but agent-visible instructions do not define the direct-edit boundary.
+  - Narrow canonical policy surfaces only: security docs, contributing docs, pull request templates, issue templates, README, and package metadata signals.
+
 ## Next
 
 - Pre-0.4 context quality umbrella spec:
   - `docs/superpowers/specs/2026-05-15-pre-0.4-context-quality-design.md`.
-- 0.3.6 rule-quality and safety/workflow hygiene checks:
-  - Oversized agent instruction files.
-  - Duplicate instruction blocks.
-  - Low-specificity guidance such as generic “best practices” rules, with conservative severity.
-  - Copied docs instead of references and missing canonical examples.
-  - Secret hygiene, destructive-action, generated/dist, planning, TDD, review, and verification visibility gaps when repo docs already define those policies.
 - 0.3.7 adoption and launch assets before broader integrations:
   - Public synthetic dogfood corpus and false-positive tracking.
   - Before/after examples for AGENTS.md, CI/doc mismatch, package-manager drift, workflow prompt risks, workspace scans, and GitHub Action SARIF setup.
+  - Revisit deferred 0.3.6 heuristics only after synthetic dogfood data supports them: `low-specificity-instruction`, `copied-docs-in-instructions`, and `missing-instruction-example`.
 - 0.3.8 or 0.4.0 context health gate:
   - Context health badge or score trend only if findings are stable enough to summarize without hiding raw evidence.
 - More context-file formats and stronger false-positive controls.

@@ -213,6 +213,8 @@ AI coding agents often fail because repo context rots. The agent is told old com
 - Workspace scanning with privacy-preserving aggregate JSON and text output.
 - Context manifests with package manager, verification commands, first-read docs, CI commands, and agent instruction files.
 - Workflow-embedded Claude Code Action prompt extraction for manifests and conservative findings.
+- Rule quality checks for oversized instruction surfaces and duplicated instruction blocks.
+- Policy visibility checks for secret hygiene, destructive-action, generated-file, and workflow guidance that exists in canonical repo docs but is missing from agent-visible instructions.
 - Cross-agent command drift, stale file reference, and unsafe instruction detection.
 - Evidence-backed text and JSON reports.
 - SARIF 2.1.0 reporting for code scanning integrations.
@@ -233,6 +235,7 @@ Dr. Context treats these files as local repo context. It does not call vendor AP
 | Windsurf / Continue / Aider / Cody | Known local rule/config files | Detection-only in 0.3.1 |
 | Claude Code Action | `prompt`, `claude_args --system-prompt`, `claude_args --append-system-prompt`, legacy `custom_instructions`, legacy `direct_prompt` in GitHub workflows | Extracted into manifest and checked for conservative hidden/unsafe prompt findings. |
 | Repo runtime and package-manager facts | `.nvmrc`, `.node-version`, `package.json`, JavaScript lockfiles, package-manager setup actions, deterministic README and agent-visible commands | Checked for deterministic drift in 0.3.5. Dynamic values are ignored instead of guessed. |
+| Canonical policy docs | `SECURITY.md`, `CONTRIBUTING.md`, `docs/SECURITY.md`, `docs/CONTRIBUTING.md`, pull request templates, issue templates, and package metadata naming generated outputs | Checked for conservative policy visibility gaps in 0.3.6. |
 
 ### Workflow-embedded prompts
 
@@ -390,6 +393,29 @@ For example, a repo with `packageManager: "pnpm@11.1.1"` and `pnpm-lock.yaml` sh
 Agent-visible instructions tell an agent to run a different package-manager command than CI and `package.json` use for the same verification script.
 
 For example, if `package.json` declares `packageManager: "pnpm@11.1.1"`, CI runs `pnpm test`, and `AGENTS.md` tells agents to use npm for the same test script, Dr. Context reports a conflict and suggests the pnpm command. README-only weak evidence does not create this error by itself.
+
+### `oversized-instruction-file`
+
+An agent instruction surface is large enough to become hard for agents and humans to keep current. Generic agent instruction files report when they exceed 500 lines or 30 KB. Cursor scoped rules and workflow-embedded prompts use surface-specific thresholds.
+
+Split oversized guidance into smaller scoped files or link to canonical docs instead of embedding long content.
+
+### `duplicate-instruction-block`
+
+The same normalized instruction block appears in more than one supported instruction surface or workflow prompt.
+
+Dr. Context only reports deterministic overlap, such as repeated blocks with at least 5 non-empty lines or 300 normalized characters. It does not do semantic similarity matching.
+
+### Policy visibility findings
+
+Dr. Context reports conservative policy visibility gaps when a repository already documents a policy in canonical repo docs, but agent-visible instructions do not mention or link to that policy.
+
+- `hidden-secret-hygiene-policy`: secret, token, credential, or `.env` handling is documented outside agent instructions.
+- `hidden-destructive-action-policy`: destructive or irreversible action boundaries are documented outside agent instructions.
+- `hidden-workflow-policy`: TDD, review, verification, changelog, release, or self-scan workflow guidance is documented outside agent instructions.
+- `missing-generated-file-boundary`: package metadata names generated outputs such as `dist`, `build`, or `generated`, but agent-visible instructions do not say whether agents may edit those files directly.
+
+These checks prefer false negatives over noisy guesses. They look for concrete canonical policy evidence first, then ask whether agent-visible instructions expose that policy.
 
 ## Privacy and dogfood hygiene
 
