@@ -6,8 +6,8 @@ export function normalizePackageManagerCommand(command: string): PackageManagerN
   const [first, second] = command.trim().split(/\s+/, 2);
 
   if (first === 'corepack') {
-    const corepackManager = second?.match(/^(pnpm)(?:@[^\s]+)?$/);
-    return corepackManager ? 'pnpm' : undefined;
+    const corepackManager = second?.match(/^(npm|pnpm|yarn|bun)(?:@[^\s]+)?$/);
+    return corepackManager ? corepackManager[1] as PackageManagerName : undefined;
   }
 
   return jsPackageManagers.find((manager) => first === manager);

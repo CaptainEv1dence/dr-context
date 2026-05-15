@@ -122,4 +122,54 @@ describe('package manager drift scan', () => {
       );
     }
   );
+
+  test.each([
+    {
+      name: 'setup action',
+      workflow: 'name: ci\non: [push]\njobs:\n  test:\n    steps:\n      - uses: oven-sh/setup-bun@v2\n',
+      primarySource: { file: '.github/workflows/ci.yml', line: 6 },
+      evidenceKind: 'setup-action'
+    },
+    {
+      name: 'setup-node cache',
+      workflow: 'name: ci\non: [push]\njobs:\n  test:\n    steps:\n      - uses: actions/setup-node@v4\n        with:\n          cache: yarn\n',
+      primarySource: { file: '.github/workflows/ci.yml', line: 8 },
+      evidenceKind: 'setup-action'
+    }
+  ])('reports package-manager drift, not multiple lockfiles, for one lockfile plus conflicting $name', async (fixture) => {
+    const root = await makeRepo({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', scripts: { test: 'vitest run' } }),
+      'pnpm-lock.yaml': 'lockfileVersion: 9.0',
+      'AGENTS.md': 'Run tests with `pnpm test`.',
+      '.github/workflows/ci.yml': fixture.workflow
+    });
+    const report = await runScan(root, { strict: false, include: [], exclude: [] });
+
+    expect(report.findings.filter((finding) => finding.id === 'multiple-package-lockfiles')).toHaveLength(0);
+    expect(report.findings.filter((finding) => finding.id === 'package-manager-drift')).toEqual([
+      expect.objectContaining({
+        primarySource: expect.objectContaining(fixture.primarySource),
+        evidence: expect.arrayContaining([
+          expect.objectContaining({ kind: fixture.evidenceKind, source: expect.objectContaining(fixture.primarySource) }),
+          expect.objectContaining({ kind: 'package-manager', source: expect.objectContaining({ file: 'package.json', line: 1 }) })
+        ])
+      })
+    ]);
+  });
+
+  test('reports corepack yarn docs as package-manager drift', async () => {
+    const root = await makeRepo({
+      'package.json': JSON.stringify({ packageManager: 'npm@10.0.0', scripts: { test: 'vitest run' } }),
+      'AGENTS.md': 'Run tests with `corepack yarn test`.'
+    });
+    const report = await runScan(root, { strict: false, include: [], exclude: [] });
+    const findings = report.findings.filter((finding) => finding.id === 'package-manager-drift');
+
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      title: 'Docs mention yarn, but this repo uses npm',
+      primarySource: { file: 'AGENTS.md', line: 1, text: 'Run tests with `corepack yarn test`.' },
+      suggestion: 'Align `corepack yarn test` with the canonical npm package manager intent.'
+    });
+  });
 });

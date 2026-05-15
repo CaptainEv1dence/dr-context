@@ -104,7 +104,7 @@ function packageManagerEvidenceFinding(
 
 function multiplePackageLockfilesFinding(packageManagers: PackageManagerEvidence[]): Finding | undefined {
   const lockfiles = packageManagers.filter(
-    (manager) => jsPackageManagers.includes(manager.name) && manager.source.file !== 'package.json'
+    (manager) => jsPackageManagers.includes(manager.name) && isJsLockfile(manager)
   );
   const names = new Set(lockfiles.map((manager) => manager.name));
 

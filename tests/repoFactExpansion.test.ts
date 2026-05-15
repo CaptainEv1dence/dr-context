@@ -55,7 +55,10 @@ describe('extractBuildTargets', () => {
 describe('extractMarkdownCommands', () => {
   test('extracts corepack pnpm commands with normalized package manager intent', () => {
     const files: RawFile[] = [
-      { path: 'AGENTS.md', content: 'Run `corepack pnpm test` and `corepack pnpm@11.1.1 lint`.' }
+      {
+        path: 'AGENTS.md',
+        content: 'Run `corepack pnpm test`, `corepack pnpm@11.1.1 lint`, and `corepack yarn@4.1.0 test`.'
+      }
     ];
 
     expect(extractMarkdownCommands(files)).toEqual([
@@ -63,13 +66,31 @@ describe('extractMarkdownCommands', () => {
         command: 'corepack pnpm test',
         packageManager: 'pnpm',
         context: 'inline-code',
-        source: { file: 'AGENTS.md', line: 1, text: 'Run `corepack pnpm test` and `corepack pnpm@11.1.1 lint`.' }
+        source: {
+          file: 'AGENTS.md',
+          line: 1,
+          text: 'Run `corepack pnpm test`, `corepack pnpm@11.1.1 lint`, and `corepack yarn@4.1.0 test`.'
+        }
       },
       {
         command: 'corepack pnpm@11.1.1 lint',
         packageManager: 'pnpm',
         context: 'inline-code',
-        source: { file: 'AGENTS.md', line: 1, text: 'Run `corepack pnpm test` and `corepack pnpm@11.1.1 lint`.' }
+        source: {
+          file: 'AGENTS.md',
+          line: 1,
+          text: 'Run `corepack pnpm test`, `corepack pnpm@11.1.1 lint`, and `corepack yarn@4.1.0 test`.'
+        }
+      },
+      {
+        command: 'corepack yarn@4.1.0 test',
+        packageManager: 'yarn',
+        context: 'inline-code',
+        source: {
+          file: 'AGENTS.md',
+          line: 1,
+          text: 'Run `corepack pnpm test`, `corepack pnpm@11.1.1 lint`, and `corepack yarn@4.1.0 test`.'
+        }
       }
     ]);
   });
