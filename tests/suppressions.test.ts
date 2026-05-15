@@ -44,6 +44,19 @@ describe('finding suppressions', () => {
     expect(result.suppressedFindings[0].fingerprint).toBe(fingerprint);
   });
 
+  test('does not fall back to file matching when fingerprint is stale', () => {
+    const oldFingerprint = fingerprintFinding(finding);
+    const changedFinding = { ...finding, title: 'Verification script has changed' };
+
+    const result = applySuppressions([changedFinding], [
+      { id: 'missing-verification-command', file: 'package.json', fingerprint: oldFingerprint }
+    ]);
+
+    expect(fingerprintFinding(changedFinding)).not.toBe(oldFingerprint);
+    expect(result.findings).toEqual([changedFinding]);
+    expect(result.suppressedFindings).toEqual([]);
+  });
+
   test('does not suppress a different id or file', () => {
     const result = applySuppressions([finding], [{ id: 'ci-doc-command-mismatch', file: 'AGENTS.md' }]);
 

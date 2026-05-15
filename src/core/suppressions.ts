@@ -48,8 +48,8 @@ function matchesSuppression(finding: Finding, fingerprint: string, suppression: 
     return false;
   }
 
-  if (suppression.fingerprint && suppression.fingerprint === fingerprint) {
-    return true;
+  if (suppression.fingerprint) {
+    return suppression.fingerprint === fingerprint;
   }
 
   if (suppression.file && suppression.file === finding.primarySource?.file) {
