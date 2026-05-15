@@ -69,6 +69,7 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Evaluate a bundled JavaScript GitHub Action that avoids runtime `npm exec` and registry install-on-demand.
   - Keep current Action inputs and scanner semantics if implemented.
   - Defer if bundling expands beyond packaging, smoke tests, and release docs.
+- Bundled JavaScript Action remains a reliability candidate after 0.3.9 launch docs. It should preserve current inputs and scanner semantics, and should not ship until package contents and local-action smoke tests are stable.
 - Deferred context health work for 0.4+:
   - Score badges.
   - Persisted score trends, snapshots, and history.
