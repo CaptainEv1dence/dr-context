@@ -46,11 +46,12 @@ drctx manifest --root .
 
 If you scan a parent folder that contains several repositories, results may describe only recognized workspace candidates or may show limited coverage for the parent itself. Use workspace mode intentionally when auditing multiple repos, and inspect `drctx manifest` output before treating a clean result as meaningful.
 
-When auditing multiple repositories under a shared parent, prefer:
+When auditing multiple repositories under a shared parent, use workspace scan or discovery for the parent folder, then run manifest on one specific repository root:
 
 ```bash
 drctx check --workspace --root ../workspace
-drctx manifest --workspace --root ../workspace
+drctx discover --root ../workspace
+drctx manifest --root ../workspace/<specific-repo>
 ```
 
 Use `--inherit-parent-instructions` only when the shared parent instructions are intentionally part of each child repository's context contract.
