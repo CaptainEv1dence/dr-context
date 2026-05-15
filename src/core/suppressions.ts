@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { calculateHealthSummary } from './health.js';
 import { summarizeFindings } from './summary.js';
 import type { Finding, FindingSuppression, Report, SuppressedFinding, SuppressionResult } from './types.js';
 
@@ -36,10 +37,22 @@ export function withSuppressionResult(report: Report, result: SuppressionResult)
     ...report,
     findings: result.findings,
     suppressedFindings: result.suppressedFindings,
-    summary: {
-      ...summarizeFindings(result.findings),
-      suppressed: result.suppressedFindings.length
-    }
+    summary: summarizeWithSuppressed(result)
+  };
+}
+
+function summarizeWithSuppressed(result: SuppressionResult): Report['summary'] {
+  const visibleSummary = summarizeFindings(result.findings);
+  const counts = {
+    errors: visibleSummary.errors,
+    warnings: visibleSummary.warnings,
+    infos: visibleSummary.infos,
+    suppressed: result.suppressedFindings.length
+  };
+
+  return {
+    ...counts,
+    health: calculateHealthSummary(counts)
   };
 }
 

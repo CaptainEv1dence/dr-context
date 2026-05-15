@@ -73,7 +73,17 @@ describe('drctx CLI', () => {
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout)).toMatchObject({
       schemaVersion: 'drctx.report.v1',
-      summary: { errors: 0, warnings: 0, infos: 0 }
+      summary: {
+        errors: 0,
+        warnings: 0,
+        infos: 0,
+        health: {
+          score: 100,
+          grade: 'excellent',
+          penalties: { errors: 0, warnings: 0, infos: 0 },
+          suppressedCount: 0
+        }
+      }
     });
   });
 
@@ -97,6 +107,12 @@ describe('drctx CLI', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe('');
     expect(report.summary).toMatchObject({ errors: 0, warnings: 1, infos: 0 });
+    expect(report.summary.health).toEqual({
+      score: 90,
+      grade: 'good',
+      penalties: { errors: 0, warnings: 10, infos: 0 },
+      suppressedCount: 0
+    });
     expect(report.findings).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: 'unsafe-workflow-prompt', severity: 'warning' })])
     );

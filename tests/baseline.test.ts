@@ -77,9 +77,16 @@ describe('baseline command', () => {
 
     expect(hiddenResult.exitCode).toBe(0);
     expect(hiddenReport.summary.suppressed).toBe(1);
+    expect(hiddenReport.summary.health).toEqual({
+      score: 100,
+      grade: 'excellent',
+      penalties: { errors: 0, warnings: 0, infos: 0 },
+      suppressedCount: 1
+    });
     expect(hiddenReport).not.toHaveProperty('suppressedFindings');
     expect(shownResult.exitCode).toBe(0);
     expect(shownReport.summary.suppressed).toBe(1);
+    expect(shownReport.summary.health).toEqual(hiddenReport.summary.health);
     expect(shownReport.suppressedFindings).toHaveLength(1);
     expect(shownReport.suppressedFindings[0].fingerprint).toMatch(/^sha256:/);
   });
