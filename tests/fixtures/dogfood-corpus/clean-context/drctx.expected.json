@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "clean-context",
+  "description": "Synthetic clean repo with aligned package manager and visible safety guidance.",
+  "before": {
+    "root": "before",
+    "findingIds": []
+  }
+}

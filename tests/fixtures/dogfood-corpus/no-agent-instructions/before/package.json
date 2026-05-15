@@ -1,0 +1,7 @@
+{
+  "name": "synthetic-no-agent-instructions",
+  "private": true,
+  "scripts": {
+    "test": "vitest run"
+  }
+}

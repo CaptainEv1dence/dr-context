@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "no-agent-instructions",
+  "description": "Synthetic repo with package facts but no agent-visible instruction file.",
+  "before": {
+    "root": "before",
+    "findingIds": ["no-agent-instructions"]
+  }
+}
