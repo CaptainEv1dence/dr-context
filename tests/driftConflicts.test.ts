@@ -154,6 +154,17 @@ describe('verification command conflict scan', () => {
     expect(report.findings.filter((finding) => finding.id === 'verification-command-conflict')).toHaveLength(0);
   });
 
+  test('reports versioned Corepack manager verification mismatches', async () => {
+    const report = await scanFixture('verification-command-versioned-corepack-mismatch');
+    const findings = report.findings.filter((finding) => finding.id === 'verification-command-conflict');
+
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: 'AGENTS.md', line: 3 },
+      suggestion: 'Replace `corepack yarn@4.1.0 test` with `pnpm test` so agent verification matches CI and package.json.'
+    });
+  });
+
   test('does not report README-only weak verification evidence', async () => {
     const report = await scanFixture('verification-command-readme-only');
 

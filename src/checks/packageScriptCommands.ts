@@ -50,10 +50,15 @@ export function parsePackageScriptInvocation(command: string): PackageScriptInvo
 
 function normalizeCommandParts(parts: string[]): string[] {
   if (parts[0] === 'corepack') {
-    return parts.slice(1);
+    const [, manager, ...rest] = parts;
+    return manager ? [stripManagerVersion(manager), ...rest] : [];
   }
 
   return parts;
+}
+
+function stripManagerVersion(value: string): string {
+  return value.replace(/^([a-z]+)@.+$/, '$1');
 }
 
 function isPackageManager(value: string | undefined): value is PackageManagerName {

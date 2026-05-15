@@ -11,6 +11,14 @@ describe('parsePackageScriptInvocation', () => {
     [
       'corepack pnpm run typecheck',
       { manager: 'pnpm', scriptName: 'typecheck', command: 'corepack pnpm run typecheck', usesRun: true }
+    ],
+    [
+      'corepack pnpm@11.1.1 test',
+      { manager: 'pnpm', scriptName: 'test', command: 'corepack pnpm@11.1.1 test', usesRun: false }
+    ],
+    [
+      'corepack yarn@4.1.0 test',
+      { manager: 'yarn', scriptName: 'test', command: 'corepack yarn@4.1.0 test', usesRun: false }
     ]
   ])('parses package script command %s', (command, expected) => {
     expect(parsePackageScriptInvocation(command)).toEqual(expected);
