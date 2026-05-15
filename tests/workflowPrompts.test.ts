@@ -106,6 +106,26 @@ describe('extractWorkflowPrompts', () => {
     expect(prompts.map((prompt) => [prompt.kind, prompt.value])).toEqual([['system-prompt', 'Strict']]);
   });
 
+  test('skips ambiguous equals-form unquoted multi-word claude_args prompt values', () => {
+    const prompts = extractWorkflowPrompts([
+      workflow(
+        `jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          claude_args: --append-system-prompt=Never skip tests\n`
+      )
+    ]);
+
+    expect(prompts).toEqual([]);
+  });
+
+  test('keeps isolated equals-form single-token claude_args prompt values', () => {
+    const prompts = extractWorkflowPrompts([
+      workflow(
+        `jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          claude_args: --system-prompt=Strict --model claude-sonnet-4-5\n`
+      )
+    ]);
+
+    expect(prompts.map((prompt) => [prompt.kind, prompt.value])).toEqual([['system-prompt', 'Strict']]);
+  });
+
   test('extracts block scalar claude_args with --append-system-prompt on line 8, not line 7', () => {
     const prompts = extractWorkflowPrompts([
       workflow(

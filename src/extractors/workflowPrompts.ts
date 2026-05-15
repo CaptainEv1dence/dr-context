@@ -121,9 +121,7 @@ function extractClaudeArgsPrompts(
       continue;
     }
 
-    const valueToken = equalMatch
-      ? { value: equalMatch[2], quoted: token.quoted }
-      : acceptableSeparateValue(tokens, index + 1);
+    const valueToken = equalMatch ? acceptableEqualsValue(tokens, index, equalMatch[2]) : acceptableSeparateValue(tokens, index + 1);
     const rawValue = valueToken?.value;
     if (!rawValue) {
       continue;
@@ -157,6 +155,16 @@ function acceptableSeparateValue(tokens: ClaudeArgToken[], valueIndex: number): 
   }
 
   return valueToken;
+}
+
+function acceptableEqualsValue(tokens: ClaudeArgToken[], flagIndex: number, value: string): ClaudeArgToken | undefined {
+  const flagToken = tokens[flagIndex];
+  const followingToken = tokens[flagIndex + 1];
+  if (!flagToken.quoted && followingToken && !followingToken.value.startsWith('--')) {
+    return undefined;
+  }
+
+  return { value, quoted: flagToken.quoted };
 }
 
 function tokenizeClaudeArgs(value: string): ClaudeArgToken[] {
