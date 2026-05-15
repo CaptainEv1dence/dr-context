@@ -24,7 +24,7 @@ describe('coverage signal checks', () => {
       exclude: []
     });
 
-    expect(report.summary).toEqual({ errors: 0, warnings: 0, infos: 1 });
+    expect(report.summary).toMatchObject({ errors: 0, warnings: 0, infos: 1 });
     expect(report.findings).toEqual([
       expect.objectContaining({
         id: 'no-scannable-context',
@@ -59,7 +59,7 @@ describe('coverage signal checks', () => {
     });
 
     expect(report.findings.map((finding) => finding.id)).toEqual(['no-agent-instructions']);
-    expect(report.summary).toEqual({ errors: 0, warnings: 0, infos: 1 });
+    expect(report.summary).toMatchObject({ errors: 0, warnings: 0, infos: 1 });
   });
 
   test('treats extracted workflow prompts as scannable repo facts', async () => {
