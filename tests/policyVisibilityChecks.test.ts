@@ -2,7 +2,9 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
+import { runChecks } from '../src/core/checks.js';
 import { runScan } from '../src/core/runScan.js';
+import type { CheckContext, RepoFacts } from '../src/core/types.js';
 
 const baseFiles = {
   'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
@@ -23,6 +25,30 @@ async function makeRepo(files: Record<string, string>): Promise<string> {
 async function scan(files: Record<string, string>) {
   const root = await makeRepo({ ...baseFiles, ...files });
   return runScan(root, { strict: false, include: [], exclude: [] });
+}
+
+function policyContext(overrides: Partial<RepoFacts>): CheckContext {
+  return {
+    facts: {
+      root: '/repo',
+      packageManagers: [],
+      scripts: [],
+      buildTargets: [],
+      runtimeVersions: [],
+      commandMentions: [],
+      ciCommands: [],
+      workflowPrompts: [],
+      architectureDocs: [],
+      agentInstructionDocs: [],
+      inheritedAgentInstructionDocs: [],
+      localPathMentions: [],
+      files: [],
+      filePaths: [],
+      keyDirectories: [],
+      ...overrides
+    },
+    config: { strict: false, include: [], exclude: [] }
+  };
 }
 
 describe('policy visibility checks', () => {
@@ -63,6 +89,26 @@ describe('policy visibility checks', () => {
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-secret-hygiene-policy');
   });
 
+  test('inherited agent secret guidance suppresses hidden-secret-hygiene-policy', () => {
+    const findings = runChecks(
+      policyContext({
+        files: [{ path: 'SECURITY.md', content: 'Never commit secrets, tokens, credentials, or .env files.' }],
+        inheritedAgentInstructionDocs: [
+          {
+            path: 'AGENTS.md',
+            content: 'Never commit secrets or .env files.',
+            tool: 'agents',
+            scope: 'repo',
+            inherited: true,
+            source: { file: 'AGENTS.md', line: 1 }
+          }
+        ]
+      })
+    );
+
+    expect(findings.map((finding) => finding.id)).not.toContain('hidden-secret-hygiene-policy');
+  });
+
   test('no canonical policy source does not emit hidden-secret-hygiene-policy', async () => {
     const report = await scan({});
 
@@ -72,6 +118,14 @@ describe('policy visibility checks', () => {
   test('weak generic secure alone does not emit hidden-secret-hygiene-policy', async () => {
     const report = await scan({
       'SECURITY.md': 'Keep the project secure.'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-secret-hygiene-policy');
+  });
+
+  test('README API_TOKEN setup mention does not emit hidden-secret-hygiene-policy', async () => {
+    const report = await scan({
+      'README.md': 'Set API_TOKEN in your shell before calling the example API.'
     });
 
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-secret-hygiene-policy');
@@ -119,6 +173,32 @@ describe('policy visibility checks', () => {
     });
 
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-destructive-action-policy');
+  });
+
+  test('README production deploy mention does not emit hidden-destructive-action-policy', async () => {
+    const report = await scan({
+      'README.md': 'Deploy to production with your normal release process.'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-destructive-action-policy');
+  });
+
+  test('arbitrary docs file with explicit destructive policy is not a canonical policy source', async () => {
+    const report = await scan({
+      'docs/operations.md': 'Do not force push or run reset --hard without maintainer approval.'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-destructive-action-policy');
+  });
+
+  test('already-read arbitrary docs file with explicit destructive policy is not a canonical policy source', () => {
+    const findings = runChecks(
+      policyContext({
+        files: [{ path: 'docs/operations.md', content: 'Do not force push or run reset --hard without maintainer approval.' }]
+      })
+    );
+
+    expect(findings.map((finding) => finding.id)).not.toContain('hidden-destructive-action-policy');
   });
 
   test('package metadata generated output with missing agent docs emits missing-generated-file-boundary', async () => {
@@ -232,6 +312,14 @@ describe('policy visibility checks', () => {
   test('generic docs process wording does not emit hidden-workflow-policy', async () => {
     const report = await scan({
       'CONTRIBUTING.md': 'Document your process and keep project docs updated.'
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-workflow-policy');
+  });
+
+  test('docs TDD comparison mention does not emit hidden-workflow-policy', async () => {
+    const report = await scan({
+      'docs/CONTRIBUTING.md': 'This document compares TDD, BDD, and exploratory testing styles.'
     });
 
     expect(report.findings.map((finding) => finding.id)).not.toContain('hidden-workflow-policy');

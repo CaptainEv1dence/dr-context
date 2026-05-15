@@ -11,7 +11,7 @@ type PolicyFamily = {
   suggestion: string;
 };
 
-const canonicalPolicyPathPattern = /^(?:SECURITY\.md|CONTRIBUTING\.md|docs\/SECURITY\.md|docs\/CONTRIBUTING\.md|README\.md|docs\/.+|\.github\/pull_request_template\.md|\.github\/ISSUE_TEMPLATE\/.+\.(?:md|ya?ml))$/i;
+const canonicalPolicyPathPattern = /^(?:SECURITY\.md|CONTRIBUTING\.md|docs\/SECURITY\.md|docs\/CONTRIBUTING\.md|README\.md|\.github\/pull_request_template\.md|\.github\/ISSUE_TEMPLATE\/.+\.(?:md|ya?ml))$/i;
 
 const policyFamilies: PolicyFamily[] = [
   {
@@ -19,7 +19,7 @@ const policyFamilies: PolicyFamily[] = [
     title: 'Secret hygiene policy is hidden from agent instructions',
     evidenceKind: 'canonical-secret-policy',
     category: 'safety',
-    canonicalMatches: hasSecretGuidance,
+    canonicalMatches: hasSecretPolicy,
     agentVisibleMatches: hasSecretGuidance,
     severity: (content, file) => (isStrongSecretPolicy(content) && /(?:^|\/)(?:SECURITY|CONTRIBUTING)\.md$/i.test(file) ? 'warning' : 'info'),
     suggestion: 'Add the secret hygiene policy to agent-visible instructions or link to the canonical policy from an agent-visible file.'
@@ -29,7 +29,7 @@ const policyFamilies: PolicyFamily[] = [
     title: 'Destructive action policy is hidden from agent instructions',
     evidenceKind: 'canonical-destructive-action-policy',
     category: 'safety',
-    canonicalMatches: hasDestructiveGuidance,
+    canonicalMatches: hasDestructivePolicy,
     agentVisibleMatches: hasDestructiveGuidance,
     severity: (content) => (hasProhibition(content) ? 'warning' : 'info'),
     suggestion: 'Add destructive-action boundaries to agent-visible instructions or link to the canonical policy from an agent-visible file.'
@@ -39,7 +39,7 @@ const policyFamilies: PolicyFamily[] = [
     title: 'Workflow policy is hidden from agent instructions',
     evidenceKind: 'canonical-workflow-policy',
     category: 'workflow',
-    canonicalMatches: hasWorkflowGuidance,
+    canonicalMatches: hasWorkflowPolicy,
     agentVisibleMatches: hasWorkflowGuidance,
     severity: () => 'info',
     suggestion: 'Add TDD, review, or verification workflow guidance to agent-visible instructions or link to the canonical policy from an agent-visible file.'
@@ -161,12 +161,20 @@ function hasSecretGuidance(content: string): boolean {
   return /\b(?:secrets?|tokens?|credentials?)\b|\.env\b/i.test(content);
 }
 
+function hasSecretPolicy(content: string): boolean {
+  return /\b(?:do not|don't|never|must not|avoid)\b[^.\n]*(?:commit|store|print|repeat|include|expose|leak|publish|log)[^.\n]*(?:secrets?|tokens?|credentials?|\.env\b)|\b(?:secrets?|tokens?|credentials?|\.env\b)[^.\n]*\b(?:must not|should not|must never|should never)\b[^.\n]*(?:commit|store|print|repeat|include|expose|leak|publish|log)/i.test(content);
+}
+
 function isStrongSecretPolicy(content: string): boolean {
-  return /\b(?:do not|don't|never|must not|avoid)\b[^.\n]*(?:secrets?|tokens?|credentials?|\.env\b)/i.test(content);
+  return hasSecretPolicy(content);
 }
 
 function hasDestructiveGuidance(content: string): boolean {
   return /\b(?:force push|reset --hard|rm -rf|drop table|delete branch|production|destructive|irreversible)\b/i.test(content);
+}
+
+function hasDestructivePolicy(content: string): boolean {
+  return /\b(?:do not|don't|never|must not|avoid|ask|confirm|approval|required approval|requires approval|without approval|before)\b[^.\n]*(?:force push|reset --hard|rm -rf|drop table|delete branch|destructive|irreversible)|\b(?:force push|reset --hard|rm -rf|drop table|delete branch|destructive|irreversible)\b[^.\n]*\b(?:do not|don't|never|must not|avoid|ask|confirm|approval|required approval|requires approval|without approval|before)\b/i.test(content);
 }
 
 function hasProhibition(content: string): boolean {
@@ -175,6 +183,10 @@ function hasProhibition(content: string): boolean {
 
 function hasWorkflowGuidance(content: string): boolean {
   return /\buse TDD\b|\bTDD\b|\brun tests before (?:committing|commit|merge|opening)|\brequest review before merge\b|\bverify changes? before\b|\bupdate changelog\b|\brelease gate\b|\bself-scan\b/i.test(content);
+}
+
+function hasWorkflowPolicy(content: string): boolean {
+  return /\buse TDD\b[^.\n]*(?:workflow|project|before|for)|\bTDD\b[^.\n]*(?:required|must|workflow|project)|\brun tests before (?:committing|commit|merge|opening)|\brequest review before merge\b|\bverify changes? before\b|\bupdate changelog\b|\brelease gate\b|\bself-scan\b/i.test(content);
 }
 
 function hasGeneratedBoundaryGuidance(content: string): boolean {
@@ -197,8 +209,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function agentVisiblePolicyContent(facts: { agentInstructionDocs: { content: string }[]; workflowPrompts: { value: string }[] }): string {
-  return [...facts.agentInstructionDocs.map((doc) => doc.content), ...facts.workflowPrompts.map((prompt) => prompt.value)].join('\n');
+function agentVisiblePolicyContent(facts: { agentInstructionDocs: { content: string }[]; inheritedAgentInstructionDocs: { content: string }[]; workflowPrompts: { value: string }[] }): string {
+  return [
+    ...facts.agentInstructionDocs.map((doc) => doc.content),
+    ...facts.inheritedAgentInstructionDocs.map((doc) => doc.content),
+    ...facts.workflowPrompts.map((prompt) => prompt.value)
+  ].join('\n');
 }
 
 function sourceForFile(file: RawFile): SourceSpan {
