@@ -29,6 +29,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     runtimeVersions: [],
     commandMentions,
     ciCommands,
+    workflowPrompts: [],
     architectureDocs,
     agentInstructionDocs,
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],

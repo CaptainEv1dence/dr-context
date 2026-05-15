@@ -250,6 +250,7 @@ export type RepoFacts = {
   runtimeVersions: RuntimeVersionFact[];
   commandMentions: CommandMention[];
   ciCommands: CiCommandMention[];
+  workflowPrompts: WorkflowPrompt[];
   architectureDocs: ArchitectureDocFact[];
   agentInstructionDocs: AgentInstructionDocFact[];
   inheritedAgentInstructionDocs: AgentInstructionDocFact[];

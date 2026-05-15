@@ -169,7 +169,7 @@ function findStepRange(lines: string[], action: string, startAt: number): StepRa
         continue;
       }
 
-      if (indentation(nextLine) <= stepIndent && /^\s*-\s+(uses|run|name):/.test(nextLine)) {
+      if (indentation(nextLine) <= stepIndent && /^\s*-\s+[^:]+:/.test(nextLine)) {
         end = nextIndex;
         break;
       }

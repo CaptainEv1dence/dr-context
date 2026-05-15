@@ -112,6 +112,27 @@ describe('extractWorkflowPrompts', () => {
     ]);
   });
 
+  test('stops source lookup before following non-Claude step list items', () => {
+    const prompts = extractWorkflowPrompts([
+      workflow(
+        `jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          prompt: Claude prompt.\n      - id: later-action\n        uses: actions/github-script@v8\n        with:\n          prompt: ignored following prompt\n`
+      )
+    ]);
+
+    expect(prompts).toEqual([
+      {
+        kind: 'prompt',
+        action: 'anthropics/claude-code-action@v1',
+        value: 'Claude prompt.',
+        source: {
+          file: '.github/workflows/agent.yml',
+          line: 6,
+          text: 'prompt: Claude prompt.'
+        }
+      }
+    ]);
+  });
+
   test('preserves ${{ secrets.ANTHROPIC_API_KEY }} literally without resolving secrets', () => {
     const prompts = extractWorkflowPrompts([
       workflow(

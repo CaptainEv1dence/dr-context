@@ -28,6 +28,7 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     runtimeVersions: extractRuntimeVersions(files),
     commandMentions: extractMarkdownCommands(files),
     ciCommands: extractCiCommands(files),
+    workflowPrompts: [],
     architectureDocs: extractArchitectureDocs(files),
     agentInstructionDocs: extractAgentInstructionDocs(files),
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],

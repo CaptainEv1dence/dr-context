@@ -22,6 +22,7 @@ function facts(agentInstructionDocs: AgentInstructionDocFact[], files = ['backen
     runtimeVersions: [],
     commandMentions: [],
     ciCommands: [],
+    workflowPrompts: [],
     architectureDocs: [],
     agentInstructionDocs,
     inheritedAgentInstructionDocs: [],
