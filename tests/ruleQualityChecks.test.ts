@@ -77,11 +77,40 @@ describe('rule quality checks', () => {
     expect(ids).toContain('oversized-instruction-file');
   });
 
+  test('workflow prompt at 12 KB does not emit oversized-instruction-file', async () => {
+    const ids = await scanFindingIds({
+      '.github/workflows/agent.yml': `jobs:\n  agent:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          direct_prompt: ${'a'.repeat(12 * 1024)}\n`
+    });
+
+    expect(ids).not.toContain('oversized-instruction-file');
+  });
+
   test('exact duplicate block with at least 5 non-empty lines emits duplicate-instruction-block', async () => {
     const block = ['Use TypeScript.', 'Run tests before commit.', 'Keep changes minimal.', 'Avoid network access.', 'Preserve user changes.'].join('\n');
     const ids = await scanFindingIds({
       'AGENTS.md': `# Agents\n\n${block}\n`,
       'CLAUDE.md': `# Claude\n\n${block}\n`
+    });
+
+    expect(ids).toContain('duplicate-instruction-block');
+  });
+
+  test('markdown heading depth differences normalize to the same duplicate block', async () => {
+    const first = ['# Safety Rules', 'Use TypeScript.', 'Run tests before commit.', 'Keep changes minimal.', 'Avoid network access.'].join('\n');
+    const second = ['### Safety Rules', 'Use TypeScript.', 'Run tests before commit.', 'Keep changes minimal.', 'Avoid network access.'].join('\n');
+    const ids = await scanFindingIds({
+      'AGENTS.md': first,
+      'CLAUDE.md': second
+    });
+
+    expect(ids).toContain('duplicate-instruction-block');
+  });
+
+  test('embedded duplicate 5-line block emits duplicate-instruction-block without blank boundaries', async () => {
+    const block = ['Use TypeScript.', 'Run tests before commit.', 'Keep changes minimal.', 'Avoid network access.', 'Preserve user changes.'].join('\n');
+    const ids = await scanFindingIds({
+      'AGENTS.md': `# Agents\nRepository-specific guidance starts here.\n${block}\nContinue with agent-only guidance.`,
+      'CLAUDE.md': `# Claude\nClaude-specific guidance starts here.\n${block}\nContinue with claude-only guidance.`
     });
 
     expect(ids).toContain('duplicate-instruction-block');

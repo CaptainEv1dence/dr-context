@@ -110,6 +110,10 @@ function blocksFromContent(content: string, source: SourceSpan): InstructionBloc
     }
   }
 
+  for (const window of normalizedLineWindows(stripped, source)) {
+    byFingerprint.set(window.fingerprint, window);
+  }
+
   return [...byFingerprint.values()];
 }
 
@@ -129,6 +133,24 @@ function normalizedBlock(content: string, source: SourceSpan): InstructionBlock[
       source
     }
   ];
+}
+
+function normalizedLineWindows(content: string, source: SourceSpan): InstructionBlock[] {
+  const normalizedLines = content.split(/\r?\n/).map(normalizeLine).filter(Boolean);
+  const windows: InstructionBlock[] = [];
+
+  for (let start = 0; start <= normalizedLines.length - duplicateLineMinimum; start += 1) {
+    const lines = normalizedLines.slice(start, start + duplicateLineMinimum);
+    const normalized = lines.join(' ').replace(/\s+/g, ' ').trim();
+    windows.push({
+      fingerprint: normalized,
+      normalized,
+      nonEmptyLines: lines.length,
+      source
+    });
+  }
+
+  return windows;
 }
 
 function duplicateFinding(entries: InstructionBlock[]): Finding[] {
