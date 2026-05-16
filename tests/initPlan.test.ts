@@ -35,6 +35,15 @@ describe('init plan', () => {
     ]);
   });
 
+  test('skips AGENTS.md when root AGENTS.md already exists', () => {
+    const plan = planInit([file('AGENTS.md', '# Existing instructions')]);
+
+    expect(plan.files).toEqual([
+      expect.objectContaining({ path: '.drctx.json', action: 'create' }),
+      expect.objectContaining({ path: 'AGENTS.md', action: 'skip', reason: 'recognized instruction surface exists' })
+    ]);
+  });
+
   test('skips AGENTS.md when a nested recognized instruction surface exists', () => {
     const plan = planInit([file('service/AGENTS.md', '# Service instructions')]);
 
