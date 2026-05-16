@@ -20,12 +20,15 @@ function mergeResourceLimits(
   parent: LoadedConfig['resourceLimits'],
   child: LoadedConfig['resourceLimits']
 ): LoadedConfig['resourceLimits'] {
-  if (!parent && !child) {
+  const merged = {
+    maxFiles: child?.maxFiles ?? parent?.maxFiles,
+    maxFileBytes: child?.maxFileBytes ?? parent?.maxFileBytes,
+    maxTotalBytes: child?.maxTotalBytes ?? parent?.maxTotalBytes
+  };
+
+  if (merged.maxFiles === undefined && merged.maxFileBytes === undefined && merged.maxTotalBytes === undefined) {
     return undefined;
   }
 
-  return {
-    ...(parent ?? {}),
-    ...(child ?? {})
-  };
+  return merged;
 }

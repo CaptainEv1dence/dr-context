@@ -35,7 +35,7 @@ describe('workspace child config merging', () => {
       include: ['package.json'],
       exclude: ['vendor/**'],
       strict: true,
-      resourceLimits: { maxFileBytes: 4000 }
+      resourceLimits: { maxFiles: undefined, maxFileBytes: 4000, maxTotalBytes: undefined }
     });
 
     expect(mergeWorkspaceChildConfig(parent, child)).toMatchObject({
