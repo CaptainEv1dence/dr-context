@@ -72,6 +72,10 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 ## Next
 
+- Pre-0.4 gap closure:
+  - Refresh detection-only instruction surface coverage for GitHub custom agents, local Claude context, Junie, Jules, and skill files.
+  - Keep `.mcp.json` as manifest/config context only until an MCP implementation plan exists.
+  - Write explicit specs for `drctx init`, safe fixes, MCP/probes, integrations, child config inheritance, and cross-agent drift before production code.
 - Pre-0.4 feature bets decomposition:
   - `docs/superpowers/plans/2026-05-15-pre-0.4-feature-bets-decomposition.md`.
   - Use after 0.3.12 published dogfood to decide the next product bet.
@@ -96,6 +100,7 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 ## Later
 
+- Ruler and Repomix integrations should start as docs recipes before code dependencies.
 - MCP context gate after scoped manifests, config, and baseline mode are stable.
 - Optional safe fixes with `--dry-run` before any write mode.
 - Optional `drctx init` or templates for starter `AGENTS.md` / `.drctx.json`, with dry-run and no-overwrite behavior before any write mode.
