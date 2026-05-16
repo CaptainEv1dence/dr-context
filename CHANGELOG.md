@@ -4,6 +4,17 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.13 - 2026-05-17
+
+### Added
+
+- Add dry-run-first `drctx init` onboarding so new repositories can preview starter context files before anything is written.
+- Add `drctx init --write` to create only missing `.drctx.json` and `AGENTS.md` starter files without overwriting existing files.
+
+### Changed
+
+- Reuse the recognized instruction-surface registry during init so repositories with existing agent instructions do not get duplicate root `AGENTS.md` files.
+
 ## 0.3.12 - 2026-05-16
 
 ### Added

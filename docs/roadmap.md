@@ -69,15 +69,13 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Monorepo package-root discovery guidance for package-level manifests and checks.
   - Context-quality checks for unindexed historical context, README verification guidance, exact architecture-doc references, parent policy visibility, and live-operation boundaries.
   - Expanded generated-output boundary detection with false-positive guards for bare build commands.
-- `drctx init` is implemented on `main` for the next release, but is not available in the published `dr-context@0.3.12` npm package.
+- 0.3.13 init adoption slice:
+  - `drctx init --root .` previews starter context files without writing anything.
+  - `drctx init --root . --write` creates only missing `.drctx.json` and `AGENTS.md` starter files.
+  - Init never overwrites existing files, skips root `AGENTS.md` when any recognized instruction surface already exists, and performs no network or LLM calls.
 
 ## Next
 
-- `drctx init` release/adoption slice:
-  - Publish the already-implemented `main` work in the next npm release.
-  - Dry-run preview by default.
-  - `--write` creates only missing `.drctx.json` and `AGENTS.md` starter files.
-  - No overwrite, no network, no LLM, no GitHub Action generation.
 - Pre-0.4 gap closure:
   - Refresh detection-only instruction surface coverage for GitHub custom agents, local Claude context, Junie, Jules, and skill files.
   - Keep `.mcp.json` as manifest/config context only until an MCP implementation plan exists.

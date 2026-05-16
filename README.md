@@ -77,7 +77,7 @@ The npm package exposes both binaries: `dr-context` and `drctx`.
 
 ### Start a new repo safely
 
-`drctx init` is implemented on `main` for the next release. It is not available in the published `dr-context@0.3.12` npm package yet.
+Use `drctx init` to preview or create starter context files for a repository.
 
 Preview starter files without writing anything:
 
