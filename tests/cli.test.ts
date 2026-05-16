@@ -442,6 +442,88 @@ describe('drctx CLI', () => {
     expect(result.stdout).not.toContain(join(fixturesRoot, 'discover-workspace'));
   });
 
+  test('workspace scans apply child exclude config to candidate roots', async () => {
+    const root = await makeSyntheticRepo({
+      'packages/app/package.json': JSON.stringify({ scripts: { test: 'vitest' } }),
+      'packages/app/AGENTS.md': '# App instructions\nRun test:unit.\n',
+      'packages/app/.drctx.json': JSON.stringify({ exclude: ['AGENTS.md'] })
+    });
+
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--json', '--root', root, '--max-depth', '3']);
+    const output = JSON.parse(result.stdout);
+    const app = output.reports.find((entry: { path: string }) => entry.path === 'packages/app');
+
+    expect(result.exitCode).toBe(0);
+    expect(app.report.findings.map((finding: { id: string }) => finding.id)).not.toContain('stale-package-script-reference');
+  });
+
+  test('workspace scans use child strict config for exit codes', async () => {
+    const root = await makeSyntheticRepo({
+      'packages/app/package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', scripts: { lint: 'eslint .' } }),
+      'packages/app/AGENTS.md': '# App instructions\nRun tests with pnpm test.\n',
+      'packages/app/.github/workflows/ci.yml': 'jobs:\n  test:\n    steps:\n      - run: pnpm lint\n',
+      'packages/app/.drctx.json': JSON.stringify({ strict: true })
+    });
+
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--strict', '--root', root, '--max-depth', '3']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain('packages/app: 0 error(s), 1 warning(s), 0 info(s)');
+  });
+
+  test('workspace scans keep explicit --config authoritative over child config', async () => {
+    const root = await makeSyntheticRepo({
+      '.drctx.json': JSON.stringify({ exclude: ['AGENTS.md'] }),
+      'packages/app/package.json': JSON.stringify({ scripts: { test: 'vitest' } }),
+      'packages/app/AGENTS.md': '# App instructions\nRun test:unit.\n',
+      'packages/app/.drctx.json': JSON.stringify({ exclude: [] })
+    });
+
+    const result = await runCli([
+      'node',
+      'drctx',
+      'check',
+      '--workspace',
+      '--config',
+      '.drctx.json',
+      '--root',
+      root,
+      '--max-depth',
+      '3'
+    ]);
+    const output = JSON.parse((await runCli([
+      'node',
+      'drctx',
+      'check',
+      '--workspace',
+      '--json',
+      '--config',
+      '.drctx.json',
+      '--root',
+      root,
+      '--max-depth',
+      '3'
+    ])).stdout);
+    const app = output.reports.find((entry: { path: string }) => entry.path === 'packages/app');
+
+    expect(result.exitCode).toBe(0);
+    expect(app.report.findings.map((finding: { id: string }) => finding.id)).not.toContain('stale-package-script-reference');
+  });
+
+  test('workspace scans report invalid child config as usage error', async () => {
+    const root = await makeSyntheticRepo({
+      'packages/app/package.json': '{}',
+      'packages/app/.drctx.json': '{'
+    });
+
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--root', root, '--max-depth', '3']);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain('Dr. Context usage error');
+    expect(result.stderr).toContain('packages/app/.drctx.json');
+    expect(result.stderr).not.toContain(root);
+  });
+
   test('requires --workspace for --inherit-parent-instructions', async () => {
     const result = await runCli([
       'node',

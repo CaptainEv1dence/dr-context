@@ -1,4 +1,6 @@
 import { join } from 'node:path';
+import type { LoadedConfig } from '../config/types.js';
+import { loadWorkspaceCandidateConfig } from '../config/workspaceConfig.js';
 import { discoverCandidates } from '../discovery/discoverCandidates.js';
 import { extractAgentInstructionDocs } from '../extractors/agentInstructionDocs.js';
 import { readWorkspace } from '../io/readWorkspace.js';
@@ -11,21 +13,28 @@ import type { AgentInstructionDocFact, EffectiveConfig, WorkspaceReport } from '
 
 const defaultWorkspaceScanConcurrency = 2;
 
-export async function runWorkspaceScan(root: string, config: EffectiveConfig & { maxDepth: number }): Promise<WorkspaceReport> {
+export async function runWorkspaceScan(root: string, config: EffectiveConfig & LoadedConfig & { maxDepth: number }): Promise<WorkspaceReport> {
   const discovery = await discoverCandidates(root, { maxDepth: config.maxDepth });
   const parentDocs = await parentInstructionDocs(root, config);
   const reports = await mapWithConcurrency(discovery.candidates, defaultWorkspaceScanConcurrency, async (candidate) => {
+      const candidateConfig = await loadWorkspaceCandidateConfig(root, candidate.path, config, { explicitConfig: Boolean(config.explicitConfig) });
+      const effectiveCandidateConfig = candidateConfig.config;
       const report = await runScan(candidate.path === '.' ? root : join(root, candidate.path), {
-        ...config,
+        ...effectiveCandidateConfig,
+        strict: Boolean(effectiveCandidateConfig.strict),
+        include: effectiveCandidateConfig.include ?? [],
+        exclude: effectiveCandidateConfig.exclude ?? [],
+        resourceLimits: effectiveCandidateConfig.resourceLimits,
         inheritedAgentInstructionDocs: candidate.path === '.' || !config.inheritParentInstructions ? [] : parentDocs,
         parentAgentInstructionDocs: candidate.path === '.' || config.inheritParentInstructions ? undefined : parentDocs
       });
       const suppressions = [
-        ...(config.suppressions ?? []),
-        ...(config.workspaceBaselineSuppressions?.candidatePath === candidate.path ? config.workspaceBaselineSuppressions.suppressions : [])
+        ...(effectiveCandidateConfig.suppressions ?? []),
+        ...baselineSuppressionsFromConfig(effectiveCandidateConfig)
       ];
       return {
         path: candidate.path,
+        strict: Boolean(effectiveCandidateConfig.strict),
         report: withSuppressionResult(report, applySuppressions(report.findings, suppressions))
       };
   });
@@ -61,4 +70,15 @@ async function parentInstructionDocs(root: string, config: EffectiveConfig): Pro
     displayPath: `<workspace-parent>/${doc.path}`,
     source: { ...doc.source, text: undefined }
   }));
+}
+
+function baselineSuppressionsFromConfig(config: LoadedConfig) {
+  return (
+    config.baseline?.findings.map((entry) => ({
+      id: entry.id,
+      file: entry.file,
+      fingerprint: entry.fingerprint,
+      reason: entry.reason
+    })) ?? []
+  );
 }

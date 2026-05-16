@@ -76,14 +76,15 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         if (effectiveOptions.workspace) {
           const maxDepth = parseMaxDepth(effectiveOptions.maxDepth);
           const report = await runWorkspaceScan(root, {
+            ...loadedConfig,
             strict: scanConfig.strict,
             include: scanConfig.include,
             exclude: scanConfig.exclude,
             resourceLimits: scanConfig.resourceLimits,
             suppressions: loadedConfig.suppressions,
-            workspaceBaselineSuppressions: workspaceBaselineSuppressionsFromConfig(loadedConfig),
             maxDepth,
-            inheritParentInstructions: Boolean(effectiveOptions.inheritParentInstructions)
+            inheritParentInstructions: Boolean(effectiveOptions.inheritParentInstructions),
+            explicitConfig: Boolean(effectiveOptions.config)
           });
 
           stdout += effectiveOptions.json
@@ -255,18 +256,6 @@ function baselineSuppressionsFromConfig(loadedConfig: Awaited<ReturnType<typeof 
       reason: entry.reason
     })) ?? []
   );
-}
-
-function workspaceBaselineSuppressionsFromConfig(loadedConfig: Awaited<ReturnType<typeof loadConfig>>) {
-  if (!loadedConfig.baselinePath || !loadedConfig.baseline) {
-    return undefined;
-  }
-
-  const candidatePath = dirname(loadedConfig.baselinePath).replaceAll('\\', '/');
-  return {
-    candidatePath: candidatePath === '.' ? '.' : candidatePath,
-    suppressions: baselineSuppressionsFromConfig(loadedConfig)
-  };
 }
 
 function createProgram(

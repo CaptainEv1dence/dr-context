@@ -112,6 +112,7 @@ export type Report = {
 
 export type WorkspaceReportEntry = {
   path: string;
+  strict?: boolean;
   report: Report;
 };
 
@@ -323,6 +324,7 @@ export type EffectiveConfig = {
   inheritedAgentInstructionDocs?: AgentInstructionDocFact[];
   parentAgentInstructionDocs?: AgentInstructionDocFact[];
   resourceLimits?: Partial<import('../io/resourceLimits.js').WorkspaceResourceLimits>;
+  explicitConfig?: boolean;
 };
 
 export type WorkspaceBaselineSuppressions = {

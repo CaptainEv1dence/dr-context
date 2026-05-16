@@ -21,5 +21,9 @@ export function exitCodeForWorkspaceReport(report: WorkspaceReport, strict: bool
     return 1;
   }
 
+  if (report.reports.some((entry) => entry.strict && entry.report.summary.warnings > 0)) {
+    return 1;
+  }
+
   return 0;
 }
