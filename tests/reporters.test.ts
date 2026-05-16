@@ -248,6 +248,25 @@ describe('workspace reporters', () => {
     expect(output.match(/Next: inspect each repository with `drctx manifest --root <repo>`\./g)).toHaveLength(1);
   });
 
+  test('non-summary workspace text includes monorepo package-root guidance for multiple reports', () => {
+    const output = renderWorkspaceText({
+      schemaVersion: 'drctx.workspace-report.v1',
+      tool: 'drctx',
+      toolVersion: '0.3.11',
+      root: 'C:/private/workspace',
+      reports: [
+        { path: '.', report: emptyReport },
+        { path: 'packages/app', report: emptyReport }
+      ],
+      summary: workspaceSummary({ roots: 2, errors: 0, warnings: 0, infos: 0 })
+    });
+
+    expect(output).toContain(
+      'Detected multiple candidate roots. For monorepos, inspect package context with `drctx manifest --root <repo-or-package>`.'
+    );
+    expect(output).not.toContain('C:/private/workspace');
+  });
+
   test('prints a truncation notice when workspace text findings are limited', () => {
     const output = renderWorkspaceText(
       {
@@ -323,6 +342,26 @@ describe('workspace reporters', () => {
     );
 
     expect(output).not.toContain('Next: inspect each repository with `drctx manifest --root <repo>`.');
+  });
+
+  test('workspace summary-only text omits monorepo package-root guidance', () => {
+    const output = renderWorkspaceText(
+      {
+        schemaVersion: 'drctx.workspace-report.v1',
+        tool: 'drctx',
+        toolVersion: '0.3.11',
+        root: 'C:/private/workspace',
+        reports: [
+          { path: '.', report: emptyReport },
+          { path: 'packages/app', report: emptyReport }
+        ],
+        summary: workspaceSummary({ roots: 2, errors: 0, warnings: 0, infos: 0 })
+      },
+      { summaryOnly: true }
+    );
+
+    expect(output).not.toContain('Detected multiple candidate roots.');
+    expect(output).not.toContain('C:/private/workspace');
   });
 });
 

@@ -146,13 +146,13 @@ Workspace limitation: the root config is shared across workspace candidates. A b
 
 ### Large repositories and monorepos
 
-Dr. Context uses bounded local reads so a large monorepo cannot exhaust the Node heap. If a scan reports skipped context files in `scanResource`, findings are valid for the files Dr. Context read, but the scan is incomplete for skipped files.
+Dr. Context uses bounded local reads so a large monorepo cannot exhaust the Node heap. If a root scan reports skipped context files in `scanResource` or too much aggregate context, findings are valid for the files Dr. Context read, but the scan may be incomplete for skipped files or too broad to act on directly.
 
 Tune limits in `.drctx.json` when CI needs repeatable behavior:
 
 ```json
 {
-  "exclude": ["packages/*/coverage/**", "packages/*/dist/**"],
+  "exclude": ["packages/*/generated/**", "packages/*/vendor/**", "packages/*/dist/**"],
   "maxFiles": 500,
   "maxFileBytes": 524288,
   "maxTotalBytes": 8388608
@@ -163,8 +163,8 @@ For large monorepos, discover package roots and scan narrower roots:
 
 ```bash
 drctx discover --root . --max-depth 4
-drctx check --root packages/app
 drctx manifest --root packages/app
+drctx check --root packages/app
 ```
 
 ## Context health

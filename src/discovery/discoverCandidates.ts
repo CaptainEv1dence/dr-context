@@ -9,7 +9,8 @@ export type DiscoverConfig = {
 
 const ignoredDirectories = new Set(['.git', 'node_modules', 'dist', 'coverage', '.turbo', '.next', '.cache']);
 const agentSignals = ['AGENTS.md', 'CLAUDE.md', '.cursorrules', '.github/copilot-instructions.md'];
-const packageSignals = ['package.json', 'pnpm-lock.yaml', 'package-lock.json', 'yarn.lock', 'bun.lock', 'bun.lockb'];
+const workspaceSignals = ['pnpm-workspace.yaml'];
+const packageSignals = ['package.json', ...workspaceSignals, 'pnpm-lock.yaml', 'package-lock.json', 'yarn.lock', 'bun.lock', 'bun.lockb'];
 const orderedSignals = ['.git', ...agentSignals, ...packageSignals];
 
 export async function discoverCandidates(root: string, config: DiscoverConfig): Promise<DiscoverReport> {
@@ -31,7 +32,8 @@ export async function discoverCandidates(root: string, config: DiscoverConfig): 
 async function walk(root: string, relativePath: string, depth: number, maxDepth: number): Promise<DiscoveryCandidate[]> {
   const absolutePath = relativePath === '.' ? root : join(root, relativePath);
   const entries = await readdir(absolutePath, { withFileTypes: true });
-  const candidates = candidateFromEntries(relativePath, entries.map((entry) => entry.name));
+  const names = entries.map((entry) => entry.name);
+  const candidates = candidateFromEntries(relativePath, names);
 
   if (depth >= maxDepth) {
     return candidates ? [candidates] : [];

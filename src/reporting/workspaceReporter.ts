@@ -32,6 +32,11 @@ export function renderWorkspaceText(report: WorkspaceReport, options: WorkspaceT
   }
 
   lines.push('Next: inspect each repository with `drctx manifest --root <repo>`.');
+  if (report.reports.length > 1) {
+    lines.push(
+      'Detected multiple candidate roots. For monorepos, inspect package context with `drctx manifest --root <repo-or-package>`.'
+    );
+  }
 
   let emittedFindings = 0;
   let omittedFindings = 0;
