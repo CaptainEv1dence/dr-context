@@ -24,6 +24,8 @@ These rules supersede any conflicting task text below.
 8. Baseline files remain scoped by candidate path. A root baseline suppresses findings only for the `.` candidate unless its `baseline` path points into a child candidate path, preserving current ownership behavior.
 9. Suppressions from root and child configs should both apply to child scans. Child suppressions are additive because suppressions are safety valves, not scan-shaping defaults.
 10. If a child `.drctx.json` is invalid, workspace scan must exit with code `2` and include a usage error naming the candidate-relative config path. Do not silently skip invalid child config.
+11. Child config values are evaluated relative to the candidate root because `runScan()` receives the candidate root. Do not rebase child `include`, `exclude`, suppression `file`, or `baseline` paths to the workspace root before scanning a child candidate.
+12. Parent baselines do not inherit into child candidates. A child candidate uses its own child baseline if present; otherwise it has no baseline-derived suppressions. Root suppressions still apply to child candidates.
 
 ---
 
@@ -38,7 +40,7 @@ Workspace mode, no explicit `--config`:
 | `strict` | Yes | Child replaces parent when defined. |
 | `maxFiles` / `maxFileBytes` / `maxTotalBytes` | Yes | Child replaces each limit when defined. Missing child limit keeps parent value. |
 | `suppressions` | Yes | Child suppressions append after parent suppressions. |
-| `baseline` | No automatic parent inheritance | Each loaded config keeps its own baseline path. Workspace ownership logic decides which candidate receives baseline suppressions. |
+| `baseline` | No automatic parent inheritance | Root baseline applies only to `.`. Child baseline applies only to that child candidate and stays relative to the child root. |
 
 Direct mode:
 
@@ -155,11 +157,18 @@ describe('workspace child config merging', () => {
     ]);
   });
 
-  test('keeps child baseline separate from parent baseline', () => {
+  test('does not inherit parent baseline into child candidates', () => {
     const parent = config({ baselinePath: '.drctx-baseline.json' });
-    const child = config({ baselinePath: 'packages/app/.drctx-baseline.json' });
+    const child = config({});
 
-    expect(mergeWorkspaceChildConfig(parent, child).baselinePath).toBe('packages/app/.drctx-baseline.json');
+    expect(mergeWorkspaceChildConfig(parent, child).baselinePath).toBeUndefined();
+  });
+
+  test('keeps child baseline when child defines one', () => {
+    const parent = config({ baselinePath: '.drctx-baseline.json' });
+    const child = config({ baselinePath: '.drctx-baseline.json' });
+
+    expect(mergeWorkspaceChildConfig(parent, child).baselinePath).toBe('.drctx-baseline.json');
   });
 });
 ```
@@ -183,8 +192,8 @@ import type { LoadedConfig } from './types.js';
 
 export function mergeWorkspaceChildConfig(parent: LoadedConfig, child: LoadedConfig): LoadedConfig {
   const mergedResourceLimits = mergeResourceLimits(parent.resourceLimits, child.resourceLimits);
-  const baselinePath = child.baselinePath ?? parent.baselinePath;
-  const baseline = child.baseline ?? parent.baseline;
+  const baselinePath = child.baselinePath;
+  const baseline = child.baseline;
 
   return {
     include: child.include ?? parent.include,
@@ -192,7 +201,7 @@ export function mergeWorkspaceChildConfig(parent: LoadedConfig, child: LoadedCon
     strict: child.strict ?? parent.strict,
     suppressions: [...(parent.suppressions ?? []), ...(child.suppressions ?? [])],
     resourceLimits: mergedResourceLimits,
-    baselinePath,
+    ...(baselinePath ? { baselinePath } : {}),
     ...(baseline ? { baseline } : {})
   };
 }
@@ -365,7 +374,7 @@ export async function loadWorkspaceCandidateConfig(
     }
 
     return {
-      config: mergeWorkspaceChildConfig(parentConfig, rebaseChildConfig(candidatePath, childConfig)),
+      config: mergeWorkspaceChildConfig(parentConfig, childConfig),
       loadedChildConfigPath: `${candidatePath}/.drctx.json`
     };
   } catch (error) {
@@ -376,22 +385,6 @@ export async function loadWorkspaceCandidateConfig(
   }
 }
 
-function rebaseChildConfig(candidatePath: string, childConfig: LoadedConfig): LoadedConfig {
-  return {
-    ...childConfig,
-    include: rebaseGlobs(candidatePath, childConfig.include),
-    exclude: rebaseGlobs(candidatePath, childConfig.exclude),
-    baselinePath: childConfig.baselinePath ? `${candidatePath}/${childConfig.baselinePath}` : undefined,
-    suppressions: childConfig.suppressions.map((suppression) => ({
-      ...suppression,
-      file: suppression.file ? `${candidatePath}/${suppression.file}` : undefined
-    }))
-  };
-}
-
-function rebaseGlobs(candidatePath: string, globs: string[] | undefined): string[] | undefined {
-  return globs?.map((glob) => `${candidatePath}/${glob}`);
-}
 ```
 
 - [ ] **Step 5: Run resolver tests and verify pass**
@@ -542,10 +535,7 @@ Replace the `mapWithConcurrency` callback in `src/core/workspaceScan.ts` with:
       inheritedAgentInstructionDocs: candidate.path === '.' || !config.inheritParentInstructions ? [] : parentDocs,
       parentAgentInstructionDocs: candidate.path === '.' || config.inheritParentInstructions ? undefined : parentDocs
     });
-    const suppressions = [
-      ...(effectiveCandidateConfig.suppressions ?? []),
-      ...(workspaceBaselineSuppressionsForCandidate(effectiveCandidateConfig, candidate.path)?.suppressions ?? [])
-    ];
+    const suppressions = [...(effectiveCandidateConfig.suppressions ?? []), ...baselineSuppressionsFromConfig(effectiveCandidateConfig)];
     return {
       path: candidate.path,
       report: withSuppressionResult(report, applySuppressions(report.findings, suppressions))
@@ -556,24 +546,15 @@ Replace the `mapWithConcurrency` callback in `src/core/workspaceScan.ts` with:
 Add helper near the bottom of the file:
 
 ```ts
-function workspaceBaselineSuppressionsForCandidate(config: LoadedConfig, candidatePath: string) {
-  if (!config.baselinePath || !config.baseline) {
-    return undefined;
-  }
-
-  const baselineOwner = config.baselinePath.includes('/') ? config.baselinePath.split('/').slice(0, -1).join('/') : '.';
-  if (baselineOwner !== candidatePath) {
-    return undefined;
-  }
-
-  return {
-    suppressions: config.baseline.findings.map((entry) => ({
+function baselineSuppressionsFromConfig(config: LoadedConfig) {
+  return (
+    config.baseline?.findings.map((entry) => ({
       id: entry.id,
       file: entry.file,
       fingerprint: entry.fingerprint,
       reason: entry.reason
-    }))
-  };
+    })) ?? []
+  );
 }
 ```
 
