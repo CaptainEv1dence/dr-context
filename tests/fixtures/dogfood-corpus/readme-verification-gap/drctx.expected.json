@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "readme-verification-gap",
+  "description": "Synthetic repo where CI has local verification but README omits how to run it.",
+  "before": {
+    "root": "before",
+    "findingIds": ["missing-readme-verification"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

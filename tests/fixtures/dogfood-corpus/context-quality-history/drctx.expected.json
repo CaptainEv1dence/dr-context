@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "context-quality-history",
+  "description": "Synthetic repo with many dated superpowers history files and no current index.",
+  "before": {
+    "root": "before",
+    "findingIds": ["unindexed-context-history"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

@@ -19,7 +19,8 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     limits: config.resourceLimits,
     returnResource: true
   });
-  const files = workspace.files;
+  const files = workspace.files.filter((file) => !isContextHistoryFile(file.path));
+  const contextHistoryFiles = workspace.files.filter((file) => isContextHistoryFile(file.path));
   const packageManagers = extractPackageManagers(files);
   const scripts = extractPackageJsonScripts(files);
   const commandMentions = extractMarkdownCommands(files);
@@ -43,6 +44,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],
     localPathMentions,
     files,
+    contextHistoryFiles,
     filePaths: files.map((file) => file.path),
     keyDirectories: [],
     scanResource: workspace.resource
@@ -94,6 +96,10 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
       workflowPrompts: workflowPrompts.length
     }
   };
+}
+
+function isContextHistoryFile(path: string): boolean {
+  return /^docs\/superpowers\/(?:plans|specs|reports)\/[^/]+\.mdx?$/i.test(path);
 }
 
 function targetInstructionIncludes(targetPath: string | undefined): string[] {

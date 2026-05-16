@@ -21,6 +21,9 @@ describe('readWorkspace', () => {
       'docs/adr/0001-example.md',
       'docs/CONTRIBUTING.md',
       'docs/SECURITY.md',
+      'docs/superpowers/current.md',
+      'docs/superpowers/plans/2026-05-01-plan.md',
+      'docs/superpowers/README.md',
       'justfile',
       'Makefile',
       'package.json',
@@ -37,5 +40,11 @@ describe('readWorkspace', () => {
 
     expect(files.map((file) => file.path)).toContain('src/ignored.ts');
     expect(files.map((file) => file.path)).not.toContain('AGENTS.md');
+  });
+
+  test('does not recursively discover deep superpowers history by default', async () => {
+    const files = await readWorkspace(fixtureRoot);
+
+    expect(files.map((file) => file.path)).not.toContain('docs/superpowers/plans/archive/2026-04-01-plan.md');
   });
 });

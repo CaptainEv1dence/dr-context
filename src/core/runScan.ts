@@ -19,7 +19,8 @@ import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 export async function runScan(root: string, config: EffectiveConfig): Promise<Report> {
   const workspace = await readWorkspace(root, { include: config.include, exclude: config.exclude, limits: config.resourceLimits, returnResource: true });
-  const files = workspace.files;
+  const files = workspace.files.filter((file) => !isContextHistoryFile(file.path));
+  const contextHistoryFiles = workspace.files.filter((file) => isContextHistoryFile(file.path));
   const filePathInventory = await listWorkspaceFilePaths(root, { maxFiles: config.resourceLimits?.maxFiles ?? 500 });
   const filePaths = filePathInventory.paths;
   const localPathMentions = await markExistingLocalPaths(root, extractLocalPathMentions(files));
@@ -37,6 +38,7 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],
     localPathMentions,
     files,
+    contextHistoryFiles,
     filePaths,
     keyDirectories: [],
     scanResource: workspace.resource
@@ -53,6 +55,10 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     summary: summarizeFindings(findings),
     scanResource: workspace.resource.hitLimit ? workspace.resource : undefined
   };
+}
+
+function isContextHistoryFile(path: string): boolean {
+  return /^docs\/superpowers\/(?:plans|specs|reports)\/[^/]+\.mdx?$/i.test(path);
 }
 
 function inheritedInstructionFiles(facts: RepoFacts): Report['inheritedInstructionFiles'] {

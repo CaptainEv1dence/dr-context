@@ -4,9 +4,11 @@ export const hiddenArchitectureDocCheck: Check = {
   id: 'hidden-architecture-doc',
   run(context: CheckContext): Finding[] {
     return context.facts.architectureDocs.flatMap((doc) => {
-      if (isMentionedByAgentInstructions(doc, context.facts.agentInstructionDocs)) {
+      if (isExactPathMentionedByAgentInstructions(doc, context.facts.agentInstructionDocs)) {
         return [];
       }
+
+      const genericReference = genericArchitectureReference(context.facts.agentInstructionDocs);
 
       return [
         {
@@ -22,27 +24,50 @@ export const hiddenArchitectureDocCheck: Check = {
               message: `${doc.path} appears to be an architecture source of truth.`,
               source: doc.source
             },
-            {
-              kind: 'agent-instructions',
-              message: `Agent-visible instructions do not mention ${doc.path}.`,
-              source: firstInstructionSource(context.facts.agentInstructionDocs)
-            }
+            genericReference
+              ? {
+                  kind: 'generic-architecture-reference',
+                  message: `Agent instructions mention architecture docs generically but do not name ${doc.path}.`,
+                  source: genericReference
+                }
+              : {
+                  kind: 'agent-instructions',
+                  message: `Agent-visible instructions do not mention ${doc.path}.`,
+                  source: firstInstructionSource(context.facts.agentInstructionDocs)
+                }
           ],
-          suggestion: `Mention ${doc.path} in agent-visible first-read instructions.`
+          suggestion: genericReference
+            ? `Mention ${doc.path} exactly in agent-visible first-read instructions.`
+            : `Mention ${doc.path} in agent-visible first-read instructions.`
         }
       ];
     });
   }
 };
 
-function isMentionedByAgentInstructions(doc: ArchitectureDocFact, instructionDocs: AgentInstructionDocFact[]): boolean {
+function isExactPathMentionedByAgentInstructions(doc: ArchitectureDocFact, instructionDocs: AgentInstructionDocFact[]): boolean {
   const path = doc.path.toLowerCase();
-  const basename = path.split('/').at(-1) ?? path;
 
   return instructionDocs.some((instructionDoc) => {
     const content = instructionDoc.content.toLowerCase();
-    return content.includes(path) || content.includes(basename);
+    return content.includes(path);
   });
+}
+
+function genericArchitectureReference(instructionDocs: AgentInstructionDocFact[]) {
+  for (const instructionDoc of instructionDocs) {
+    const lines = instructionDoc.content.split('\n');
+    const index = lines.findIndex((line) => /\barchitecture(?:\s+docs?)?\b/i.test(line));
+    if (index !== -1) {
+      return {
+        file: instructionDoc.path,
+        line: index + 1,
+        text: lines[index].trim()
+      };
+    }
+  }
+
+  return undefined;
 }
 
 function firstInstructionSource(instructionDocs: AgentInstructionDocFact[]) {

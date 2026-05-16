@@ -296,6 +296,7 @@ export type RepoFacts = {
   inheritedAgentInstructionDocs: AgentInstructionDocFact[];
   localPathMentions: LocalPathMention[];
   files: RawFile[];
+  contextHistoryFiles: RawFile[];
   filePaths: string[];
   keyDirectories: string[];
   scanResource: ScanResourceSummary;

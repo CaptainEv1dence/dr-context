@@ -40,4 +40,42 @@ describe('hidden architecture doc scan', () => {
 
     expect(report.findings.filter((finding) => finding.id === 'hidden-architecture-doc')).toHaveLength(0);
   });
+
+  test('reports generic architecture mentions without exact architecture doc path', async () => {
+    const report = await runScan(join(fixturesRoot, 'hidden-architecture-generic-mention'), { strict: false, include: [], exclude: [] });
+
+    const findings = report.findings.filter((finding) => finding.id === 'hidden-architecture-doc');
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      primarySource: { file: 'docs/ARCHITECTURE.md', line: 1, text: '# Architecture' },
+      suggestion: 'Mention docs/ARCHITECTURE.md exactly in agent-visible first-read instructions.'
+    });
+    expect(findings[0].evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'generic-architecture-reference',
+          message: 'Agent instructions mention architecture docs generically but do not name docs/ARCHITECTURE.md.',
+          source: { file: 'AGENTS.md', line: 3, text: 'Read the architecture before changing core behavior.' }
+        })
+      ])
+    );
+  });
+
+  test('treats architecture-only wording as a generic mention, not an exact path mention', async () => {
+    const report = await runScan(join(fixturesRoot, 'hidden-architecture-generic-mention'), {
+      strict: false,
+      include: [],
+      exclude: []
+    });
+
+    const finding = report.findings.find((item) => item.id === 'hidden-architecture-doc');
+    expect(finding?.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'generic-architecture-reference',
+          source: expect.objectContaining({ text: 'Read the architecture before changing core behavior.' })
+        })
+      ])
+    );
+  });
 });

@@ -92,6 +92,20 @@ Suggested fix: replace the agent instruction command with the canonical package-
 
 Related docs/examples: README launch demo, `docs/demo.md`, `docs/github-action.md`.
 
+### `missing-readme-verification`
+
+Default severity: info.
+
+Confidence policy: medium; README completeness is inferred from CI verification commands and README wording.
+
+When it fires: README.md exists, CI has a local verification command, and README.md does not include recognizable verification wording or the CI-backed command.
+
+Evidence source shape: readme and ci-command entries showing the missing README guidance and the CI-backed local command.
+
+Suggested fix: add a README verification section with the local CI-backed command.
+
+Related docs/examples: `docs/triage-findings.md`.
+
 ### `agent-doc-command-drift`
 
 Default severity: warning.
@@ -172,11 +186,11 @@ Default severity: warning.
 
 Confidence policy: high; based on discovered architecture docs and agent instruction content.
 
-When it fires: an architecture source of truth exists but agent instructions do not mention its path or basename.
+When it fires: an architecture source of truth exists but agent instructions do not mention its exact path.
 
-Evidence source shape: architecture-doc and agent-instructions entries.
+Evidence source shape: architecture-doc and agent-instructions or generic-architecture-reference entries.
 
-Suggested fix: mention the architecture doc in agent-visible first-read instructions.
+Suggested fix: mention the exact architecture doc path in agent-visible first-read instructions.
 
 Related docs/examples: `docs/triage-findings.md`.
 
@@ -191,6 +205,20 @@ When it fires: agent instructions reference a local file path that does not exis
 Evidence source shape: missing-local-file with the instruction source span.
 
 Suggested fix: update or remove the missing file reference.
+
+Related docs/examples: `docs/triage-findings.md`.
+
+### `unindexed-context-history`
+
+Default severity: info.
+
+Confidence policy: medium; many dated context files suggest navigation risk but may be intentional.
+
+When it fires: at least eight dated files exist under `docs/superpowers/plans`, `docs/superpowers/specs`, or `docs/superpowers/reports`, and no `docs/superpowers` README, index, or current file contains status markers.
+
+Evidence source shape: dated-context-history with the count and a representative history file source.
+
+Suggested fix: add `docs/superpowers/README.md` or `docs/superpowers/current.md` with active, current, done, shipped, or superseded markers.
 
 Related docs/examples: `docs/triage-findings.md`.
 

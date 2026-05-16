@@ -14,6 +14,14 @@ Use each finding's ID, severity, confidence, evidence, and suggested fix to deci
 
 This order keeps agents away from stale commands, hidden safety rules, and runtime mismatches before spending time on lower-risk context polish.
 
+## Context Quality Findings
+
+`unindexed-context-history` means Dr. Context found enough dated `docs/superpowers` plans, specs, or reports that agents may struggle to identify what is current. Add `docs/superpowers/README.md`, `docs/superpowers/index.md`, or `docs/superpowers/current.md` with explicit status markers such as active, current, done, shipped, superseded, or superseded_by.
+
+`missing-readme-verification` means README.md exists, CI has a local verification command, and the README does not tell humans or agents how to run a recognizable local check. Add a short verification section with the same local command CI uses.
+
+For `hidden-architecture-doc`, an exact path such as `docs/ARCHITECTURE.md` is the lowest-noise fix. Generic wording such as "read the architecture docs" is useful context, but it still leaves agents guessing which file is authoritative.
+
 ## Health Score
 
 `summary.health` summarizes the current visible findings after baseline and suppression filtering.

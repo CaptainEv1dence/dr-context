@@ -47,9 +47,9 @@ export const findingReferences: FindingReference[] = [
     category: 'Context coverage and policy visibility',
     severityPolicy: 'Warning when an architecture source of truth exists but is hidden from agent-visible first-read instructions.',
     confidencePolicy: 'High confidence because the check uses discovered architecture docs and agent instruction content.',
-    whenItFires: 'An architecture source of truth exists, but agent instructions do not mention its path or basename.',
-    evidenceShape: 'Architecture-doc and agent-instructions entries showing the hidden architecture source and visible instructions.',
-    suggestedFix: 'Mention the architecture doc in agent-visible first-read instructions so agents load the source of truth.',
+    whenItFires: 'An architecture source of truth exists, but agent instructions do not mention its exact path.',
+    evidenceShape: 'Architecture-doc and agent-instructions or generic-architecture-reference entries showing the hidden architecture source and visible instructions.',
+    suggestedFix: 'Mention the exact architecture doc path in agent-visible first-read instructions so agents load the source of truth.',
     relatedDocs: ['docs/triage-findings.md']
   },
   {
@@ -110,6 +110,16 @@ export const findingReferences: FindingReference[] = [
     whenItFires: 'Package metadata points to generated outputs but agent-visible instructions do not say whether to edit generated files directly.',
     evidenceShape: 'Generated-artifact-metadata evidence with package metadata source for the generated output declaration.',
     suggestedFix: 'Document the generated-file editing boundary in agent-visible instructions before agents modify those outputs.',
+    relatedDocs: ['docs/triage-findings.md']
+  },
+  {
+    id: 'missing-readme-verification',
+    category: 'Commands and verification consistency',
+    severityPolicy: 'Info when README.md exists but omits recognizable local verification guidance already present in CI.',
+    confidencePolicy: 'Medium confidence because README completeness is inferred from CI verification commands and README wording.',
+    whenItFires: 'README.md exists, CI has at least one local verification command, and README.md does not mention that command or its package-manager alias.',
+    evidenceShape: 'Readme and ci-command entries showing the README source and the local CI-backed command.',
+    suggestedFix: 'Add a README verification section that names the local CI-backed verification command.',
     relatedDocs: ['docs/triage-findings.md']
   },
   {
@@ -231,6 +241,16 @@ export const findingReferences: FindingReference[] = [
     evidenceShape: 'Command-mention evidence for the stale command and package-json-scripts evidence for available script names.',
     suggestedFix: 'Add the missing script, remove the stale command, or update the command to an available script.',
     relatedDocs: ['docs/demo.md', 'docs/triage-findings.md']
+  },
+  {
+    id: 'unindexed-context-history',
+    category: 'Context coverage and policy visibility',
+    severityPolicy: 'Info when many dated docs/superpowers history files exist without a current index.',
+    confidencePolicy: 'Medium confidence because dated history volume suggests navigation risk but may be intentional.',
+    whenItFires: 'At least eight dated files exist under docs/superpowers/plans, specs, or reports and no docs/superpowers README, index, or current file has status markers.',
+    evidenceShape: 'Dated-context-history evidence with the count and a representative history file source.',
+    suggestedFix: 'Add docs/superpowers/README.md or docs/superpowers/current.md with active, done, shipped, or superseded markers.',
+    relatedDocs: ['docs/triage-findings.md']
   },
   {
     id: 'unsafe-agent-instructions',

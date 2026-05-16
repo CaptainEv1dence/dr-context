@@ -1,9 +1,11 @@
 import { agentDocCommandDriftCheck } from '../checks/agentDocCommandDrift.js';
 import { ciDocCommandMismatchCheck } from '../checks/ciDocCommandMismatch.js';
+import { contextHistoryCheck } from '../checks/contextHistory.js';
 import { coverageSignalsCheck } from '../checks/coverageSignals.js';
 import { hiddenArchitectureDocCheck } from '../checks/hiddenArchitectureDoc.js';
 import { missingVerificationCommandCheck } from '../checks/missingVerificationCommand.js';
 import { packageManagerMismatchCheck } from '../checks/packageManagerMismatch.js';
+import { readmeCompletenessCheck } from '../checks/readmeCompleteness.js';
 import { hiddenPolicyVisibilityChecks, missingGeneratedFileBoundaryCheck } from '../checks/policyVisibility.js';
 import { duplicateInstructionBlockCheck, oversizedInstructionFileCheck } from '../checks/ruleQuality.js';
 import { runtimeDriftCheck } from '../checks/runtimeDrift.js';
@@ -17,10 +19,12 @@ import type { Check, CheckContext, Finding } from './types.js';
 
 export const checks: Check[] = [
   coverageSignalsCheck,
+  contextHistoryCheck,
   runtimeDriftCheck,
   packageManagerMismatchCheck,
   verificationCommandConflictCheck,
   agentDocCommandDriftCheck,
+  readmeCompletenessCheck,
   staleFileReferenceCheck,
   unsafeAgentInstructionsCheck,
   unsafeWorkflowPromptCheck,

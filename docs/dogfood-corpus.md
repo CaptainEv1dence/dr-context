@@ -46,6 +46,12 @@ corepack pnpm exec vitest run tests/dogfoodCorpus.test.ts
 
 The test discovers corpus cases, scans each declared root, and compares the actual finding IDs to the expected list. This makes the examples useful as both launch material and regression coverage.
 
+## Current cases
+
+- `package-manager-drift` preserves the shape of stale package-manager instructions.
+- `context-quality-history` preserves the shape of many dated plan/spec/report files without a current-context index.
+- `readme-verification-gap` preserves the shape of README onboarding that omits a CI-backed local verification command.
+
 ## Privacy rules
 
 Public docs and fixtures must stay synthetic or sanitized.

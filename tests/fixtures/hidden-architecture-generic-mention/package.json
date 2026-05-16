@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "test": "vitest run"
+  },
+  "packageManager": "pnpm@10.0.0"
+}
