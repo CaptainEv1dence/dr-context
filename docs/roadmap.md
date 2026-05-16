@@ -73,6 +73,10 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - `drctx init --root .` previews starter context files without writing anything.
   - `drctx init --root . --write` creates only missing `.drctx.json` and `AGENTS.md` starter files.
   - Init never overwrites existing files, skips root `AGENTS.md` when any recognized instruction surface already exists, and performs no network or LLM calls.
+- 0.3.14 child config inheritance:
+  - Workspace scans load candidate `.drctx.json` files when no explicit `--config` is passed.
+  - Root config values provide defaults for child candidates, while child configs can replace include/exclude/strict/resource limits.
+  - Root and child suppressions are additive, and baseline ownership remains candidate-scoped.
 
 ## Next
 

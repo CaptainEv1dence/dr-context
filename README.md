@@ -160,7 +160,7 @@ Known findings matched by the baseline are suppressed, so existing accepted cont
 drctx check --root . --config .drctx.json --show-suppressed
 ```
 
-Workspace limitation: the root config is shared across workspace candidates. A baseline entry only applies to findings owned by that candidate path, and child config inheritance is not implemented yet.
+Workspace config: when `drctx check --workspace` discovers package roots, each candidate can use its own `.drctx.json`. Root config values provide defaults for child candidates, child configs replace include/exclude/strict/resource limits when set, and suppressions are additive. Explicit `--config` remains authoritative and is used for every candidate.
 
 ### Large repositories and monorepos
 
