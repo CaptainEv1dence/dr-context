@@ -465,10 +465,23 @@ describe('drctx CLI', () => {
       'packages/app/.drctx.json': JSON.stringify({ strict: true })
     });
 
-    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--strict', '--root', root, '--max-depth', '3']);
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--root', root, '--max-depth', '3']);
 
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('packages/app: 0 error(s), 1 warning(s), 0 info(s)');
+  });
+
+  test('workspace JSON does not expose internal candidate strict metadata', async () => {
+    const root = await makeSyntheticRepo({
+      'packages/app/package.json': '{}',
+      'packages/app/.drctx.json': JSON.stringify({ strict: true })
+    });
+
+    const result = await runCli(['node', 'drctx', 'check', '--workspace', '--json', '--root', root, '--max-depth', '3']);
+    const output = JSON.parse(result.stdout);
+
+    expect(result.exitCode).toBe(0);
+    expect(output.reports.find((entry: { path: string }) => entry.path === 'packages/app')).not.toHaveProperty('strict');
   });
 
   test('workspace scans keep explicit --config authoritative over child config', async () => {

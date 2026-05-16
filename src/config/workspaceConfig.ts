@@ -27,7 +27,7 @@ export async function loadWorkspaceCandidateConfig(
   try {
     const childConfig = await loadOptionalConfigAtRoot(childRoot);
     if (!childConfig) {
-      return { config: parentConfig };
+      return { config: mergeWorkspaceChildConfig(parentConfig, { suppressions: [] }) };
     }
 
     return {

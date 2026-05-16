@@ -82,7 +82,6 @@ function redactWorkspaceReport(report: WorkspaceReport, options: WorkspaceJsonOp
     root: '<requested-root>',
     reports: report.reports.map((entry) => ({
       path: entry.path,
-      strict: entry.strict,
       report: redactScanReport(entry.report, options)
     }))
   };

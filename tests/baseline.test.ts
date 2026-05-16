@@ -117,7 +117,7 @@ describe('baseline command', () => {
     const baselinePath = join(root, 'packages/api/.drctx-baseline.json');
 
     await runCli(['node', 'dr-context', 'baseline', '--root', join(root, 'packages/api'), '--output', baselinePath]);
-    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: 'packages/api/.drctx-baseline.json' }));
+    await writeFile(join(root, 'packages/api/.drctx.json'), JSON.stringify({ baseline: '.drctx-baseline.json' }));
 
     const result = await runCli(['node', 'dr-context', 'check', '--workspace', '--json', '--show-suppressed', '--root', root]);
     const report = JSON.parse(result.stdout);
@@ -142,7 +142,7 @@ describe('baseline command', () => {
     const baselinePath = join(root, 'packages/api/.drctx-baseline.json');
 
     await runCli(['node', 'dr-context', 'baseline', '--root', join(root, 'packages/api'), '--output', baselinePath]);
-    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: 'packages/api/.drctx-baseline.json' }));
+    await writeFile(join(root, 'packages/api/.drctx.json'), JSON.stringify({ baseline: '.drctx-baseline.json' }));
 
     const result = await runCli(['node', 'dr-context', 'check', '--workspace', '--json', '--show-suppressed', '--root', root]);
     const report = JSON.parse(result.stdout);
@@ -156,6 +156,27 @@ describe('baseline command', () => {
     expect(apiReport.suppressedFindings).toHaveLength(1);
     expect(webReport.findings).toHaveLength(1);
     expect(webReport.summary.suppressed).toBe(0);
+  });
+
+  test('workspace root baseline does not suppress child candidate findings', async () => {
+    const root = await makeRepo({
+      ...repoWithWarning,
+      'packages/api/AGENTS.md': '# API package\n',
+      'packages/api/package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"lint":"eslint ."}}',
+      'packages/api/pnpm-lock.yaml': "lockfileVersion: '9.0'\n"
+    });
+    const baselinePath = join(root, '.drctx-baseline.json');
+
+    await runCli(['node', 'dr-context', 'baseline', '--root', root, '--output', baselinePath]);
+    await writeFile(join(root, '.drctx.json'), JSON.stringify({ baseline: '.drctx-baseline.json' }));
+
+    const result = await runCli(['node', 'dr-context', 'check', '--workspace', '--json', '--show-suppressed', '--root', root]);
+    const report = JSON.parse(result.stdout);
+    const childReport = report.reports.find((entry: { path: string }) => entry.path === 'packages/api').report;
+
+    expect(result.exitCode).toBe(0);
+    expect(childReport.findings).toHaveLength(1);
+    expect(childReport.suppressedFindings ?? []).toHaveLength(0);
   });
 
   test('SARIF omits suppressed findings by default', async () => {
