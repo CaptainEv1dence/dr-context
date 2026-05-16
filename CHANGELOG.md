@@ -4,6 +4,17 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.14 - 2026-05-17
+
+### Added
+
+- Add workspace child config inheritance so discovered package roots can use their own `.drctx.json` files when no explicit `--config` is passed.
+
+### Changed
+
+- Let root workspace config values provide candidate defaults while child configs replace include, exclude, strict, and resource-limit settings when present.
+- Apply root and child suppressions additively while keeping baseline entries scoped to the candidate that owns them.
+
 ## 0.3.13 - 2026-05-17
 
 ### Added
