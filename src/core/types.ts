@@ -318,18 +318,12 @@ export type EffectiveConfig = {
   include: string[];
   exclude: string[];
   suppressions?: FindingSuppression[];
-  workspaceBaselineSuppressions?: WorkspaceBaselineSuppressions;
   targetPath?: string;
   inheritParentInstructions?: boolean;
   inheritedAgentInstructionDocs?: AgentInstructionDocFact[];
   parentAgentInstructionDocs?: AgentInstructionDocFact[];
   resourceLimits?: Partial<import('../io/resourceLimits.js').WorkspaceResourceLimits>;
   explicitConfig?: boolean;
-};
-
-export type WorkspaceBaselineSuppressions = {
-  candidatePath: string;
-  suppressions: FindingSuppression[];
 };
 
 export type CheckContext = {
