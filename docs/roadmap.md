@@ -63,18 +63,24 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Human-readable first-run hints for clean scans and coverage findings.
   - Workspace non-summary text hint for inspecting each repository manifest.
   - JSON, SARIF, and exit-code behavior kept stable for automation.
+- 0.3.12 dogfood context hardening:
+  - Resource-safe context reads and bounded workspace inventory for large repositories.
+  - Report-level scan resource diagnostics without changing finding IDs, SARIF, health, or exit-code semantics.
+  - Monorepo package-root discovery guidance for package-level manifests and checks.
+  - Context-quality checks for unindexed historical context, README verification guidance, exact architecture-doc references, parent policy visibility, and live-operation boundaries.
+  - Expanded generated-output boundary detection with false-positive guards for bare build commands.
 
 ## Next
 
-- GitHub Action reliability gate:
-  - `docs/superpowers/plans/2026-05-15-0.3.10-github-action-reliability.md`.
-  - Lock the current composite Action contract with tests before any bundling work.
-  - Bundled JavaScript Action remains a candidate only if it preserves current inputs, scanner semantics, SARIF, annotations, summary, exit codes, package release flow, package contents, and local-action smoke tests.
-  - Bundling requires package-content checks and local Action smoke tests before implementation.
-  - Bundled Action remains deferred until a separate implementation plan proves package contents, local Action smoke, Windows/Linux path behavior, and SARIF parity.
 - Pre-0.4 feature bets decomposition:
   - `docs/superpowers/plans/2026-05-15-pre-0.4-feature-bets-decomposition.md`.
-  - Use after the Action reliability gate to decide the next product bet.
+  - Use after 0.3.12 published dogfood to decide the next product bet.
+- 0.3.12 published dogfood:
+  - Re-run the published package against the sanitized dogfood set used for the hardening plan.
+  - Record only aggregate, public-safe outcomes and false-positive/false-negative themes.
+- GitHub Action bundled implementation remains deferred:
+  - Current composite Action contract is locked by tests.
+  - Bundled JavaScript Action needs a separate implementation plan proving package contents, local Action smoke, Windows/Linux path behavior, and SARIF parity.
 - Deferred context health work for 0.4+:
   - Score badges.
   - Persisted score trends, snapshots, and history.

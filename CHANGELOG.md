@@ -4,6 +4,19 @@ All notable changes to Dr. Context will be documented in this file.
 
 The format follows Keep a Changelog-style sections. The project has not published a stable release yet.
 
+## 0.3.12 - 2026-05-16
+
+### Added
+
+- Add resource-safe scanning limits and scan resource diagnostics so large repositories fail with findings instead of heap exhaustion.
+- Add monorepo package-root discovery guidance for workspace scans.
+- Add conservative context-quality checks for unindexed historical context, README verification gaps, exact architecture-doc references, parent policy visibility, and missing live-operation boundaries.
+
+### Changed
+
+- Keep historical `docs/superpowers/plans`, `specs`, and `reports` files out of active context checks unless indexed as current context.
+- Expand generated-output boundary detection for common generated/report directories while avoiding bare build-command false positives.
+
 ## 0.3.11 - 2026-05-16
 
 ### Added
