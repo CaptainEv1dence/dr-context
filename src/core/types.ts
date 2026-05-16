@@ -152,6 +152,13 @@ export type ManifestInstructionFile = {
   source: SourceSpan;
 };
 
+export type ManifestConfigFile = {
+  path: string;
+  type: 'mcp';
+  scope: 'repo';
+  source: SourceSpan;
+};
+
 export type EffectiveInstructionFile = ManifestInstructionFile & {
   inherited: boolean;
   inheritedFrom?: 'workspace-parent';
@@ -186,6 +193,7 @@ export type Manifest = {
   targetPath?: string;
   packageManager?: ManifestPackageManager;
   agentInstructionFiles: ManifestInstructionFile[];
+  configFiles: ManifestConfigFile[];
   effectiveInstructionFiles?: EffectiveInstructionFile[];
   verificationCommands: ManifestVerificationCommand[];
   firstReads: ManifestFirstRead[];
@@ -193,6 +201,7 @@ export type Manifest = {
   workflowPrompts: WorkflowPrompt[];
   summary: {
     agentInstructionFiles: number;
+    configFiles: number;
     effectiveInstructionFiles?: number;
     verificationCommands: number;
     firstReads: number;

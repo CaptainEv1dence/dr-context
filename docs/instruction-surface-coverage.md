@@ -15,16 +15,24 @@ The source of truth for recognized instruction-file path patterns is `src/extrac
 
 | Tool family | Scope Dr. Context reports | Exact local path patterns recognized |
 | --- | --- | --- |
-| Vendor-neutral / Codex-style | Repository root and nested instruction files | `AGENTS.md`, `**/AGENTS.md` |
-| Claude-style | Repository root instruction file | `CLAUDE.md` |
-| GitHub Copilot | Repository and path-scoped instruction files | `.github/copilot-instructions.md`, `.github/instructions/**/*.instructions.md` |
+| Vendor-neutral / Codex-style | Repository root, override, and nested instruction files | `AGENTS.md`, `AGENTS.override.md`, `**/AGENTS.md` |
+| Claude-style | Repository root, local, and skill instruction files | `CLAUDE.md`, `CLAUDE.local.md`, `.claude/skills/**/SKILL.md` |
+| GitHub Copilot | Repository, path-scoped, and custom-agent instruction files | `.github/copilot-instructions.md`, `.github/instructions/**/*.instructions.md`, `.github/agents/*.agent.md` |
 | Cursor | Legacy repository rule file and nested rule files | `.cursorrules`, `.cursor/rules/**/*.{md,mdc}` |
 | Gemini-style | Repository root instruction file | `GEMINI.md` |
+| JetBrains Junie | Repository guidelines file | `.junie/guidelines.md` |
+| Jules-style | Repository root instruction file | `JULES.md` |
 | Windsurf | Repository root rule file | `.windsurfrules` |
 | Continue | Nested rule files | `.continue/rules/**/*.{md,mdc}` |
 | Aider | Repository root config files | `.aider.conf.yml`, `.aider.conf.yaml` |
 | Cody | Nested Sourcegraph Cody instruction files | `.sourcegraph/cody/**/*.md` |
 | Explicit guides | Repository root guide file | `AGENT_GUIDE.md` |
+
+`CLAUDE.local.md` and local override files can contain personal or machine-local instructions. Dr. Context recognizes them when present in the working tree, but teams should avoid committing secrets or personal credentials in any instruction surface.
+
+Skill files such as `.claude/skills/**/SKILL.md` are task-level context inventory. Dr. Context recognizes them as local context surfaces, but does not claim every skill is loaded for every source path.
+
+`.mcp.json` is configuration context, not an agent instruction surface. It is reported in manifest/config context only when manifest support is present.
 
 Dr. Context also reports workflow-embedded prompts in `workflowPrompts` when it can extract them from supported local workflow files. These are reported separately because they are prompts embedded in automation, not effective instruction files loaded for a target source path.
 

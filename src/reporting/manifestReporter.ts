@@ -10,6 +10,7 @@ export function renderManifestText(manifest: Manifest): string {
     '',
     `Package manager: ${manifest.packageManager?.name ?? 'unknown'}`,
     `Agent instruction files: ${manifest.summary.agentInstructionFiles}`,
+    `Config files: ${manifest.summary.configFiles}`,
     `Verification commands: ${manifest.summary.verificationCommands}`,
     `CI commands: ${manifest.summary.ciCommands}`,
     `First reads: ${manifest.summary.firstReads}`,
@@ -19,6 +20,13 @@ export function renderManifestText(manifest: Manifest): string {
   lines.push('All instruction inventory:');
   for (const instructionFile of manifest.agentInstructionFiles) {
     lines.push(`- ${instructionFile.path} (${instructionFile.type}, ${instructionFile.scope})`);
+  }
+
+  if (manifest.configFiles.length > 0) {
+    lines.push('', 'Config context:');
+    for (const configFile of manifest.configFiles) {
+      lines.push(`- ${configFile.path} (${configFile.type}, ${configFile.scope})`);
+    }
   }
 
   if (manifest.targetPath && manifest.effectiveInstructionFiles) {

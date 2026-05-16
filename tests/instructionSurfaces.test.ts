@@ -16,6 +16,13 @@ describe('instruction surfaces', () => {
     expect(getInstructionSurfaceForPath('.continue/rules/backend.md')).toMatchObject({ tool: 'unknown', scope: 'nested' });
     expect(getInstructionSurfaceForPath('.aider.conf.yml')).toMatchObject({ tool: 'unknown', scope: 'repo' });
     expect(getInstructionSurfaceForPath('.sourcegraph/cody/context.md')).toMatchObject({ tool: 'unknown', scope: 'nested' });
+    expect(getInstructionSurfaceForPath('.github/agents/release-agent.agent.md')).toMatchObject({ tool: 'copilot', scope: 'repo' });
+    expect(getInstructionSurfaceForPath('AGENTS.override.md')).toMatchObject({ tool: 'agents', scope: 'repo' });
+    expect(getInstructionSurfaceForPath('CLAUDE.local.md')).toMatchObject({ tool: 'claude', scope: 'repo' });
+    expect(getInstructionSurfaceForPath('.junie/guidelines.md')).toMatchObject({ tool: 'unknown', scope: 'repo' });
+    expect(getInstructionSurfaceForPath('JULES.md')).toMatchObject({ tool: 'unknown', scope: 'repo' });
+    expect(getInstructionSurfaceForPath('.claude/skills/release/SKILL.md')).toMatchObject({ tool: 'claude', scope: 'nested' });
+    expect(getInstructionSurfaceForPath('.mcp.json')).toBeUndefined();
   });
 
   test('exports globs for workspace discovery', () => {
@@ -28,9 +35,16 @@ describe('instruction surfaces', () => {
         '.github/instructions/**/*.instructions.md',
         '.cursor/rules/**/*.{md,mdc}',
         'GEMINI.md',
-        'AGENT_GUIDE.md'
+        'AGENT_GUIDE.md',
+        '.github/agents/*.agent.md',
+        'AGENTS.override.md',
+        'CLAUDE.local.md',
+        '.junie/guidelines.md',
+        'JULES.md',
+        '.claude/skills/**/SKILL.md'
       ])
     );
+    expect(instructionSurfaceGlobs).not.toContain('.mcp.json');
   });
 
   test('extracts instruction docs with tool and scope metadata', () => {

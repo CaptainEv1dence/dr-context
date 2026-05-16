@@ -73,6 +73,39 @@ describe('buildManifest', () => {
     );
   });
 
+  test('includes newer instruction surfaces in manifest entries', async () => {
+    const root = await makeRepo({
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      'AGENTS.md': 'Run `pnpm test`.',
+      'AGENTS.override.md': 'Prefer focused tests.',
+      'CLAUDE.local.md': 'Use local scratch outside the repo.',
+      '.github/agents/release-agent.agent.md': 'Prepare release notes.',
+      '.junie/guidelines.md': 'Use concise implementation notes.',
+      'JULES.md': 'Keep changes small.',
+      '.claude/skills/release/SKILL.md': '# Release skill',
+      '.mcp.json': '{"servers":{}}'
+    });
+
+    const manifest = await buildManifest(root, { include: [], exclude: [], strict: false });
+
+    expect(manifest.agentInstructionFiles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: 'AGENTS.override.md', type: 'agents', scope: 'repo' }),
+        expect.objectContaining({ path: 'CLAUDE.local.md', type: 'claude', scope: 'repo' }),
+        expect.objectContaining({ path: '.github/agents/release-agent.agent.md', type: 'copilot', scope: 'repo' }),
+        expect.objectContaining({ path: '.junie/guidelines.md', type: 'unknown', scope: 'repo' }),
+        expect.objectContaining({ path: 'JULES.md', type: 'unknown', scope: 'repo' }),
+        expect.objectContaining({ path: '.claude/skills/release/SKILL.md', type: 'claude', scope: 'nested' })
+      ])
+    );
+    expect(manifest.agentInstructionFiles).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: '.mcp.json' })])
+    );
+    expect(manifest.configFiles).toEqual([
+      expect.objectContaining({ path: '.mcp.json', type: 'mcp', scope: 'repo' })
+    ]);
+  });
+
   test('includes missing first-read references from agent docs', async () => {
     const root = await makeRepo({
       'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',

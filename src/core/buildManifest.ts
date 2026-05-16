@@ -3,6 +3,7 @@ import { extractArchitectureDocs } from '../extractors/architectureDocs.js';
 import { extractCiCommands } from '../extractors/ciCommands.js';
 import { extractLocalPathMentions } from '../extractors/localPathMentions.js';
 import { extractMarkdownCommands } from '../extractors/markdownCommands.js';
+import { extractMcpConfigFiles } from '../extractors/mcpConfigFiles.js';
 import { extractPackageJsonScripts } from '../extractors/packageJsonScripts.js';
 import { extractPackageManagers } from '../extractors/packageManagers.js';
 import { extractWorkflowPrompts } from '../extractors/workflowPrompts.js';
@@ -28,6 +29,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
   const verificationCiCommands = ciCommands.filter((command) => command.classification === 'verification');
   const architectureDocs = extractArchitectureDocs(files);
   const agentInstructionDocs = extractAgentInstructionDocs(files);
+  const configFiles = extractMcpConfigFiles(files);
   const localPathMentions = extractLocalPathMentions(files);
   const workflowPrompts = extractWorkflowPrompts(files);
   const facts: RepoFacts = {
@@ -83,6 +85,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
       metadata: doc.metadata,
       source: doc.source
     })),
+    configFiles,
     verificationCommands: scriptCommands,
     effectiveInstructionFiles: effectiveContext?.instructionFiles,
     firstReads,
@@ -90,6 +93,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     workflowPrompts,
     summary: {
       agentInstructionFiles: agentInstructionDocs.length,
+      configFiles: configFiles.length,
       effectiveInstructionFiles: effectiveContext?.instructionFiles.length,
       verificationCommands: scriptCommands.length,
       firstReads: firstReads.length,
