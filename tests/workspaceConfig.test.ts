@@ -1,9 +1,24 @@
 import { describe, expect, test } from 'vitest';
 import { mergeWorkspaceChildConfig } from '../src/config/mergeConfig.js';
 import type { LoadedConfig } from '../src/config/types.js';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { loadWorkspaceCandidateConfig } from '../src/config/workspaceConfig.js';
 
 function config(input: Partial<LoadedConfig>): LoadedConfig {
   return { suppressions: [], ...input };
+}
+
+async function makeRepo(files: Record<string, string>): Promise<string> {
+  const root = join(tmpdir(), `drctx-workspace-config-${crypto.randomUUID()}`);
+  await mkdir(root, { recursive: true });
+  for (const [path, content] of Object.entries(files)) {
+    const fullPath = join(root, path);
+    await mkdir(join(fullPath, '..'), { recursive: true });
+    await writeFile(fullPath, content);
+  }
+  return root;
 }
 
 describe('workspace child config merging', () => {
@@ -68,5 +83,45 @@ describe('workspace child config merging', () => {
     const child = config({ baselinePath: '.drctx-baseline.json' });
 
     expect(mergeWorkspaceChildConfig(parent, child).baselinePath).toBe('.drctx-baseline.json');
+  });
+});
+
+describe('loadWorkspaceCandidateConfig', () => {
+  test('loads and merges child .drctx.json for workspace candidates', async () => {
+    const root = await makeRepo({
+      '.drctx.json': JSON.stringify({ exclude: ['dist/**'], strict: false, maxFiles: 100 }),
+      'packages/app/.drctx.json': JSON.stringify({ exclude: ['vendor/**'], strict: true, maxFileBytes: 2048 })
+    });
+    const parent = config({ exclude: ['dist/**'], strict: false, resourceLimits: { maxFiles: 100 } });
+
+    const result = await loadWorkspaceCandidateConfig(root, 'packages/app', parent, { explicitConfig: false });
+
+    expect(result.config.exclude).toEqual(['vendor/**']);
+    expect(result.config.strict).toBe(true);
+    expect(result.config.resourceLimits).toEqual({ maxFiles: 100, maxFileBytes: 2048 });
+    expect(result.loadedChildConfigPath).toBe('packages/app/.drctx.json');
+  });
+
+  test('does not load child config when explicit --config is active', async () => {
+    const root = await makeRepo({
+      'packages/app/.drctx.json': JSON.stringify({ strict: true })
+    });
+    const parent = config({ strict: false });
+
+    const result = await loadWorkspaceCandidateConfig(root, 'packages/app', parent, { explicitConfig: true });
+
+    expect(result.config.strict).toBe(false);
+    expect(result.loadedChildConfigPath).toBeUndefined();
+  });
+
+  test('reports invalid child config with a candidate-relative path', async () => {
+    const root = await makeRepo({
+      'packages/app/.drctx.json': '{'
+    });
+    const parent = config({});
+
+    await expect(loadWorkspaceCandidateConfig(root, 'packages/app', parent, { explicitConfig: false })).rejects.toThrow(
+      'packages/app/.drctx.json'
+    );
   });
 });

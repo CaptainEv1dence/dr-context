@@ -23,6 +23,19 @@ export async function loadConfig(root: string, options: { configPath?: string })
   return baseline ? { ...config, baseline } : config;
 }
 
+export async function loadOptionalConfigAtRoot(root: string): Promise<LoadedConfig | undefined> {
+  const resolvedRoot = resolve(root);
+  const raw = await readOptionalJson(resolve(resolvedRoot, '.drctx.json'), false);
+  if (raw === undefined) {
+    return undefined;
+  }
+
+  const config = validateConfig(raw);
+  const baseline = config.baselinePath ? await loadBaseline(resolvedRoot, config.baselinePath) : undefined;
+
+  return baseline ? { ...config, baseline } : config;
+}
+
 function normalizeConfigPath(root: string, inputPath: string): string {
   try {
     return normalizeRootContainedPath(root, inputPath);
