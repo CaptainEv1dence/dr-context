@@ -51,6 +51,8 @@ The test discovers corpus cases, scans each declared root, and compares the actu
 - `package-manager-drift` preserves the shape of stale package-manager instructions.
 - `context-quality-history` preserves the shape of many dated plan/spec/report files without a current-context index.
 - `readme-verification-gap` preserves the shape of README onboarding that omits a CI-backed local verification command.
+- `parent-policy-visibility` preserves the shape of child repo scans that can see a workspace parent policy but do not inherit it.
+- `live-operation-boundary` preserves the shape of SDK docs that mention sensitive live-operation surfaces without agent-visible local-only and approval boundaries.
 
 ## Privacy rules
 

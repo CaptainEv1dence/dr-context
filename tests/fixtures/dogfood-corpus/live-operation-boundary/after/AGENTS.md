@@ -1,0 +1,1 @@
+Default to local-only offline unit tests. Require explicit approval before live, authenticated, state-changing, payment, checkout, RPC, mainnet, testnet, production, account, secrets, or tokens actions. Run `pnpm test` before release.

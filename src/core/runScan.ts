@@ -36,6 +36,7 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     architectureDocs: extractArchitectureDocs(files),
     agentInstructionDocs: extractAgentInstructionDocs(files),
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],
+    parentAgentInstructionDocs: config.parentAgentInstructionDocs,
     localPathMentions,
     files,
     contextHistoryFiles,

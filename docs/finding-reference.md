@@ -292,6 +292,34 @@ Suggested fix: document the generated-file editing boundary in agent-visible ins
 
 Related docs/examples: `docs/triage-findings.md`.
 
+### `missing-live-operation-boundary`
+
+Default severity: info.
+
+Confidence policy: medium; sensitive capability words are heuristics filtered by explicit local-only and approval guidance.
+
+When it fires: README, SECURITY docs, or package metadata mention payment, checkout, sandbox, RPC, chain/network, trading, live, security research, or bug bounty capabilities without agent-visible live-operation boundaries.
+
+Evidence source shape: live-operation-signal with the source file that contains the sensitive capability wording.
+
+Suggested fix: add agent-visible instructions that default to local/offline/unit-test work and require explicit approval for live, authenticated, state-changing, payment, checkout, RPC, network, production, account, secret, or token actions.
+
+Related docs/examples: `docs/triage-findings.md`, `docs/false-positive-tracking.md`.
+
+### `parent-policy-not-inherited`
+
+Default severity: info.
+
+Confidence policy: high; workspace scan extracts parent instruction docs and passes them to child scans when inheritance is disabled.
+
+When it fires: a workspace scan discovers parent agent instruction docs and scans a child candidate without parent instruction inheritance enabled.
+
+Evidence source shape: parent-agent-instructions pointing to the parent instruction doc visible from the requested workspace root.
+
+Suggested fix: enable parent instruction inheritance for workspace scans or copy/link the parent policy into child agent-visible instructions.
+
+Related docs/examples: `docs/triage-findings.md`, `docs/instruction-surface-coverage.md`.
+
 ## Rule quality
 
 ### `oversized-instruction-file`

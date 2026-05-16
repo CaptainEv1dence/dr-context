@@ -5,7 +5,9 @@ import { coverageSignalsCheck } from '../checks/coverageSignals.js';
 import { hiddenArchitectureDocCheck } from '../checks/hiddenArchitectureDoc.js';
 import { missingVerificationCommandCheck } from '../checks/missingVerificationCommand.js';
 import { packageManagerMismatchCheck } from '../checks/packageManagerMismatch.js';
+import { parentPolicyVisibilityCheck } from '../checks/parentPolicyVisibility.js';
 import { readmeCompletenessCheck } from '../checks/readmeCompleteness.js';
+import { liveOperationPolicyCheck } from '../checks/liveOperationPolicy.js';
 import { hiddenPolicyVisibilityChecks, missingGeneratedFileBoundaryCheck } from '../checks/policyVisibility.js';
 import { duplicateInstructionBlockCheck, oversizedInstructionFileCheck } from '../checks/ruleQuality.js';
 import { runtimeDriftCheck } from '../checks/runtimeDrift.js';
@@ -29,7 +31,9 @@ export const checks: Check[] = [
   unsafeAgentInstructionsCheck,
   unsafeWorkflowPromptCheck,
   hiddenWorkflowPromptCheck,
+  parentPolicyVisibilityCheck,
   ...hiddenPolicyVisibilityChecks,
+  liveOperationPolicyCheck,
   missingGeneratedFileBoundaryCheck,
   oversizedInstructionFileCheck,
   duplicateInstructionBlockCheck,

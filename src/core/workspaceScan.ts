@@ -13,11 +13,12 @@ const defaultWorkspaceScanConcurrency = 2;
 
 export async function runWorkspaceScan(root: string, config: EffectiveConfig & { maxDepth: number }): Promise<WorkspaceReport> {
   const discovery = await discoverCandidates(root, { maxDepth: config.maxDepth });
-  const inheritedDocs = config.inheritParentInstructions ? await parentInstructionDocs(root, config) : [];
+  const parentDocs = await parentInstructionDocs(root, config);
   const reports = await mapWithConcurrency(discovery.candidates, defaultWorkspaceScanConcurrency, async (candidate) => {
       const report = await runScan(candidate.path === '.' ? root : join(root, candidate.path), {
         ...config,
-        inheritedAgentInstructionDocs: candidate.path === '.' ? [] : inheritedDocs
+        inheritedAgentInstructionDocs: candidate.path === '.' || !config.inheritParentInstructions ? [] : parentDocs,
+        parentAgentInstructionDocs: candidate.path === '.' || config.inheritParentInstructions ? undefined : parentDocs
       });
       const suppressions = [
         ...(config.suppressions ?? []),

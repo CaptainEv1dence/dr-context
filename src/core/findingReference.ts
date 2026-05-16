@@ -113,6 +113,16 @@ export const findingReferences: FindingReference[] = [
     relatedDocs: ['docs/triage-findings.md']
   },
   {
+    id: 'missing-live-operation-boundary',
+    category: 'Workflow prompt and instruction safety',
+    severityPolicy: 'Info when live-operation sensitive repository docs or metadata lack visible local-only and approval boundaries.',
+    confidencePolicy: 'Medium confidence because sensitive capability words are heuristics filtered by explicit local-only and approval guidance.',
+    whenItFires: 'README, SECURITY docs, or package metadata mention payment, checkout, sandbox, RPC, chain/network, trading, live, security research, or bug bounty capabilities without agent-visible live-operation boundaries.',
+    evidenceShape: 'Live-operation-signal evidence with the source file that contains the sensitive capability wording.',
+    suggestedFix: 'Add agent-visible instructions that default to local/offline/unit-test work and require explicit approval for live, authenticated, state-changing, payment, checkout, RPC, network, production, account, secret, or token actions.',
+    relatedDocs: ['docs/triage-findings.md', 'docs/false-positive-tracking.md']
+  },
+  {
     id: 'missing-readme-verification',
     category: 'Commands and verification consistency',
     severityPolicy: 'Info when README.md exists but omits recognizable local verification guidance already present in CI.',
@@ -161,6 +171,16 @@ export const findingReferences: FindingReference[] = [
     evidenceShape: 'Workspace-discovery evidence without a source span because there is no source file to point at.',
     suggestedFix: 'Run at a repository root or add supported context files such as AGENTS.md, package.json, or CI workflows.',
     relatedDocs: ['docs/instruction-surface-coverage.md']
+  },
+  {
+    id: 'parent-policy-not-inherited',
+    category: 'Context coverage and policy visibility',
+    severityPolicy: 'Info when workspace parent instruction docs exist but child scans do not inherit them.',
+    confidencePolicy: 'High confidence because workspace scan extracts parent instruction docs and passes them to child scans when inheritance is disabled.',
+    whenItFires: 'A workspace scan discovers parent agent instruction docs and scans a child candidate without parent instruction inheritance enabled.',
+    evidenceShape: 'Parent-agent-instructions evidence pointing to the parent instruction doc visible from the requested workspace root.',
+    suggestedFix: 'Enable parent instruction inheritance for workspace scans or copy/link the parent policy into child agent-visible instructions.',
+    relatedDocs: ['docs/triage-findings.md', 'docs/instruction-surface-coverage.md']
   },
   {
     id: 'node-runtime-drift',

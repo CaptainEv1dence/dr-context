@@ -42,6 +42,7 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     architectureDocs,
     agentInstructionDocs,
     inheritedAgentInstructionDocs: config.inheritedAgentInstructionDocs ?? [],
+    parentAgentInstructionDocs: config.parentAgentInstructionDocs,
     localPathMentions,
     files,
     contextHistoryFiles,

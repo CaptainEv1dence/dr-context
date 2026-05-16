@@ -22,6 +22,12 @@ This order keeps agents away from stale commands, hidden safety rules, and runti
 
 For `hidden-architecture-doc`, an exact path such as `docs/ARCHITECTURE.md` is the lowest-noise fix. Generic wording such as "read the architecture docs" is useful context, but it still leaves agents guessing which file is authoritative.
 
+`parent-policy-not-inherited` appears only in workspace scans when the requested root has parent agent instructions, but a child candidate is scanned without inheriting them. Enable parent instruction inheritance for workspace scans or add a root-relative link from each child instruction file to the parent policy.
+
+`missing-generated-file-boundary` means package metadata or generation scripts name generated output such as `dist`, `build`, `storybook-static`, `playwright-report`, `test-results`, `coverage`, `typechain-types`, `src/generated`, or `generated/api`, but agent-visible instructions do not say whether generated files may be edited directly. Add a short generated-output rule before agents touch those files.
+
+`missing-live-operation-boundary` means public docs or package metadata mention sensitive live-operation surfaces such as payment, checkout, sandbox, RPC, mainnet/testnet, smart contracts, trading, security research, or bug bounty work, but agent-visible instructions do not define both a local/offline/unit-test default and explicit approval before live, authenticated, state-changing, payment, checkout, RPC, production, account, secret, or token actions. Treat it as an info-level hygiene finding; precise agent-visible boundaries are usually the fix.
+
 ## Health Score
 
 `summary.health` summarizes the current visible findings after baseline and suppression filtering.

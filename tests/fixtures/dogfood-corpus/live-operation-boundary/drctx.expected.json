@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "live-operation-boundary",
+  "description": "Synthetic SDK docs mention checkout sandbox work before agent-visible live-operation boundaries are added.",
+  "before": {
+    "root": "before",
+    "findingIds": ["missing-live-operation-boundary"]
+  },
+  "after": {
+    "root": "after",
+    "findingIds": []
+  }
+}

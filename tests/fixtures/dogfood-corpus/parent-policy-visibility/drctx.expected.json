@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "drctx.dogfood-case.v1",
+  "case": "parent-policy-visibility",
+  "description": "Synthetic workspace scan where parent instructions are visible but not inherited by a child candidate.",
+  "before": {
+    "root": "before",
+    "workspace": true,
+    "findingIds": ["parent-policy-not-inherited"]
+  }
+}

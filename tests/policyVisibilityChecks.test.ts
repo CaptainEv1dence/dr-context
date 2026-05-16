@@ -43,6 +43,7 @@ function policyContext(overrides: Partial<RepoFacts>): CheckContext {
       inheritedAgentInstructionDocs: [],
       localPathMentions: [],
       files: [],
+      contextHistoryFiles: [],
       filePaths: [],
       keyDirectories: [],
       ...overrides
@@ -276,6 +277,58 @@ describe('policy visibility checks', () => {
         })
       ])
     );
+  });
+
+  test('storybook build output with missing agent docs emits missing-generated-file-boundary', async () => {
+    const report = await scan({
+      'package.json': JSON.stringify({
+        packageManager: 'pnpm@11.1.1',
+        files: ['storybook-static'],
+        scripts: { test: 'vitest run', 'storybook:build': 'storybook build -o storybook-static' }
+      })
+    });
+
+    const finding = report.findings.find((item) => item.id === 'missing-generated-file-boundary');
+    expect(finding).toMatchObject({
+      severity: 'info',
+      confidence: 'high',
+      primarySource: { file: 'package.json' }
+    });
+  });
+
+  test('typechain script output with missing agent docs emits missing-generated-file-boundary', async () => {
+    const report = await scan({
+      'package.json': JSON.stringify({
+        packageManager: 'pnpm@11.1.1',
+        scripts: { test: 'vitest run', typechain: 'typechain --out-dir typechain-types' }
+      })
+    });
+
+    expect(report.findings.map((finding) => finding.id)).toContain('missing-generated-file-boundary');
+  });
+
+  test('non-generation storybook command does not emit missing-generated-file-boundary', async () => {
+    const report = await scan({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', scripts: { test: 'vitest run', storybook: 'storybook dev -p 6006' } })
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('missing-generated-file-boundary');
+  });
+
+  test('build script without explicit output path does not emit missing-generated-file-boundary', async () => {
+    const report = await scan({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', scripts: { test: 'vitest run', build: 'vite build' } })
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('missing-generated-file-boundary');
+  });
+
+  test('storybook build without explicit output path does not emit missing-generated-file-boundary', async () => {
+    const report = await scan({
+      'package.json': JSON.stringify({ packageManager: 'pnpm@11.1.1', scripts: { test: 'vitest run', 'storybook:build': 'storybook build' } })
+    });
+
+    expect(report.findings.map((finding) => finding.id)).not.toContain('missing-generated-file-boundary');
   });
 
   test('ignored dist output alone does not emit missing-generated-file-boundary', async () => {

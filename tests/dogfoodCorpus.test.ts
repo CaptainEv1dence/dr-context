@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { access, readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { runScan } from '../src/core/runScan.js';
+import { runWorkspaceScan } from '../src/core/workspaceScan.js';
 import { fixtureRoot } from './helpers.js';
 
 type DogfoodExpected = {
@@ -15,6 +16,7 @@ type DogfoodExpected = {
 type ExpectedScan = {
   root: string;
   findingIds: string[];
+  workspace?: boolean;
 };
 
 const corpusRoot = fixtureRoot('dogfood-corpus');
@@ -40,6 +42,16 @@ async function caseNames(): Promise<string[]> {
 }
 
 async function scanFindingIds(caseName: string, expected: ExpectedScan): Promise<string[]> {
+  if (expected.workspace) {
+    const report = await runWorkspaceScan(join(corpusRoot, caseName, expected.root), {
+      strict: false,
+      include: [],
+      exclude: [],
+      maxDepth: 4
+    });
+    return report.reports.flatMap((entry) => entry.report.findings.map((finding) => finding.id)).sort();
+  }
+
   const report = await runScan(join(corpusRoot, caseName, expected.root), {
     strict: false,
     include: [],

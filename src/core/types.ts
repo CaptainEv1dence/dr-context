@@ -294,6 +294,7 @@ export type RepoFacts = {
   architectureDocs: ArchitectureDocFact[];
   agentInstructionDocs: AgentInstructionDocFact[];
   inheritedAgentInstructionDocs: AgentInstructionDocFact[];
+  parentAgentInstructionDocs?: AgentInstructionDocFact[];
   localPathMentions: LocalPathMention[];
   files: RawFile[];
   contextHistoryFiles: RawFile[];
@@ -311,6 +312,7 @@ export type EffectiveConfig = {
   targetPath?: string;
   inheritParentInstructions?: boolean;
   inheritedAgentInstructionDocs?: AgentInstructionDocFact[];
+  parentAgentInstructionDocs?: AgentInstructionDocFact[];
   resourceLimits?: Partial<import('../io/resourceLimits.js').WorkspaceResourceLimits>;
 };
 

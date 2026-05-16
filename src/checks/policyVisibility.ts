@@ -148,7 +148,7 @@ function generatedArtifactEvidence(file: RawFile): { message: string; source: So
 
   if (isRecord(parsed.scripts)) {
     for (const [name, command] of Object.entries(parsed.scripts)) {
-      if (/^(?:build|prebuild|generate-version)$/.test(name) && typeof command === 'string' && namesGeneratedOutput(command)) {
+      if (/^(?:build|prebuild|generate|generate-version|storybook:build|codegen|typechain)$/.test(name) && typeof command === 'string' && commandNamesGeneratedOutput(command)) {
         messages.push(`${file.path} script ${name} names generated output.`);
       }
     }
@@ -194,7 +194,11 @@ function hasGeneratedBoundaryGuidance(content: string): boolean {
 }
 
 function namesGeneratedOutput(value: string): boolean {
-  return /(?:^|[./\\\s"'])(?:dist|build|generated)(?:$|[./\\\s"'/*-])/i.test(value);
+  return /(?:^|[./\\\s"'])(?:dist|build|generated|storybook-static|playwright-report|test-results|coverage|typechain-types)(?:$|[./\\\s"'/*-])|(?:^|[./\\\s"'])(?:src\/generated|generated\/api)(?:$|[./\\\s"'/*-])/i.test(value);
+}
+
+function commandNamesGeneratedOutput(value: string): boolean {
+  return /(?:^|[./\\\s"'])(?:dist|generated|storybook-static|playwright-report|test-results|coverage|typechain-types)(?:$|[./\\\s"'/*-])|(?:^|[./\\\s"'])(?:src\/generated|generated\/api)(?:$|[./\\\s"'/*-])/i.test(value);
 }
 
 function parsePackageJson(content: string): unknown {
