@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import { runCli } from '../src/cli/main.js';
 import { toolVersion } from '../src/version.js';
 import { fixtureRoot } from './helpers.js';
@@ -173,6 +173,75 @@ describe('drctx CLI', () => {
       root: '<requested-root>',
       packageManager: { name: 'pnpm' }
     });
+  });
+
+  test('init dry-run previews files without writing', async () => {
+    const root = await makeSyntheticRepo({});
+
+    const result = await runCli(['node', 'dr-context', 'init', '--root', root]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Dr. Context init preview');
+    expect(result.stdout).toContain('Would create:');
+    expect(result.stdout).toContain('- .drctx.json');
+    expect(result.stdout).toContain('- AGENTS.md');
+    expect(result.stdout).not.toContain(root);
+    await expect(readFile(join(root, '.drctx.json'), 'utf8')).rejects.toThrow();
+    await expect(readFile(join(root, 'AGENTS.md'), 'utf8')).rejects.toThrow();
+  });
+
+  test('init --write creates only missing starter files', async () => {
+    const root = await makeSyntheticRepo({});
+
+    const result = await runCli(['node', 'dr-context', 'init', '--root', root, '--write']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Created:');
+    expect(await readFile(join(root, '.drctx.json'), 'utf8')).toContain('maxFiles');
+    expect(await readFile(join(root, 'AGENTS.md'), 'utf8')).toContain('corepack pnpm test');
+  });
+
+  test('init --write does not overwrite existing files', async () => {
+    const root = await makeSyntheticRepo({
+      '.drctx.json': '{"strict":true}\n',
+      'CLAUDE.md': '# Existing instructions\n'
+    });
+
+    const result = await runCli(['node', 'dr-context', 'init', '--root', root, '--write']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Skipped:');
+    expect(await readFile(join(root, '.drctx.json'), 'utf8')).toBe('{"strict":true}\n');
+    await expect(readFile(join(root, 'AGENTS.md'), 'utf8')).rejects.toThrow();
+  });
+
+  test('init --write preserves existing AGENTS.md content', async () => {
+    const root = await makeSyntheticRepo({
+      'AGENTS.md': '# Existing agent instructions\n'
+    });
+
+    const result = await runCli(['node', 'dr-context', 'init', '--root', root, '--write']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(await readFile(join(root, '.drctx.json'), 'utf8')).toContain('maxFiles');
+    expect(await readFile(join(root, 'AGENTS.md'), 'utf8')).toBe('# Existing agent instructions\n');
+  });
+
+  test('init does not create root AGENTS.md when a nested instruction surface exists', async () => {
+    const root = await makeSyntheticRepo({
+      'service/AGENTS.md': '# Service instructions\n'
+    });
+
+    const result = await runCli(['node', 'dr-context', 'init', '--root', root, '--write']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    await expect(readFile(join(root, 'AGENTS.md'), 'utf8')).rejects.toThrow();
+    expect(await readFile(join(root, '.drctx.json'), 'utf8')).toContain('maxFiles');
   });
 
   test('explains a known finding id', async () => {
@@ -518,9 +587,10 @@ async function runInFixture(args: string[], fixture: string): Promise<{ stdout: 
 
 async function makeSyntheticRepo(files: Record<string, string>): Promise<string> {
   const root = join(import.meta.dirname, '..', 'node_modules', '.tmp', `drctx-cli-${crypto.randomUUID()}`);
+  await mkdir(root, { recursive: true });
   for (const [path, content] of Object.entries(files)) {
     const fullPath = join(root, path);
-    await mkdir(join(fullPath, '..'), { recursive: true });
+    await mkdir(dirname(fullPath), { recursive: true });
     await writeFile(fullPath, content);
   }
   return root;

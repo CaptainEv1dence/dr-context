@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ConfigUsageError, loadConfig } from '../config/loadConfig.js';
@@ -12,6 +12,8 @@ import { buildManifest } from '../core/buildManifest.js';
 import { normalizeRootContainedPath, UsagePathError } from '../core/pathGuards.js';
 import { runWorkspaceScan } from '../core/workspaceScan.js';
 import { discoverCandidates } from '../discovery/discoverCandidates.js';
+import { planInit, type InitPlan } from '../init/initPlan.js';
+import { readInitInputs } from '../init/readInitInputs.js';
 import { renderDiscoverJson } from '../reporting/discoverJsonReporter.js';
 import { renderDiscoverText } from '../reporting/discoverTextReporter.js';
 import { renderJson } from '../reporting/jsonReporter.js';
@@ -40,6 +42,7 @@ type CliOptions = {
 };
 type DiscoverCliOptions = { json?: boolean; root?: string; maxDepth?: string };
 type BaselineCliOptions = { root?: string; output: string };
+type InitCliOptions = { root?: string; write?: boolean };
 type ExplainCliOptions = { json?: boolean; list?: boolean };
 
 export type CliResult = {
@@ -169,6 +172,30 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         exitCode = 2;
       }
     },
+    async (options, parentOptions) => {
+      try {
+        const effectiveOptions = { ...parentOptions, ...options };
+        const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
+        const initPlan = planInit(await readInitInputs(root));
+
+        if (effectiveOptions.write) {
+          for (const entry of initPlan.files) {
+            if (entry.action !== 'create' || entry.content === undefined) {
+              continue;
+            }
+            const outputPath = resolve(root, entry.path);
+            await mkdir(dirname(outputPath), { recursive: true });
+            await writeFile(outputPath, entry.content, { flag: 'wx' });
+          }
+        }
+
+        stdout += renderInitPlan(initPlan, { write: Boolean(effectiveOptions.write) });
+        exitCode = 0;
+      } catch (error) {
+        stderr += formatCliError(error);
+        exitCode = 2;
+      }
+    },
     async (id, options) => {
       try {
         if (options.list) {
@@ -248,6 +275,7 @@ function createProgram(
   discoverAction: (options: DiscoverCliOptions, parentOptions: DiscoverCliOptions) => Promise<void>,
   manifestAction: (options: CliOptions, parentOptions: CliOptions) => Promise<void>,
   baselineAction: (options: BaselineCliOptions, parentOptions: CliOptions) => Promise<void>,
+  initAction: (options: InitCliOptions, parentOptions: CliOptions) => Promise<void>,
   explainAction: (id: string | undefined, options: ExplainCliOptions) => Promise<void>
 ): Command {
   const program = new Command();
@@ -304,6 +332,13 @@ function createProgram(
     .option('--root <path>', 'repository root to scan')
     .requiredOption('--output <path>', 'baseline JSON output path')
     .action((options: BaselineCliOptions) => baselineAction(options, program.opts<CliOptions>()));
+
+  program
+    .command('init')
+    .description('preview or create starter Dr. Context files')
+    .option('--root <path>', 'repository root to initialize')
+    .option('--write', 'create missing starter files')
+    .action((options: InitCliOptions) => initAction(options, program.opts<CliOptions>()));
 
   program
     .command('discover')
@@ -388,6 +423,38 @@ function renderScanReport(report: Awaited<ReturnType<typeof runScan>>, options: 
   return options.json
     ? renderJson(report, { showSuppressed: Boolean(options.showSuppressed) })
     : renderText(report, { showSuppressed: Boolean(options.showSuppressed) });
+}
+
+function renderInitPlan(plan: InitPlan, options: { write: boolean }): string {
+  const creates = plan.files.filter((entry) => entry.action === 'create');
+  const skips = plan.files.filter((entry) => entry.action === 'skip');
+  const lines = [options.write ? 'Dr. Context init' : 'Dr. Context init preview', ''];
+
+  if (creates.length > 0) {
+    lines.push(options.write ? 'Created:' : 'Would create:');
+    for (const entry of creates) {
+      lines.push(`- ${entry.path}`);
+    }
+    lines.push('');
+  }
+
+  if (skips.length > 0) {
+    lines.push('Skipped:');
+    for (const entry of skips) {
+      lines.push(`- ${entry.path} (${entry.reason})`);
+    }
+    lines.push('');
+  }
+
+  if (!options.write && creates.length > 0) {
+    lines.push('Run with --write to create missing files.', '');
+  }
+
+  if (options.write && creates.length === 0) {
+    lines.push('No files created.', '');
+  }
+
+  return `${lines.join('\n')}\n`;
 }
 
 function renderFindingReference(reference: NonNullable<ReturnType<typeof getFindingReference>>): string {
