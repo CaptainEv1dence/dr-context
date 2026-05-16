@@ -59,6 +59,16 @@ The current composite Action may contact npm to install the selected `dr-context
 
 `check` is read-only. It does not modify repository files.
 
+## Reliability notes
+
+The current wrapper is a composite Action. It runs `npm exec` to install and execute the selected `dr-context` npm package before scanning.
+
+The Action tag pins the wrapper version. The `version` input selects the npm package version that the wrapper installs and runs.
+
+CI needs npm registry access before scanning starts. After installation, the scan remains local, deterministic, and read-only. It does not call LLMs or external services.
+
+Bundled Action work is separate from the current composite wrapper. Before a bundled Action can replace it, the replacement must preserve the current inputs, SARIF output, GitHub annotations, job summary, and exit-code behavior.
+
 ## Version pinning
 
 Pin the Action to a release tag for repeatability:

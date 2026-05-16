@@ -68,8 +68,9 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 - GitHub Action reliability gate:
   - `docs/superpowers/plans/2026-05-15-0.3.10-github-action-reliability.md`.
-  - Lock the current composite Action contract before any bundling work.
+  - Lock the current composite Action contract with tests before any bundling work.
   - Bundled JavaScript Action remains a candidate only if it preserves current inputs, scanner semantics, SARIF, annotations, summary, exit codes, package release flow, package contents, and local-action smoke tests.
+  - Bundling requires package-content checks and local Action smoke tests before implementation.
 - Pre-0.4 feature bets decomposition:
   - `docs/superpowers/plans/2026-05-15-pre-0.4-feature-bets-decomposition.md`.
   - Use after the Action reliability gate to decide the next product bet.
