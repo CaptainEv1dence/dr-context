@@ -37,6 +37,20 @@ describe('loadConfig', () => {
     ]);
   });
 
+  test('loads resource limits from config', async () => {
+    const root = await makeRepo({ '.drctx.json': JSON.stringify({ maxFiles: 10, maxFileBytes: 1000, maxTotalBytes: 2000 }) });
+
+    const config = await loadConfig(root, {});
+
+    expect(config.resourceLimits).toEqual({ maxFiles: 10, maxFileBytes: 1000, maxTotalBytes: 2000 });
+  });
+
+  test('rejects non-positive resource limits', async () => {
+    const root = await makeRepo({ '.drctx.json': JSON.stringify({ maxFiles: 0 }) });
+
+    await expect(loadConfig(root, {})).rejects.toThrow('maxFiles must be a positive integer');
+  });
+
   test('uses explicit --config path inside root', async () => {
     const root = await makeRepo({ 'configs/drctx.json': JSON.stringify({ include: ['AGENTS.md'] }) });
 

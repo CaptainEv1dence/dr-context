@@ -18,8 +18,10 @@ import { access } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 export async function runScan(root: string, config: EffectiveConfig): Promise<Report> {
-  const files = await readWorkspace(root, { include: config.include, exclude: config.exclude });
-  const filePaths = await listWorkspaceFilePaths(root);
+  const workspace = await readWorkspace(root, { include: config.include, exclude: config.exclude, limits: config.resourceLimits, returnResource: true });
+  const files = workspace.files;
+  const filePathInventory = await listWorkspaceFilePaths(root, { maxFiles: config.resourceLimits?.maxFiles ?? 500 });
+  const filePaths = filePathInventory.paths;
   const localPathMentions = await markExistingLocalPaths(root, extractLocalPathMentions(files));
   const facts: RepoFacts = {
     root,
@@ -36,7 +38,8 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     localPathMentions,
     files,
     filePaths,
-    keyDirectories: []
+    keyDirectories: [],
+    scanResource: workspace.resource
   };
   const findings = runChecks({ facts, config });
 
@@ -47,7 +50,8 @@ export async function runScan(root: string, config: EffectiveConfig): Promise<Re
     root,
     inheritedInstructionFiles: inheritedInstructionFiles(facts),
     findings,
-    summary: summarizeFindings(findings)
+    summary: summarizeFindings(findings),
+    scanResource: workspace.resource.hitLimit ? workspace.resource : undefined
   };
 }
 

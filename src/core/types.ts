@@ -28,9 +28,26 @@ export type Evidence = {
   source?: SourceSpan;
 };
 
+export type ScanSkippedFileReason = 'file-too-large' | 'total-bytes-limit' | 'file-count-limit' | 'read-error';
+
+export type ScanSkippedFile = {
+  path: string;
+  reason: ScanSkippedFileReason;
+  sizeBytes?: number;
+  limitBytes?: number;
+};
+
+export type ScanResourceSummary = {
+  filesRead: number;
+  bytesRead: number;
+  skippedFiles: ScanSkippedFile[];
+  hitLimit: boolean;
+};
+
 export type RawFile = {
   path: string;
   content: string;
+  sizeBytes?: number;
 };
 
 export type WorkflowPromptKind =
@@ -90,6 +107,7 @@ export type Report = {
     suppressed?: number;
     health: HealthSummary;
   };
+  scanResource?: ScanResourceSummary;
 };
 
 export type WorkspaceReportEntry = {
@@ -280,6 +298,7 @@ export type RepoFacts = {
   files: RawFile[];
   filePaths: string[];
   keyDirectories: string[];
+  scanResource: ScanResourceSummary;
 };
 
 export type EffectiveConfig = {
@@ -291,6 +310,7 @@ export type EffectiveConfig = {
   targetPath?: string;
   inheritParentInstructions?: boolean;
   inheritedAgentInstructionDocs?: AgentInstructionDocFact[];
+  resourceLimits?: Partial<import('../io/resourceLimits.js').WorkspaceResourceLimits>;
 };
 
 export type WorkspaceBaselineSuppressions = {

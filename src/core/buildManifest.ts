@@ -13,7 +13,13 @@ import { resolveEffectiveContext } from './effectiveContext.js';
 import type { EffectiveConfig, LocalPathMention, Manifest, ManifestFirstRead, ManifestInstructionFile, PackageManagerEvidence, RawFile, RepoFacts } from './types.js';
 
 export async function buildManifest(root: string, config: EffectiveConfig): Promise<Manifest> {
-  const files = await readWorkspace(root, { include: [...config.include, ...targetInstructionIncludes(config.targetPath)], exclude: config.exclude });
+  const workspace = await readWorkspace(root, {
+    include: [...config.include, ...targetInstructionIncludes(config.targetPath)],
+    exclude: config.exclude,
+    limits: config.resourceLimits,
+    returnResource: true
+  });
+  const files = workspace.files;
   const packageManagers = extractPackageManagers(files);
   const scripts = extractPackageJsonScripts(files);
   const commandMentions = extractMarkdownCommands(files);
@@ -38,7 +44,8 @@ export async function buildManifest(root: string, config: EffectiveConfig): Prom
     localPathMentions,
     files,
     filePaths: files.map((file) => file.path),
-    keyDirectories: []
+    keyDirectories: [],
+    scanResource: workspace.resource
   };
   const effectiveContext = config.targetPath
     ? resolveEffectiveContext(facts, { targetPath: config.targetPath })

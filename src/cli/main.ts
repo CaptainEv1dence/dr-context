@@ -64,7 +64,8 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         const scanConfig = {
           strict: Boolean(effectiveOptions.strict ?? loadedConfig.strict),
           include: [...(loadedConfig.include ?? []), ...(effectiveOptions.include ?? [])],
-          exclude: [...(loadedConfig.exclude ?? []), ...(effectiveOptions.exclude ?? [])]
+          exclude: [...(loadedConfig.exclude ?? []), ...(effectiveOptions.exclude ?? [])],
+          resourceLimits: loadedConfig.resourceLimits
         };
         if (effectiveOptions.inheritParentInstructions && !effectiveOptions.workspace) {
           throw usageError('--inherit-parent-instructions requires --workspace');
@@ -75,6 +76,7 @@ export async function runCli(argv: string[]): Promise<CliResult> {
             strict: scanConfig.strict,
             include: scanConfig.include,
             exclude: scanConfig.exclude,
+            resourceLimits: scanConfig.resourceLimits,
             suppressions: loadedConfig.suppressions,
             workspaceBaselineSuppressions: workspaceBaselineSuppressionsFromConfig(loadedConfig),
             maxDepth,
@@ -95,7 +97,8 @@ export async function runCli(argv: string[]): Promise<CliResult> {
         const report = await runScan(root, {
           strict: scanConfig.strict,
           include: scanConfig.include,
-          exclude: scanConfig.exclude
+          exclude: scanConfig.exclude,
+          resourceLimits: scanConfig.resourceLimits
         });
         const suppressions = [...loadedConfig.suppressions, ...baselineSuppressionsFromConfig(loadedConfig)];
         const finalReport = withSuppressionResult(report, applySuppressions(report.findings, suppressions));

@@ -2,7 +2,18 @@ import fg from 'fast-glob';
 
 const defaultIgnoreGlobs = ['.git/**', 'node_modules/**', 'dist/**', 'coverage/**', '.turbo/**', '.next/**', '.cache/**'];
 
-export async function listWorkspaceFilePaths(root: string): Promise<string[]> {
+export type WorkspaceFilePathInventory = {
+  paths: string[];
+  truncated: boolean;
+};
+
+export function listWorkspaceFilePaths(root: string): Promise<string[]>;
+export function listWorkspaceFilePaths(root: string, config: { maxFiles: number }): Promise<WorkspaceFilePathInventory>;
+export async function listWorkspaceFilePaths(root: string, config?: { maxFiles: number }): Promise<string[] | WorkspaceFilePathInventory> {
+  if (config) {
+    return listBoundedWorkspaceFilePaths(root, config.maxFiles);
+  }
+
   const paths = await fg(['**/*'], {
     cwd: root,
     dot: true,
@@ -11,7 +22,33 @@ export async function listWorkspaceFilePaths(root: string): Promise<string[]> {
     ignore: defaultIgnoreGlobs
   });
 
-  return [...new Set(paths.map(normalizePath))].sort(comparePaths);
+  const sortedPaths = [...new Set(paths.map(normalizePath))].sort(comparePaths);
+  return sortedPaths;
+}
+
+async function listBoundedWorkspaceFilePaths(root: string, maxFiles: number): Promise<WorkspaceFilePathInventory> {
+  const paths = new Set<string>();
+  let truncated = false;
+  const stream = fg.stream(['**/*'], {
+    cwd: root,
+    dot: true,
+    onlyFiles: true,
+    unique: true,
+    ignore: defaultIgnoreGlobs
+  });
+
+  for await (const entry of stream) {
+    paths.add(normalizePath(String(entry)));
+    if (paths.size > maxFiles) {
+      truncated = true;
+      break;
+    }
+  }
+
+  return {
+    paths: [...paths].sort(comparePaths).slice(0, maxFiles),
+    truncated
+  };
 }
 
 function normalizePath(path: string): string {

@@ -44,6 +44,30 @@ If either appears on a first run:
 
 Text output may include short next-step hints after clean scans or coverage findings. These hints are for humans only. JSON and SARIF reports remain finding-focused for automation.
 
+## Scan Resource Diagnostics
+
+`scanResource` is a report-level diagnostic, not a finding. It means Dr. Context skipped one or more context files because local resource limits were reached.
+
+Resource diagnostics do not affect health, SARIF output, or exit code by themselves. They mean the findings are valid for files Dr. Context read, but the scan is incomplete for skipped files.
+
+When `scanResource.hitLimit` is true:
+
+1. Check skipped root-relative paths in JSON output.
+2. Add `.drctx.json` excludes for generated, vendored, coverage, or build output areas.
+3. Scan a narrower package root when the repository is a monorepo.
+4. Raise limits in `.drctx.json` only after reviewing what was skipped.
+
+Example config:
+
+```json
+{
+  "exclude": ["packages/*/coverage/**", "packages/*/dist/**"],
+  "maxFiles": 500,
+  "maxFileBytes": 524288,
+  "maxTotalBytes": 8388608
+}
+```
+
 ## Baselines And Suppressions
 
 Use a baseline when adopting Dr. Context in an existing repo with accepted findings:

@@ -1,4 +1,5 @@
 import type { FindingSuppression } from '../core/types.js';
+import type { WorkspaceResourceLimits } from '../io/resourceLimits.js';
 
 export type BaselineFinding = {
   fingerprint: string;
@@ -21,6 +22,7 @@ export type DrctxConfig = {
   strict?: boolean;
   baselinePath?: string;
   suppressions: FindingSuppression[];
+  resourceLimits?: Partial<WorkspaceResourceLimits>;
 };
 
 export type LoadedConfig = DrctxConfig & {

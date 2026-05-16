@@ -3,16 +3,18 @@ import { discoverCandidates } from '../discovery/discoverCandidates.js';
 import { extractAgentInstructionDocs } from '../extractors/agentInstructionDocs.js';
 import { readWorkspace } from '../io/readWorkspace.js';
 import { toolVersion } from '../version.js';
+import { mapWithConcurrency } from './asyncPool.js';
 import { runScan } from './runScan.js';
 import { healthSummaryFromReports } from './health.js';
 import { applySuppressions, withSuppressionResult } from './suppressions.js';
 import type { AgentInstructionDocFact, EffectiveConfig, WorkspaceReport } from './types.js';
 
+const defaultWorkspaceScanConcurrency = 2;
+
 export async function runWorkspaceScan(root: string, config: EffectiveConfig & { maxDepth: number }): Promise<WorkspaceReport> {
   const discovery = await discoverCandidates(root, { maxDepth: config.maxDepth });
   const inheritedDocs = config.inheritParentInstructions ? await parentInstructionDocs(root, config) : [];
-  const reports = await Promise.all(
-    discovery.candidates.map(async (candidate) => {
+  const reports = await mapWithConcurrency(discovery.candidates, defaultWorkspaceScanConcurrency, async (candidate) => {
       const report = await runScan(candidate.path === '.' ? root : join(root, candidate.path), {
         ...config,
         inheritedAgentInstructionDocs: candidate.path === '.' ? [] : inheritedDocs
@@ -25,8 +27,7 @@ export async function runWorkspaceScan(root: string, config: EffectiveConfig & {
         path: candidate.path,
         report: withSuppressionResult(report, applySuppressions(report.findings, suppressions))
       };
-    })
-  );
+  });
 
   const summaryCounts = {
     roots: reports.length,
@@ -50,7 +51,7 @@ export async function runWorkspaceScan(root: string, config: EffectiveConfig & {
 }
 
 async function parentInstructionDocs(root: string, config: EffectiveConfig): Promise<AgentInstructionDocFact[]> {
-  const files = await readWorkspace(root, { include: config.include, exclude: config.exclude });
+  const files = await readWorkspace(root, { include: config.include, exclude: config.exclude, limits: config.resourceLimits });
 
   return extractAgentInstructionDocs(files).map((doc) => ({
     ...doc,

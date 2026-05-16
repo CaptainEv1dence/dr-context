@@ -144,6 +144,29 @@ drctx check --root . --config .drctx.json --show-suppressed
 
 Workspace limitation: the root config is shared across workspace candidates. A baseline entry only applies to findings owned by that candidate path, and child config inheritance is not implemented yet.
 
+### Large repositories and monorepos
+
+Dr. Context uses bounded local reads so a large monorepo cannot exhaust the Node heap. If a scan reports skipped context files in `scanResource`, findings are valid for the files Dr. Context read, but the scan is incomplete for skipped files.
+
+Tune limits in `.drctx.json` when CI needs repeatable behavior:
+
+```json
+{
+  "exclude": ["packages/*/coverage/**", "packages/*/dist/**"],
+  "maxFiles": 500,
+  "maxFileBytes": 524288,
+  "maxTotalBytes": 8388608
+}
+```
+
+For large monorepos, discover package roots and scan narrower roots:
+
+```bash
+drctx discover --root . --max-depth 4
+drctx check --root packages/app
+drctx manifest --root packages/app
+```
+
 ## Context health
 
 Scan JSON and workspace JSON reports include a deterministic `summary.health` object for trend-friendly summaries. Findings remain the source of truth: health never changes finding IDs, fingerprints, SARIF results, baseline matching, suppression matching, or exit codes.

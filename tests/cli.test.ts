@@ -88,6 +88,20 @@ describe('drctx CLI', () => {
     });
   });
 
+  test('resource diagnostics alone do not make check exit non-zero', async () => {
+    const root = await makeSyntheticRepo({
+      '.drctx.json': JSON.stringify({ maxFileBytes: 32, maxTotalBytes: 1024, maxFiles: 20 }),
+      'AGENTS.md': '# Agent instructions\nRun tests.\n',
+      'README.md': `${'x'.repeat(128)}\n`
+    });
+
+    const result = await runCli(['node', 'dr-context', 'check', '--root', root]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('Scan resource limits: skipped 1 context file(s). Results may be incomplete.');
+  });
+
   test('prints workflow prompt findings in JSON reports', async () => {
     const root = await makeSyntheticRepo({
       'package.json': '{"packageManager":"pnpm@11.1.1"}',

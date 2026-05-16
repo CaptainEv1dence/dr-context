@@ -62,7 +62,7 @@ function validateConfig(raw: unknown): LoadedConfig {
     throw new ConfigUsageError('Config must be a JSON object');
   }
 
-  const allowed = new Set(['include', 'exclude', 'strict', 'baseline', 'suppressions', '$schema']);
+  const allowed = new Set(['include', 'exclude', 'strict', 'baseline', 'suppressions', 'maxFiles', 'maxFileBytes', 'maxTotalBytes', '$schema']);
   for (const key of Object.keys(raw)) {
     if (!allowed.has(key)) {
       throw new ConfigUsageError(`Unknown config key: ${key}`);
@@ -74,8 +74,18 @@ function validateConfig(raw: unknown): LoadedConfig {
   const strict = raw.strict === undefined ? undefined : validateBoolean(raw.strict, 'strict');
   const baselinePath = raw.baseline === undefined ? undefined : validateString(raw.baseline, 'baseline');
   const suppressions = validateSuppressions(raw.suppressions ?? []);
+  const resourceLimits = validateResourceLimits(raw);
 
-  return { include, exclude, strict, baselinePath, suppressions };
+  return { include, exclude, strict, baselinePath, suppressions, resourceLimits };
+}
+
+function validateResourceLimits(raw: Record<string, unknown>): LoadedConfig['resourceLimits'] {
+  const maxFiles = raw.maxFiles === undefined ? undefined : validatePositiveInteger(raw.maxFiles, 'maxFiles');
+  const maxFileBytes = raw.maxFileBytes === undefined ? undefined : validatePositiveInteger(raw.maxFileBytes, 'maxFileBytes');
+  const maxTotalBytes = raw.maxTotalBytes === undefined ? undefined : validatePositiveInteger(raw.maxTotalBytes, 'maxTotalBytes');
+  return maxFiles === undefined && maxFileBytes === undefined && maxTotalBytes === undefined
+    ? undefined
+    : { maxFiles, maxFileBytes, maxTotalBytes };
 }
 
 function validateBaseline(raw: unknown): BaselineFile {
@@ -153,6 +163,13 @@ function validateString(value: unknown, key: string): string {
 function validateBoolean(value: unknown, key: string): boolean {
   if (typeof value !== 'boolean') {
     throw new ConfigUsageError(`${key} must be a boolean`);
+  }
+  return value;
+}
+
+function validatePositiveInteger(value: unknown, key: string): number {
+  if (!Number.isInteger(value) || typeof value !== 'number' || value < 1) {
+    throw new ConfigUsageError(`${key} must be a positive integer`);
   }
   return value;
 }

@@ -143,6 +143,42 @@ describe('renderText', () => {
     expect(output).toContain('- Use `pnpm test` or add a "test:unit" script to package.json.');
   });
 
+  test('prints resource-limit guidance when files were skipped', () => {
+    const output = renderText({
+      ...emptyReport,
+      scanResource: {
+        filesRead: 1,
+        bytesRead: 20,
+        skippedFiles: [{ path: 'README.md', reason: 'file-too-large', sizeBytes: 2000, limitBytes: 1000 }],
+        hitLimit: true
+      }
+    });
+
+    expect(output).toContain('Scan resource limits: skipped 1 context file(s). Results may be incomplete.');
+    expect(output).toContain('Next: narrow the scan with --exclude or scan a package root.');
+  });
+
+  test('prints concise finding title and suggested fix in text output', () => {
+    const output = renderText({
+      ...emptyReport,
+      findings: [
+        {
+          id: 'hidden-architecture-doc',
+          title: 'Architecture doc is not visible from agent instructions',
+          category: 'architecture-doc',
+          severity: 'warning',
+          confidence: 'high',
+          evidence: [{ kind: 'architecture-doc', message: 'docs/ARCHITECTURE.md appears to be an architecture source of truth.' }],
+          suggestion: 'Mention docs/ARCHITECTURE.md exactly in agent-visible first-read instructions.'
+        }
+      ],
+      summary: scanSummary({ errors: 0, warnings: 1, infos: 0 })
+    });
+
+    expect(output).toContain('Why: Architecture doc is not visible from agent instructions');
+    expect(output).toContain('Fix: Mention docs/ARCHITECTURE.md exactly in agent-visible first-read instructions.');
+  });
+
   test('omits optional sections when a finding has no evidence or suggestion', () => {
     const output = renderText({
       ...emptyReport,

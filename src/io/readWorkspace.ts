@@ -1,12 +1,21 @@
 import fg from 'fast-glob';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RawFile } from '../core/types.js';
+import type { RawFile, ScanResourceSummary, ScanSkippedFile } from '../core/types.js';
 import { instructionSurfaceGlobs } from '../extractors/instructionSurfaces.js';
+import { defaultWorkspaceResourceLimits, type WorkspaceResourceLimits } from './resourceLimits.js';
 
 export type WorkspaceDiscoveryConfig = {
   include: string[];
   exclude: string[];
+  limits?: Partial<WorkspaceResourceLimits>;
+  returnResource?: boolean;
+  onAfterStatForTest?: (path: string) => Promise<void>;
+};
+
+export type WorkspaceReadResult = {
+  files: RawFile[];
+  resource: ScanResourceSummary;
 };
 
 const defaultIncludeGlobs = [
@@ -45,10 +54,12 @@ const defaultIncludeGlobs = [
 
 const defaultExcludeGlobs = ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**', '**/.next/**', '**/coverage/**'];
 
+export function readWorkspace(root: string, config?: WorkspaceDiscoveryConfig & { returnResource?: false }): Promise<RawFile[]>;
+export function readWorkspace(root: string, config: WorkspaceDiscoveryConfig & { returnResource: true }): Promise<WorkspaceReadResult>;
 export async function readWorkspace(
   root: string,
   config: WorkspaceDiscoveryConfig = { include: [], exclude: [] }
-): Promise<RawFile[]> {
+): Promise<RawFile[] | WorkspaceReadResult> {
   const paths = await fg([...defaultIncludeGlobs, ...config.include], {
     cwd: root,
     dot: true,
@@ -58,9 +69,46 @@ export async function readWorkspace(
   });
   const canonicalPaths = await Promise.all(paths.map((path) => canonicalRelativePath(root, normalizePath(path))));
   const sortedPaths = uniqueCaseInsensitive(canonicalPaths).sort(comparePaths);
-  const files = await Promise.all(sortedPaths.map((path) => readOptionalFile(root, path)));
+  const limits = { ...defaultWorkspaceResourceLimits, ...(config.limits ?? {}) };
+  const files: RawFile[] = [];
+  const skippedFiles: ScanSkippedFile[] = [];
+  let bytesRead = 0;
 
-  return files.filter((file): file is RawFile => file !== undefined);
+  for (const path of sortedPaths) {
+    if (files.length >= limits.maxFiles) {
+      skippedFiles.push({ path, reason: 'file-count-limit' });
+      continue;
+    }
+
+    const sizeBytes = await fileSize(root, path);
+    if (sizeBytes !== undefined && sizeBytes > limits.maxFileBytes) {
+      skippedFiles.push({ path, reason: 'file-too-large', sizeBytes, limitBytes: limits.maxFileBytes });
+      continue;
+    }
+    if (sizeBytes !== undefined && bytesRead + sizeBytes > limits.maxTotalBytes) {
+      skippedFiles.push({ path, reason: 'total-bytes-limit', sizeBytes, limitBytes: limits.maxTotalBytes });
+      continue;
+    }
+
+    await config.onAfterStatForTest?.(path);
+    const file = await readOptionalFile(root, path, sizeBytes);
+    if (file !== undefined) {
+      bytesRead += file.sizeBytes ?? Buffer.byteLength(file.content, 'utf8');
+      files.push(file);
+    }
+  }
+
+  const result = {
+    files,
+    resource: {
+      filesRead: files.length,
+      bytesRead,
+      skippedFiles,
+      hitLimit: skippedFiles.length > 0
+    }
+  };
+
+  return config.returnResource ? result : result.files;
 }
 
 function normalizePath(path: string): string {
@@ -107,11 +155,24 @@ function comparePaths(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-async function readOptionalFile(root: string, path: string): Promise<RawFile | undefined> {
+async function fileSize(root: string, path: string): Promise<number | undefined> {
+  try {
+    return (await stat(join(root, path))).size;
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+async function readOptionalFile(root: string, path: string, sizeBytes?: number): Promise<RawFile | undefined> {
   try {
     return {
       path,
-      content: await readFile(join(root, path), 'utf8')
+      content: await readFile(join(root, path), 'utf8'),
+      sizeBytes
     };
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {

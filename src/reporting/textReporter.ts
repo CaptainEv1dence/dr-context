@@ -15,11 +15,16 @@ export function renderText(report: Report, options: TextReportOptions = {}): str
       'No context rot found.',
       'Next: run `drctx manifest --root .` to inspect recognized context.'
     ];
+    appendScanResourceGuidance(lines, report);
     appendSuppressed(lines, report, options);
     return `${lines.join('\n')}\n`;
   }
 
   const lines = ['Dr. Context', '', renderHealth(report.summary.health), '', `Found ${report.findings.length} finding(s).`, ''];
+  appendScanResourceGuidance(lines, report);
+  if (report.scanResource?.hitLimit) {
+    lines.push('');
+  }
 
   for (const [index, finding] of report.findings.entries()) {
     lines.push(renderFinding(finding, index + 1), '');
@@ -37,8 +42,13 @@ export function renderText(report: Report, options: TextReportOptions = {}): str
 function renderFinding(finding: Finding, index: number): string {
   const lines = [
     `${index}. ${finding.severity.toUpperCase()} ${finding.id} (${finding.confidence})`,
-    `${formatSource(finding.primarySource)} - ${finding.title}`
+    `${formatSource(finding.primarySource)} - ${finding.title}`,
+    `Why: ${finding.title}`
   ];
+
+  if (finding.suggestion && !usesCoverageGuidance(finding)) {
+    lines.push(`Fix: ${finding.suggestion}`);
+  }
 
   if (finding.evidence.length > 0) {
     lines.push('', 'Evidence:', ...finding.evidence.map(renderEvidenceItem));
@@ -49,6 +59,18 @@ function renderFinding(finding: Finding, index: number): string {
   }
 
   return lines.join('\n');
+}
+
+function appendScanResourceGuidance(lines: string[], report: Report): void {
+  if (!report.scanResource?.hitLimit) {
+    return;
+  }
+
+  lines.push(
+    '',
+    `Scan resource limits: skipped ${report.scanResource.skippedFiles.length} context file(s). Results may be incomplete.`,
+    'Next: narrow the scan with --exclude or scan a package root.'
+  );
 }
 
 function renderHealth(health: Report['summary']['health']): string {
