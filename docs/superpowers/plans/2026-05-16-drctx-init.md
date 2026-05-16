@@ -124,7 +124,7 @@ describe('init plan', () => {
     const combined = plan.files.map((entry) => entry.content ?? '').join('\n');
 
     expect(combined).not.toMatch(/[A-Z]:\\|\/Users\/|\/home\//);
-    expect(combined).not.toMatch(/token|secret|password|api[_-]?key/i);
+    expect(combined).not.toMatch(/password|api[_-]?key|Bearer [A-Za-z0-9._-]+|npm_[A-Za-z0-9]/i);
     expect(combined).toContain('corepack pnpm test');
     expect(combined).toContain('corepack pnpm run typecheck');
     expect(combined).toContain('corepack pnpm run lint');
@@ -253,7 +253,13 @@ git commit -m "feat: plan init starter files"
 
 - [ ] **Step 0: Ensure synthetic repos exist for empty fixtures**
 
-In `tests/cli.test.ts`, update `makeSyntheticRepo` so it creates the root directory before writing files:
+In `tests/cli.test.ts`, update the path import to include `dirname`:
+
+```ts
+import { dirname, join, resolve } from 'node:path';
+```
+
+Then update `makeSyntheticRepo` so it creates the root directory before writing files:
 
 ```ts
 async function makeSyntheticRepo(files: Record<string, string>): Promise<string> {
@@ -561,7 +567,7 @@ git commit -m "feat: add dry-run init command"
 
 Add a short section near first-run usage:
 
-```md
+````md
 ### Start a new repo safely
 
 Preview starter files without writing anything:
@@ -577,7 +583,7 @@ drctx init --root . --write
 ```
 
 `drctx init` never overwrites existing files. It creates `.drctx.json` when missing and creates `AGENTS.md` only when no recognized instruction surface exists.
-```
+````
 
 - [ ] **Step 2: Update roadmap**
 
@@ -696,7 +702,7 @@ Expected: no uncommitted repo files. Branch is ahead by init commits.
 Run:
 
 ```powershell
-$content = "drctx init implemented and verified: targeted tests, full tests, typecheck, lint, build, pack dry-run, npm publish dry-run, init dry-run, self-scan, and manifest all passed."
+$content = "drctx init implemented and verified: targeted tests, full tests, typecheck, lint, build, pack dry-run, init dry-run, self-scan, and manifest passed. npm publish dry-run was run only if explicitly enabled."
 obsidian append path="AgentContextHygiene/Log.md" content="$content"
 ```
 
