@@ -75,6 +75,22 @@ drctx check
 
 The npm package exposes both binaries: `dr-context` and `drctx`.
 
+### Start a new repo safely
+
+Preview starter files without writing anything:
+
+```bash
+drctx init --root .
+```
+
+Create only missing starter files:
+
+```bash
+drctx init --root . --write
+```
+
+`drctx init` never overwrites existing files. It creates `.drctx.json` when missing and creates `AGENTS.md` only when no recognized instruction surface exists.
+
 Print the canonical context contract for a repository:
 
 ```bash

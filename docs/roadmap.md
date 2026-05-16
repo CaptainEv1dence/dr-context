@@ -72,6 +72,10 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 
 ## Next
 
+- `drctx init` adoption slice:
+  - Dry-run preview by default.
+  - `--write` creates only missing `.drctx.json` and `AGENTS.md` starter files.
+  - No overwrite, no network, no LLM, no GitHub Action generation.
 - Pre-0.4 gap closure:
   - Refresh detection-only instruction surface coverage for GitHub custom agents, local Claude context, Junie, Jules, and skill files.
   - Keep `.mcp.json` as manifest/config context only until an MCP implementation plan exists.
@@ -103,7 +107,6 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
 - Ruler and Repomix integrations should start as docs recipes before code dependencies.
 - MCP context gate after scoped manifests, config, and baseline mode are stable.
 - Optional safe fixes with `--dry-run` before any write mode.
-- Optional `drctx init` or templates for starter `AGENTS.md` / `.drctx.json`, with dry-run and no-overwrite behavior before any write mode.
 - Optional agent view/probe simulation for Claude, Codex, Copilot, Cursor, OpenCode, and other adapters.
 - Optional AI remediation and prompt generation on top of deterministic findings.
 - Optional context compaction, session stale-assumption detector, handoff/checkpoint generation, Ruler/Repomix integrations, and safe fix suggestions.
