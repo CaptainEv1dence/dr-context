@@ -10,6 +10,20 @@
 
 ---
 
+## Plan review amendments
+
+These amendments supersede any conflicting task text below.
+
+1. Do not use `readWorkspace` alone for init planning. It does not read `.drctx.json` by default and can miss nested instruction surfaces. Add an explicit filesystem discovery helper for init that checks target file existence and recognized instruction surfaces.
+2. Ensure synthetic repo roots exist in tests. `makeSyntheticRepo({})` may return a non-created path, so init CLI tests must either seed a file or update the helper to create the root directory before writing files.
+3. Do not include a `$schema` URL in generated `.drctx.json` until this repo ships a real schema file.
+4. Add tests for existing `AGENTS.md` preservation, nested recognized instruction surfaces, and root-relative output with no absolute local paths.
+5. Do not run network/auth-adjacent `npm publish --dry-run` unless explicitly enabled for release verification. `corepack pnpm run pack:dry-run` is the required local package-content check.
+6. Obsidian append is project logging, not product behavior. If Obsidian CLI fails, do not block source implementation. Record the failure in the final response.
+7. Final self-scan must parse JSON and verify `findings.length === 0`, not just exit code `0`.
+
+---
+
 ## Scope
 
 In scope:
@@ -35,6 +49,8 @@ Out of scope:
 
 - `src/init/initPlan.ts`  
   Pure planning and text template generation for init.
+- `src/init/readInitInputs.ts`
+  Explicit filesystem reader for init target-file existence and recognized instruction-surface discovery.
 - `tests/initPlan.test.ts`  
   Unit tests for dry-run planning, existing-file behavior, and template content.
 
@@ -165,7 +181,6 @@ export function planInit(files: RawFile[]): InitPlan {
 
 export function configTemplate(): string {
   return `${JSON.stringify({
-    $schema: 'https://raw.githubusercontent.com/CaptainEv1dence/dr-context/main/schema/drctx.schema.json',
     maxFiles: 500,
     maxFileBytes: 262144,
     maxTotalBytes: 1048576,
@@ -232,8 +247,28 @@ git commit -m "feat: plan init starter files"
 ## Task 2: CLI init command, dry-run and write mode
 
 **Files:**
+- Create: `src/init/readInitInputs.ts`
 - Modify: `src/cli/main.ts`
 - Modify: `tests/cli.test.ts`
+
+- [ ] **Step 0: Ensure synthetic repos exist for empty fixtures**
+
+In `tests/cli.test.ts`, update `makeSyntheticRepo` so it creates the root directory before writing files:
+
+```ts
+async function makeSyntheticRepo(files: Record<string, string>): Promise<string> {
+  const root = resolve(fixturesRoot, `synthetic-${crypto.randomUUID()}`);
+  await mkdir(root, { recursive: true });
+  for (const [relativePath, content] of Object.entries(files)) {
+    const absolutePath = join(root, relativePath);
+    await mkdir(dirname(absolutePath), { recursive: true });
+    await writeFile(absolutePath, content);
+  }
+  return root;
+}
+```
+
+If the helper already creates the root, leave it unchanged and record that in the task summary.
 
 - [ ] **Step 1: Add failing CLI tests**
 
@@ -251,6 +286,8 @@ Append these tests to `tests/cli.test.ts` near other command tests:
     expect(result.stdout).toContain('Would create:');
     expect(result.stdout).toContain('- .drctx.json');
     expect(result.stdout).toContain('- AGENTS.md');
+    expect(result.stdout).not.toContain(root);
+    await expect(import('node:fs/promises').then(({ readFile }) => readFile(join(root, '.drctx.json'), 'utf8'))).rejects.toThrow();
     await expect(import('node:fs/promises').then(({ readFile }) => readFile(join(root, 'AGENTS.md'), 'utf8'))).rejects.toThrow();
   });
 
@@ -280,6 +317,32 @@ Append these tests to `tests/cli.test.ts` near other command tests:
     expect(await import('node:fs/promises').then(({ readFile }) => readFile(join(root, '.drctx.json'), 'utf8'))).toBe('{"strict":true}\n');
     await expect(import('node:fs/promises').then(({ readFile }) => readFile(join(root, 'AGENTS.md'), 'utf8'))).rejects.toThrow();
   });
+
+  test('init --write preserves existing AGENTS.md content', async () => {
+    const root = await makeSyntheticRepo({
+      'AGENTS.md': '# Existing agent instructions\n'
+    });
+
+    const result = await runCli(['node', 'dr-context', 'init', '--root', root, '--write']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(await import('node:fs/promises').then(({ readFile }) => readFile(join(root, '.drctx.json'), 'utf8'))).toContain('maxFiles');
+    expect(await import('node:fs/promises').then(({ readFile }) => readFile(join(root, 'AGENTS.md'), 'utf8'))).toBe('# Existing agent instructions\n');
+  });
+
+  test('init does not create root AGENTS.md when a nested instruction surface exists', async () => {
+    const root = await makeSyntheticRepo({
+      'service/AGENTS.md': '# Service instructions\n'
+    });
+
+    const result = await runCli(['node', 'dr-context', 'init', '--root', root, '--write']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    await expect(import('node:fs/promises').then(({ readFile }) => readFile(join(root, 'AGENTS.md'), 'utf8'))).rejects.toThrow();
+    expect(await import('node:fs/promises').then(({ readFile }) => readFile(join(root, '.drctx.json'), 'utf8'))).toContain('maxFiles');
+  });
 ```
 
 - [ ] **Step 2: Run CLI tests and verify failure**
@@ -292,7 +355,66 @@ corepack pnpm exec vitest run tests/cli.test.ts
 
 Expected: FAIL because `init` is unknown.
 
-- [ ] **Step 3: Add CLI routing and write behavior**
+- [ ] **Step 3: Add explicit init input reader**
+
+Create `src/init/readInitInputs.ts` with:
+
+```ts
+import { access, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import fg from 'fast-glob';
+import type { RawFile } from '../core/types.js';
+import { getInstructionSurfaceForPath, instructionSurfaceGlobs } from '../extractors/instructionSurfaces.js';
+
+export async function readInitInputs(root: string): Promise<RawFile[]> {
+  const files: RawFile[] = [];
+
+  if (await exists(join(root, '.drctx.json'))) {
+    files.push({ path: '.drctx.json', content: '' });
+  }
+
+  const paths = await fg(instructionSurfaceGlobs, {
+    cwd: root,
+    onlyFiles: true,
+    dot: true,
+    unique: true,
+    ignore: ['**/node_modules/**', '**/.git/**']
+  });
+
+  for (const path of paths.sort()) {
+    const normalized = path.replace(/\\/g, '/');
+    if (!getInstructionSurfaceForPath(normalized)) {
+      continue;
+    }
+    files.push({ path: normalized, content: await readFile(join(root, normalized), 'utf8') });
+  }
+
+  return dedupeByPath(files);
+}
+
+async function exists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function dedupeByPath(files: RawFile[]): RawFile[] {
+  const seen = new Set<string>();
+  return files.filter((file) => {
+    const key = file.path.toLowerCase();
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+```
+
+- [ ] **Step 4: Add CLI routing and write behavior**
 
 Modify `src/cli/main.ts`:
 
@@ -301,7 +423,7 @@ Modify `src/cli/main.ts`:
 ```ts
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, extname, resolve } from 'node:path';
-import { readWorkspace } from '../io/readWorkspace.js';
+import { readInitInputs } from '../init/readInitInputs.js';
 import { planInit, type InitPlan } from '../init/initPlan.js';
 ```
 
@@ -328,8 +450,7 @@ Place it before `explainAction` to keep explain last.
       try {
         const effectiveOptions = { ...parentOptions, ...options };
         const root = effectiveOptions.root ? resolve(effectiveOptions.root) : process.cwd();
-        const workspace = await readWorkspace(root, { include: [], exclude: [] });
-        const initPlan = planInit(workspace);
+        const initPlan = planInit(await readInitInputs(root));
 
         if (effectiveOptions.write) {
           for (const entry of initPlan.files) {
@@ -398,7 +519,7 @@ function renderInitPlan(plan: InitPlan, options: { write: boolean }): string {
 }
 ```
 
-- [ ] **Step 4: Run CLI tests and verify pass**
+- [ ] **Step 5: Run CLI tests and verify pass**
 
 Run:
 
@@ -408,13 +529,13 @@ corepack pnpm exec vitest run tests/cli.test.ts tests/initPlan.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 Before commit, run:
 
 ```powershell
-git diff --check -- src/cli/main.ts tests/cli.test.ts
-git grep -n -E "bug bounties|wallet-core|wallet-core-dev-audit|PayPal|paypal|D:/random/bug|D:\\random\\bug|npm_[A-Za-z0-9]|ghp_[A-Za-z0-9]|github_pat_|Bearer [A-Za-z0-9._-]+|BEGIN (RSA|OPENSSH|PRIVATE) KEY" -- src/cli/main.ts tests/cli.test.ts
+git diff --check -- src/cli/main.ts src/init/readInitInputs.ts tests/cli.test.ts
+git grep -n -E "bug bounties|wallet-core|wallet-core-dev-audit|PayPal|paypal|D:/random/bug|D:\\random\\bug|npm_[A-Za-z0-9]|ghp_[A-Za-z0-9]|github_pat_|Bearer [A-Za-z0-9._-]+|BEGIN (RSA|OPENSSH|PRIVATE) KEY" -- src/cli/main.ts src/init/readInitInputs.ts tests/cli.test.ts
 ```
 
 Expected: no whitespace errors and no sensitive matches. If `git grep` exits `1` due no matches, treat as success.
@@ -422,7 +543,7 @@ Expected: no whitespace errors and no sensitive matches. If `git grep` exits `1`
 Commit:
 
 ```powershell
-git add src/cli/main.ts tests/cli.test.ts
+git add src/cli/main.ts src/init/readInitInputs.ts tests/cli.test.ts
 git commit -m "feat: add dry-run init command"
 ```
 
@@ -525,10 +646,11 @@ corepack pnpm run typecheck
 corepack pnpm run lint
 corepack pnpm run build
 corepack pnpm run pack:dry-run
-npm publish --dry-run --access public
+if ($env:DRCTX_RUN_NPM_PUBLISH_DRY_RUN -eq '1') { npm publish --dry-run --access public } else { "Skipping npm publish dry-run; set DRCTX_RUN_NPM_PUBLISH_DRY_RUN=1 to run network/auth-adjacent dry-run." }
 node dist/cli/main.js init --root .
-node dist/cli/main.js check --json --root .
+node dist/cli/main.js check --json --root . | Tee-Object -Variable selfScanJson
 node dist/cli/main.js manifest --json --root .
+if ((($selfScanJson | ConvertFrom-Json).findings | Measure-Object).Count -ne 0) { throw 'self-scan produced findings' }
 ```
 
 Expected:
@@ -538,7 +660,7 @@ targeted tests pass
 full tests pass
 typecheck/lint/build pass
 pack dry-run reports dr-context@0.3.12 unless version is bumped later
-npm publish dry-run succeeds, or skip is explicitly recorded if auth/network unavailable
+npm publish dry-run succeeds when explicitly enabled, or skip is explicitly recorded
 init dry-run prints preview and does not write files
 self-scan findings []
 manifest renders successfully
