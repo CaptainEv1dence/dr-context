@@ -13,8 +13,7 @@ export function extractMcpConfigFiles(files: RawFile[]): ManifestConfigFile[] {
         scope: 'repo',
         source: {
           file: file.path,
-          line: 1,
-          text: file.content.split('\n')[0]?.trim() ?? ''
+          line: 1
         }
       }
     ];

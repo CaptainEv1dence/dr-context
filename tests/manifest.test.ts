@@ -106,6 +106,29 @@ describe('buildManifest', () => {
     ]);
   });
 
+  test('manifest JSON includes MCP config context without config body text', async () => {
+    const sentinelConfigBody = 'SENTINEL_SECRET_LIKE_MCP_CONFIG_BODY';
+    const root = await makeRepo({
+      'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
+      '.mcp.json': `{"mcpServers":{"local":{"command":"node","env":{"TOKEN":"${sentinelConfigBody}"}}}}`
+    });
+
+    const manifest = await buildManifest(root, { include: [], exclude: [], strict: false });
+    const jsonText = renderManifestJson(manifest);
+    const output = JSON.parse(jsonText);
+
+    expect(output.configFiles).toEqual([
+      expect.objectContaining({
+        path: '.mcp.json',
+        type: 'mcp',
+        scope: 'repo',
+        source: expect.objectContaining({ file: '.mcp.json', line: 1 })
+      })
+    ]);
+    expect(output.configFiles[0].source).not.toHaveProperty('text');
+    expect(jsonText).not.toContain(sentinelConfigBody);
+  });
+
   test('includes missing first-read references from agent docs', async () => {
     const root = await makeRepo({
       'package.json': '{"packageManager":"pnpm@11.1.1","scripts":{"test":"vitest run"}}',
