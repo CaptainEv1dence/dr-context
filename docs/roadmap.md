@@ -69,10 +69,12 @@ This roadmap tracks shipped and deferred work for Dr. Context. The scanner shoul
   - Monorepo package-root discovery guidance for package-level manifests and checks.
   - Context-quality checks for unindexed historical context, README verification guidance, exact architecture-doc references, parent policy visibility, and live-operation boundaries.
   - Expanded generated-output boundary detection with false-positive guards for bare build commands.
+- `drctx init` is implemented on `main` for the next release, but is not available in the published `dr-context@0.3.12` npm package.
 
 ## Next
 
-- `drctx init` adoption slice:
+- `drctx init` release/adoption slice:
+  - Publish the already-implemented `main` work in the next npm release.
   - Dry-run preview by default.
   - `--write` creates only missing `.drctx.json` and `AGENTS.md` starter files.
   - No overwrite, no network, no LLM, no GitHub Action generation.
